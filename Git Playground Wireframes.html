@@ -1,0 +1,625 @@
+<!doctype html>
+<html
+    lang="en"
+    data-theme="light"
+    data-node="circle"
+    data-sidebar="left"
+    data-ticker="bottom"
+>
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Git Playground — Wireframes</title>
+        <link rel="stylesheet" href="wireframe.css" />
+    </head>
+    <body>
+        <div class="wrap">
+            <header class="top">
+                <div class="brand">
+                    <div class="logo">⎇</div>
+                    <div>
+                        <h1>Git Playground</h1>
+                        <div class="sub">
+                            Visual-to-code learning canvas — wireframe
+                            exploration
+                        </div>
+                    </div>
+                </div>
+                <div class="stamp">Lo-fi · v1 · not final art</div>
+            </header>
+
+            <nav class="tabs" role="tablist">
+                <button
+                    class="tab"
+                    role="tab"
+                    data-view="layouts"
+                    aria-selected="true"
+                >
+                    App layouts
+                </button>
+                <button class="tab" role="tab" data-view="canvas">
+                    Canvas interactions
+                </button>
+                <button class="tab" role="tab" data-view="ticker">
+                    Command ticker
+                </button>
+                <button class="tab" role="tab" data-view="learn">
+                    Learning mode
+                </button>
+            </nav>
+
+            <!-- ============ LAYOUTS ============ -->
+            <section class="view active" data-view="layouts">
+                <p class="viewnote">
+                    Three ways to arrange the shell. Same canvas, different
+                    framing. Flip <b>sidebar side</b> &amp;
+                    <b>ticker position</b> live in Tweaks.
+                </p>
+
+                <div class="frames">
+                    <!-- A -->
+                    <div class="hb frame" data-screen-label="Layout A">
+                        <div class="shead">
+                            <div class="n">A</div>
+                            <h2>Left sidebar IDE</h2>
+                            <span class="tag"
+                                >classic · sidebar + canvas + ticker</span
+                            >
+                        </div>
+                        <div
+                            style="
+                                display: flex;
+                                flex-direction: column;
+                                gap: 12px;
+                            "
+                        >
+                            <div class="applayout flip">
+                                <div class="hb thin sidebar">
+                                    <div class="grp">Levels</div>
+                                    <div class="hb thin si on">
+                                        02 · Branching<small>in progress</small>
+                                    </div>
+                                    <div class="hb thin si">
+                                        03 · Cherry-pick
+                                    </div>
+                                    <div class="grp">Session</div>
+                                    <div class="hb thin si">
+                                        command history<small>7 actions</small>
+                                    </div>
+                                    <div class="grp">Docs</div>
+                                    <div class="hb thin si">git reference</div>
+                                </div>
+                                <div class="hb thin canvasZone">
+                                    <div class="czlabel">
+                                        canvas · drag to manipulate
+                                    </div>
+                                    <div data-graph="mini"></div>
+                                </div>
+                            </div>
+                            <div data-tickerslot>
+                                <div class="ticker">
+                                    <span class="prompt">$</span
+                                    ><span
+                                        >git&nbsp;status — working tree
+                                        clean</span
+                                    ><span class="badge">ticker</span>
+                                </div>
+                            </div>
+                        </div>
+                        <p
+                            class="desc"
+                            style="
+                                color: var(--soft);
+                                font-size: 14px;
+                                margin: 12px 4px 0;
+                            "
+                        >
+                            Everything docked. Best for guided lessons — the
+                            level + history are always in view.
+                        </p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ============ CANVAS INTERACTIONS ============ -->
+            <section class="view" data-view="canvas">
+                <p class="viewnote">
+                    The core mechanic: <b>visual gesture → real git command</b>.
+                    Each move narrates itself and rewrites the graph.
+                </p>
+
+                <div class="beats">
+                    <div class="hb beat" data-screen-label="Add commit">
+                        <div class="bhead">
+                            <span class="k">click</span>
+                            <h3>Add a commit</h3>
+                        </div>
+                        <p class="desc">
+                            A pulsing ghost <b>+</b> node always floats next to
+                            <b>HEAD</b>. Click it to spawn a commit and march
+                            the branch pointer forward.
+                        </p>
+                        <div data-graph="addcommit"></div>
+                        <div style="margin-top: 8px">
+                            <span class="cmdpill"
+                                ><span class="pre">$</span>git commit -m "feat:
+                                new commit"</span
+                            >
+                        </div>
+                    </div>
+
+                    <div class="hb beat alt" data-screen-label="Cherry-pick">
+                        <div class="bhead">
+                            <span class="k">drag</span>
+                            <h3>Cherry-pick a commit</h3>
+                        </div>
+                        <p class="desc">
+                            Grab a single commit off <b>feature</b> and drop it
+                            on <b>main</b>'s tip. A dashed duplicate
+                            <b>c5'</b> previews where it lands.
+                        </p>
+                        <div data-graph="cherrypick"></div>
+                        <div style="margin-top: 8px">
+                            <span class="cmdpill"
+                                ><span class="pre">$</span>git cherry-pick
+                                c5</span
+                            >
+                        </div>
+                    </div>
+
+                    <div class="hb beat r3" data-screen-label="Rebase">
+                        <div class="bhead">
+                            <span class="k">drag</span>
+                            <h3>Rebase a branch</h3>
+                        </div>
+                        <p class="desc">
+                            Drag the whole <b>feature</b> label onto
+                            <b>main</b>'s tip. Its commits slide over onto c3 —
+                            history visibly rewriting.
+                        </p>
+                        <div data-graph="rebase"></div>
+                        <div style="margin-top: 8px">
+                            <span class="cmdpill"
+                                ><span class="pre">$</span>git rebase main</span
+                            >
+                        </div>
+                    </div>
+                </div>
+
+                <div class="legend">
+                    <span
+                        style="
+                            font-family: var(--mono);
+                            font-size: 12px;
+                            color: var(--muted);
+                        "
+                        >LEGEND</span
+                    >
+                    <span class="it"><span class="sw main"></span>main</span>
+                    <span class="it"><span class="sw feat"></span>feature</span>
+                    <span class="it"><span class="sw head"></span>HEAD</span>
+                    <span class="it"
+                        ><span class="sw ok"></span>previewed / new</span
+                    >
+                </div>
+            </section>
+
+            <!-- ============ COMMAND TICKER ============ -->
+            <section class="view" data-view="ticker">
+                <p class="viewnote">
+                    The terminal banner mirrors the mouse in real time, then
+                    commits the action to a running session log.
+                </p>
+
+                <div class="tickerCol">
+                    <div class="tkrow">
+                        <div class="lbl">
+                            <b>1 · Dragging</b
+                            ><small>ghost command tracks the gesture</small>
+                        </div>
+                        <div class="ticker ghost">
+                            <span class="prompt">$</span
+                            ><span>git rebase main</span
+                            ><span class="blink"></span>
+                        </div>
+                    </div>
+                    <div class="tkrow">
+                        <div class="lbl">
+                            <b>2 · Dropped</b
+                            ><small>flashes green &amp; locks in</small>
+                        </div>
+                        <div class="ticker flash">
+                            <span class="prompt">$</span
+                            ><span>git rebase main</span
+                            ><span class="badge">✓ executed</span>
+                        </div>
+                    </div>
+                    <div class="tkrow">
+                        <div class="lbl">
+                            <b>3 · Logged</b
+                            ><small>appended to session history</small>
+                        </div>
+                        <div
+                            class="hb terminal"
+                            data-screen-label="Session history"
+                        >
+                            <div class="tbar">
+                                <span class="dot"></span
+                                ><span class="dot"></span
+                                ><span class="dot"></span
+                                ><span>session — 4 actions</span>
+                            </div>
+                            <div class="tbody">
+                                <div class="tline">
+                                    <span class="p">$</span
+                                    ><span>git commit -m "init"</span>
+                                </div>
+                                <div class="tline">
+                                    <span class="p">$</span
+                                    ><span>git checkout -b feature</span>
+                                </div>
+                                <div class="tline">
+                                    <span class="p">$</span
+                                    ><span>git commit -m "wip"</span>
+                                </div>
+                                <div class="tline new">
+                                    <span class="p">$</span
+                                    ><span>git rebase main</span
+                                    ><span
+                                        style="
+                                            margin-left: auto;
+                                            color: var(--muted);
+                                        "
+                                        >just now</span
+                                    >
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <p class="viewnote" style="margin-top: 22px">
+                    Same banner, three resting states — placement options are
+                    explored as the <b>ticker</b> tweak (top / bottom) over in
+                    Layout A.
+                </p>
+            </section>
+
+            <!-- ============ LEARNING MODE ============ -->
+            <section class="view" data-view="learn">
+                <p class="viewnote">
+                    Wraps the sandbox in goals &amp; hints — or get out of the
+                    way entirely.
+                </p>
+
+                <div class="learnGrid">
+                    <div class="hb levels" data-screen-label="Levels">
+                        <h3>Levels</h3>
+                        <div class="lvl done">
+                            <div class="mk">✓</div>
+                            <div>01 · First commit<small>done</small></div>
+                        </div>
+                        <div class="lvl done">
+                            <div class="mk">✓</div>
+                            <div>02 · Make a branch<small>done</small></div>
+                        </div>
+                        <div class="lvl on">
+                            <div class="mk">3</div>
+                            <div>03 · Cherry-pick<small>current</small></div>
+                        </div>
+                        <div class="lvl lock">
+                            <div class="mk">4</div>
+                            <div>04 · Rebase<small>locked</small></div>
+                        </div>
+                        <div class="lvl lock">
+                            <div class="mk">5</div>
+                            <div>
+                                05 · Resolve a conflict<small>locked</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="hb goal alt" data-screen-label="Goal card">
+                        <div class="top">
+                            <h3>Level 03 — Cherry-pick</h3>
+                            <div class="modeswitch">
+                                <button class="on">Guided</button>
+                                <button>Sandbox</button>
+                            </div>
+                        </div>
+                        <p class="obj">
+                            <b style="color: var(--ink)">Goal:</b> move just the
+                            <b style="color: var(--feat)">c5</b> commit from
+                            <b>feature</b> onto <b>main</b>, without merging the
+                            rest of the branch.
+                        </p>
+                        <div data-graph="learncp"></div>
+                        <div class="chips">
+                            <span class="hb thin chip">target: main</span>
+                            <span class="hb thin chip">commits to move: 1</span>
+                            <span class="hb thin chip">attempts: 0</span>
+                        </div>
+                        <div class="hb thin hintbox dashed">
+                            <b>Hint ▸</b> Drag the commit node itself — not the
+                            branch label. The ticker will show
+                            <span style="font-family: var(--mono)"
+                                >git cherry-pick c5</span
+                            >
+                            before you let go.
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- tweaks mount -->
+        <div id="tweaks-root"></div>
+
+        <!-- graph specs -->
+        <script>
+            window.GRAPHS = {
+                mini: {
+                    h: 230,
+                    nodes: {
+                        c1: { x: 0.14, y: 0.66, cls: "main", text: "c1" },
+                        c2: { x: 0.34, y: 0.66, cls: "main", text: "c2" },
+                        c3: { x: 0.56, y: 0.66, cls: "main", text: "c3" },
+                        f1: { x: 0.5, y: 0.3, cls: "feat", text: "f1" },
+                        f2: { x: 0.72, y: 0.3, cls: "feat", text: "f2" },
+                        mL: {
+                            x: 0.56,
+                            y: 0.92,
+                            t: "label",
+                            cls: "main",
+                            text: "main",
+                        },
+                        fL: {
+                            x: 0.84,
+                            y: 0.3,
+                            t: "label",
+                            cls: "feat",
+                            text: "feature",
+                        },
+                        hd: {
+                            x: 0.72,
+                            y: 0.06,
+                            t: "label",
+                            cls: "head",
+                            text: "HEAD",
+                        },
+                    },
+                    edges: [
+                        ["c1", "c2", { cls: "main" }],
+                        ["c2", "c3", { cls: "main" }],
+                        ["c2", "f1", { cls: "feat" }],
+                        ["f1", "f2", { cls: "feat" }],
+                    ],
+                },
+
+                miniB: {
+                    h: 250,
+                    nodes: {
+                        c1: { x: 0.1, y: 0.58, cls: "main", text: "c1" },
+                        c2: { x: 0.28, y: 0.58, cls: "main", text: "c2" },
+                        c3: { x: 0.46, y: 0.58, cls: "main", text: "c3" },
+                        c4: { x: 0.64, y: 0.58, cls: "main", text: "c4" },
+                        f1: { x: 0.58, y: 0.24, cls: "feat", text: "f1" },
+                        mL: {
+                            x: 0.64,
+                            y: 0.84,
+                            t: "label",
+                            cls: "main",
+                            text: "main",
+                        },
+                        fL: {
+                            x: 0.58,
+                            y: 0.02,
+                            t: "label",
+                            cls: "feat",
+                            text: "feature",
+                        },
+                    },
+                    edges: [
+                        ["c1", "c2", { cls: "main" }],
+                        ["c2", "c3", { cls: "main" }],
+                        ["c3", "c4", { cls: "main" }],
+                        ["c3", "f1", { cls: "feat" }],
+                    ],
+                },
+
+                miniC: {
+                    h: 250,
+                    nodes: {
+                        c1: { x: 0.16, y: 0.5, cls: "main", text: "c1" },
+                        c2: { x: 0.4, y: 0.5, cls: "main", text: "c2" },
+                        c3: { x: 0.64, y: 0.5, cls: "main", text: "c3" },
+                        add: { x: 0.84, y: 0.5, t: "add", text: "+" },
+                        mL: {
+                            x: 0.64,
+                            y: 0.78,
+                            t: "label",
+                            cls: "main",
+                            text: "main",
+                        },
+                        hd: {
+                            x: 0.64,
+                            y: 0.18,
+                            t: "label",
+                            cls: "head",
+                            text: "HEAD",
+                        },
+                    },
+                    edges: [
+                        ["c1", "c2", { cls: "main" }],
+                        ["c2", "c3", { cls: "main" }],
+                        ["c3", "add", { cls: "ghost" }],
+                    ],
+                },
+
+                addcommit: {
+                    h: 215,
+                    nodes: {
+                        c1: { x: 0.12, y: 0.6, cls: "main", text: "c1" },
+                        c2: { x: 0.34, y: 0.6, cls: "main", text: "c2" },
+                        c3: { x: 0.56, y: 0.6, cls: "main", text: "c3" },
+                        add: { x: 0.76, y: 0.6, t: "add", text: "+" },
+                        mL: {
+                            x: 0.56,
+                            y: 0.9,
+                            t: "label",
+                            cls: "main",
+                            text: "main",
+                        },
+                        hd: {
+                            x: 0.56,
+                            y: 0.22,
+                            t: "label",
+                            cls: "head",
+                            text: "HEAD",
+                        },
+                    },
+                    edges: [
+                        ["c1", "c2", { cls: "main" }],
+                        ["c2", "c3", { cls: "main" }],
+                        ["c3", "add", { cls: "ghost" }],
+                    ],
+                    notes: [
+                        {
+                            x: 74,
+                            y: 74,
+                            w: 170,
+                            html: '<span class="arr">↗</span> always-on ghost,<br>pinned beside HEAD',
+                        },
+                    ],
+                },
+
+                cherrypick: {
+                    h: 240,
+                    nodes: {
+                        c1: { x: 0.1, y: 0.7, cls: "main", text: "c1" },
+                        c2: { x: 0.3, y: 0.7, cls: "main", text: "c2" },
+                        c3: { x: 0.52, y: 0.7, cls: "main", text: "c3" },
+                        f1: { x: 0.42, y: 0.26, cls: "feat", text: "c4" },
+                        f2: {
+                            x: 0.62,
+                            y: 0.26,
+                            cls: "feat dragging",
+                            text: "c5",
+                        },
+                        dup: { x: 0.78, y: 0.7, cls: "dup", text: "c5'" },
+                        mL: {
+                            x: 0.52,
+                            y: 0.95,
+                            t: "label",
+                            cls: "main",
+                            text: "main",
+                        },
+                    },
+                    edges: [
+                        ["c1", "c2", { cls: "main" }],
+                        ["c2", "c3", { cls: "main" }],
+                        ["c2", "f1", { cls: "feat" }],
+                        ["f1", "f2", { cls: "feat" }],
+                        ["f2", "dup", { cls: "ok" }],
+                        ["c3", "dup", { cls: "ok" }],
+                    ],
+                    notes: [
+                        { x: 64, y: 2, w: 150, html: "drag <b>c5</b> down ↓" },
+                    ],
+                },
+
+                rebase: {
+                    h: 260,
+                    nodes: {
+                        c1: { x: 0.1, y: 0.72, cls: "main", text: "c1" },
+                        c2: { x: 0.28, y: 0.72, cls: "main", text: "c2" },
+                        c3: { x: 0.48, y: 0.72, cls: "main", text: "c3" },
+                        f1: { x: 0.4, y: 0.26, cls: "feat", text: "c4" },
+                        f2: { x: 0.6, y: 0.26, cls: "feat", text: "c5" },
+                        g1: { x: 0.66, y: 0.5, cls: "dup", text: "c4'" },
+                        g2: { x: 0.84, y: 0.5, cls: "dup", text: "c5'" },
+                        mL: {
+                            x: 0.48,
+                            y: 0.95,
+                            t: "label",
+                            cls: "main",
+                            text: "main",
+                        },
+                        fL: {
+                            x: 0.74,
+                            y: 0.26,
+                            t: "label",
+                            cls: "feat drag-hint",
+                            text: "feature ↘",
+                        },
+                    },
+                    edges: [
+                        ["c1", "c2", { cls: "main" }],
+                        ["c2", "c3", { cls: "main" }],
+                        ["c2", "f1", { cls: "feat" }],
+                        ["f1", "f2", { cls: "feat" }],
+                        ["c3", "g1", { cls: "ok" }],
+                        ["g1", "g2", { cls: "ok" }],
+                    ],
+                    notes: [
+                        {
+                            x: 62,
+                            y: 62,
+                            w: 160,
+                            html: "commits slide onto <b>c3</b> →",
+                        },
+                    ],
+                },
+
+                learncp: {
+                    h: 215,
+                    nodes: {
+                        c1: { x: 0.12, y: 0.68, cls: "main", text: "c1" },
+                        c2: { x: 0.34, y: 0.68, cls: "main", text: "c2" },
+                        c3: { x: 0.56, y: 0.68, cls: "main", text: "c3" },
+                        f1: { x: 0.46, y: 0.26, cls: "feat", text: "c4" },
+                        f2: { x: 0.66, y: 0.26, cls: "feat", text: "c5" },
+                        target: { x: 0.78, y: 0.68, cls: "ghost", text: "?" },
+                        mL: {
+                            x: 0.56,
+                            y: 0.94,
+                            t: "label",
+                            cls: "main",
+                            text: "main",
+                        },
+                    },
+                    edges: [
+                        ["c1", "c2", { cls: "main" }],
+                        ["c2", "c3", { cls: "main" }],
+                        ["c2", "f1", { cls: "feat" }],
+                        ["f1", "f2", { cls: "feat" }],
+                        ["c3", "target", { cls: "ghost" }],
+                    ],
+                    notes: [
+                        { x: 68, y: 2, w: 130, html: "move only <b>c5</b>" },
+                    ],
+                },
+            };
+        </script>
+        <script src="graph.js"></script>
+
+        <!-- react + tweaks -->
+        <script
+            src="https://unpkg.com/react@18.3.1/umd/react.development.js"
+            integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L"
+            crossorigin="anonymous"
+        ></script>
+        <script
+            src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js"
+            integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm"
+            crossorigin="anonymous"
+        ></script>
+        <script
+            src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js"
+            integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y"
+            crossorigin="anonymous"
+        ></script>
+        <script type="text/babel" src="tweaks-panel.jsx"></script>
+        <script type="text/babel" src="tweaks-app.jsx"></script>
+    </body>
+</html>

@@ -1,0 +1,55 @@
+@import "tailwindcss";
+
+:root {
+  --bg: #f4f3ec;
+  --ink: #2c2b26;
+  --soft: #6e6c63;
+  --muted: #9a978c;
+  --panel: #fbfaf5;
+  --panel2: #eeece3;
+  --grid: rgba(44,43,38,.055);
+  --hair: rgba(44,43,38,.28);
+  --main: #3a6ea5;
+  --feat: #c5773a;
+  --head: #bd463f;
+  --ok: #3c8a57;
+  --ghost: rgba(44,43,38,.32);
+  --hand: 'Kalam', cursive;
+  --mono: 'JetBrains Mono', ui-monospace, monospace;
+}
+
+[data-theme="dark"] {
+  --bg: #10141a;
+  --ink: #e8e5da;
+  --soft: #aab0b8;
+  --muted: #737a83;
+  --panel: #171d25;
+  --panel2: #1f2630;
+  --grid: rgba(255,255,255,.045);
+  --hair: rgba(232,229,218,.26);
+  --main: #5b95d6;
+  --feat: #e0985a;
+  --head: #e0635b;
+  --ok: #56b87b;
+  --ghost: rgba(232,229,218,.30);
+}
+
+body {
+  background: var(--bg);
+  background-image: radial-gradient(var(--grid) 1.4px, transparent 1.4px);
+  background-size: 22px 22px;
+  color: var(--ink);
+  font-family: var(--hand);
+  margin: 0;
+  min-height: 100vh;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: .5; }
+  50% { opacity: 1; }
+}
+
+@keyframes tickerFlash {
+  0% { background: color-mix(in srgb, var(--ok) 10%, var(--panel)); }
+  100% { background: var(--panel); }
+}
