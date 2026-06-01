@@ -1,11 +1,11 @@
 import type { TickerEntry } from '../types';
 
-interface CommandTickerProps {
+type CommandTickerProps = {
   ticker: { command: string; state: 'idle' | 'ghost' | 'flash' };
   history: TickerEntry[];
-}
+};
 
-export function CommandTicker({ ticker, history }: CommandTickerProps) {
+export const CommandTicker = ({ ticker, history }: CommandTickerProps) => {
   const isIdle = ticker.state === 'idle';
   const isGhost = ticker.state === 'ghost';
   const isFlash = ticker.state === 'flash';
@@ -55,4 +55,4 @@ export function CommandTicker({ ticker, history }: CommandTickerProps) {
       </span>
     </div>
   );
-}
+};

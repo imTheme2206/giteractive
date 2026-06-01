@@ -1,14 +1,14 @@
 import { useEffect, useState } from 'react';
 
-interface ExplainerCardProps {
+type ExplainerCardProps = {
   command: string;
   onDismiss: () => void;
-}
+};
 
 const cardRadius = '255px 14px 225px 16px/16px 225px 14px 255px';
 const pillRadius = '60px 10px 60px 10px/10px 60px 10px 60px';
 
-function getExplanation(command: string): { title: string; body: string; color: string } | null {
+const getExplanation = (command: string): { title: string; body: string; color: string } | null => {
   if (command.startsWith('git checkout -b')) {
     const branch = command.split(' ')[2] ?? 'feature';
     return {
@@ -41,15 +41,13 @@ function getExplanation(command: string): { title: string; body: string; color: 
     };
   }
   return null;
-}
+};
 
-export function ExplainerCard({ command, onDismiss }: ExplainerCardProps) {
+export const ExplainerCard = ({ command, onDismiss }: ExplainerCardProps) => {
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
-    // Animate in
     const t1 = setTimeout(() => setVisible(true), 50);
-    // Auto-dismiss after 6s
     const t2 = setTimeout(() => {
       setVisible(false);
       setTimeout(onDismiss, 300);
@@ -80,7 +78,6 @@ export function ExplainerCard({ command, onDismiss }: ExplainerCardProps) {
           borderRadius: cardRadius,
         }}
       >
-        {/* Header */}
         <div className="flex items-start justify-between gap-2 mb-2">
           <div className="flex items-center gap-2">
             <span className="text-base">💡</span>
@@ -100,7 +97,6 @@ export function ExplainerCard({ command, onDismiss }: ExplainerCardProps) {
           </button>
         </div>
 
-        {/* Body */}
         <p
           className="text-sm text-[var(--soft)] leading-snug m-0 mb-3"
           style={{ fontFamily: 'var(--hand)' }}
@@ -108,7 +104,6 @@ export function ExplainerCard({ command, onDismiss }: ExplainerCardProps) {
           {explanation.body}
         </p>
 
-        {/* Command pill */}
         <span
           className="font-mono text-[11px] text-[var(--muted)] border border-[var(--hair)] px-2 py-0.5 bg-[var(--panel2)]"
           style={{ borderRadius: pillRadius }}
@@ -118,4 +113,4 @@ export function ExplainerCard({ command, onDismiss }: ExplainerCardProps) {
       </div>
     </div>
   );
-}
+};

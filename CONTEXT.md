@@ -18,7 +18,11 @@
 
 **Branch badge** — The ⎇ indicator shown on the HEAD commit node. Clicking it runs `git checkout -b <next-branch-name>`. Suppressed in Module 1. Presence signals "you can branch from here."
 
-**Detached HEAD** — A state where HEAD points directly at a commit hash rather than a branch name. Occurs after `git checkout <hash>`. Planned for a future iteration; not yet modelled in the canvas.
+**Detached HEAD** — A state where HEAD points directly at a commit hash rather than a branch name. Occurs after `git checkout <hash>`. Visually distinguished by a dashed border on the HEAD label pill. The `+` button is disabled (but visible) with a hover tip explaining why. The ⎇ branch badge remains on the HEAD commit so the user can anchor their work with `git checkout -b`.
+
+**`git checkout <hash>`** — Detaches HEAD to a specific commit. Triggered by clicking a non-HEAD commit node. Sandbox only, controlled by a `showCheckout` prop. Non-HEAD commits show a hover-only badge (visible on hover, not always-on) to signal the affordance.
+
+**`git checkout <branch>`** — Re-attaches HEAD to a branch. Triggered by clicking a branch label node in sandbox. Symmetric with clicking a commit node to detach.
 
 **Command ticker** — The terminal-style banner at the bottom of the canvas. Three states: ghost (while dragging, shows the inferred command), flash-green (on drop/confirm), logged (entry added to Session History in the sidebar).
 
@@ -36,6 +40,10 @@
 | MVP scope | Sandbox + Module 1 | Ship something complete before adding Modules 2 & 3 |
 | Branch badge placement | HEAD commit only, all modes except Module 1 | Matches real `git checkout -b` — you branch from where you are, not from arbitrary history |
 | Toolbar branch button | Removed; badge is the single affordance | Two affordances for the same action at different layers caused confusion |
+| Checkout gesture scope | Sandbox only (`showCheckout` prop) | Modules 2 and 3 have focused learning goals; detached HEAD mid-lesson would derail them |
+| `+` in detached HEAD | Visible but disabled with hover tip | Anonymous dangling commits are confusing without explanation; tip turns the block into a lesson |
+| Checkout affordance | Hover-only badge on non-HEAD commits | Always-visible badges on every commit clutters the graph; hover is discoverable without noise |
+| Re-attach gesture | Click branch label node → `git checkout <branch>` | Symmetric with clicking a commit to detach; branch labels are already interactive in sandbox |
 | Initial canvas state | 3-node linear chain: C1 → C2 → C3, `main` @ C3, `HEAD` @ main | Matches plan §Phase 1 |
 | Commit messages | Auto-generated (`feat: new commit N`) | No modal prompt in MVP |
 | Persistence | In-memory only (no localStorage) | Simplest correct default for v1 |

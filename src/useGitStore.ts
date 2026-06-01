@@ -2,6 +2,7 @@ import { useState } from "react";
 import {
   addCommit,
   cherryPick,
+  checkout,
   createBranch,
   getNextBranchName,
   makeModule3State,
@@ -9,10 +10,17 @@ import {
   makeSandboxState,
   rebase,
 } from "./gitState";
-import { LESSON_CHERRY_PICK } from "./lessons";
-import type { GitState, Mode, TickerEntry } from "./types";
+import { LESSON_LINEAR, LESSON_CHERRY_PICK } from "./lessons";
+import type { GitState, Mode, ModuleId, ModuleProgress, ModuleStatus, TickerEntry } from "./types";
 
-export function useGitStore() {
+const INITIAL_PROGRESS: ModuleProgress[] = [
+  { id: 'module1', status: 'available' },
+  { id: 'module2', status: 'locked' },
+  { id: 'module3', status: 'locked' },
+  { id: 'sandbox', status: 'available' },
+];
+
+export const useGitStore = () => {
   const [gitState, setGitState] = useState<GitState>(makeSandboxState);
   const [mode, setMode] = useState<Mode>("sandbox");
   const [history, setHistory] = useState<TickerEntry[]>([]);
@@ -23,13 +31,22 @@ export function useGitStore() {
     command: "",
     state: "idle",
   });
-  const [theme, setTheme] = useState<"light" | "dark">("light");
+  const [theme, setThemeState] = useState<"light" | "dark">(
+    () => (localStorage.getItem('theme') as 'light' | 'dark') ?? 'light'
+  );
+
+  const setTheme = (updater: 'light' | 'dark' | ((t: 'light' | 'dark') => 'light' | 'dark')) => {
+    setThemeState(prev => {
+      const next = typeof updater === 'function' ? updater(prev) : updater;
+      localStorage.setItem('theme', next);
+      return next;
+    });
+  };
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [module1Complete, setModule1Complete] = useState(false);
-  const [module2Complete, setModule2Complete] = useState(false);
-  const [module3Complete, setModule3Complete] = useState(false);
-  const [module3Attempts, setModule3Attempts] = useState(0);
-  const [module3Guided, setModule3Guided] = useState(true);
+  const [moduleProgress, setModuleProgress] = useState<ModuleProgress[]>(INITIAL_PROGRESS);
+  const [showCompletionOverlay, setShowCompletionOverlay] = useState(false);
+  const [moduleAttempts, setModuleAttempts] = useState(0);
+  const [moduleGuided, setModuleGuided] = useState(true);
 
   const logCommand = (command: string) => {
     setTicker({ command, state: "flash" });
@@ -46,13 +63,29 @@ export function useGitStore() {
     }, 1200);
   };
 
+  const setModuleStatus = (id: ModuleId, status: ModuleStatus) => {
+    setModuleProgress((prev) => prev.map((p) => (p.id === id ? { ...p, status } : p)));
+  };
+
+  const completeModule = (id: ModuleId, nextId?: ModuleId) => {
+    setModuleProgress((prev) =>
+      prev.map((p) => {
+        if (p.id === id) return { ...p, status: 'complete' };
+        if (nextId && p.id === nextId && p.status === 'locked') return { ...p, status: 'available' };
+        return p;
+      })
+    );
+    setShowCompletionOverlay(true);
+  };
+
   const doAddCommit = () => {
     const result = addCommit(gitState);
     setGitState(result.state);
     logCommand(result.command);
 
-    if (mode === "module1" && result.state.nextCommitNum >= 7) {
-      setModule1Complete(true);
+    if (mode === "module1") {
+      setModuleAttempts((n) => n + 1);
+      if (LESSON_LINEAR.validate(result.state)) completeModule('module1', 'module2');
     }
 
     if (mode === "module2") {
@@ -62,7 +95,7 @@ export function useGitStore() {
         const tipId = newState.branches[headBranch];
         const tipCommit = newState.commits[tipId];
         if (tipCommit?.branch && tipCommit.branch !== "main") {
-          setModule2Complete(true);
+          completeModule('module2', 'module3');
         }
       }
     }
@@ -75,11 +108,16 @@ export function useGitStore() {
     logCommand(result.command);
 
     if (mode === "module3") {
-      setModule3Attempts((n) => n + 1);
-      if (LESSON_CHERRY_PICK.validate(result.state)) {
-        setModule3Complete(true);
-      }
+      setModuleAttempts((n) => n + 1);
+      if (LESSON_CHERRY_PICK.validate(result.state)) completeModule('module3');
     }
+  };
+
+  const doCheckout = (target: string) => {
+    const result = checkout(gitState, target);
+    if (!result) return;
+    setGitState(result.state);
+    logCommand(result.command);
   };
 
   const doRebase = (branchToRebase: string, ontoBranch: string) => {
@@ -94,20 +132,25 @@ export function useGitStore() {
     const result = createBranch(gitState, commitId, branchName);
     setGitState(result.state);
     logCommand(result.command);
+
+    if (mode === "module2") {
+      setModuleAttempts((n) => n + 1);
+    }
   };
 
-const doReset = () => {
+  const doReset = () => {
     if (mode === "sandbox") {
       setGitState(makeSandboxState());
     } else if (mode === "module3") {
       setGitState(makeModule3State());
-      setModule3Complete(false);
-      setModule3Attempts(0);
+      setModuleStatus('module3', 'in_progress');
     } else {
       setGitState(makeModuleState());
-      if (mode === "module1") setModule1Complete(false);
-      if (mode === "module2") setModule2Complete(false);
+      if (mode === "module1") setModuleStatus('module1', 'in_progress');
+      if (mode === "module2") setModuleStatus('module2', 'in_progress');
     }
+    setShowCompletionOverlay(false);
+    setModuleAttempts(0);
     setHistory([]);
     setTicker({ command: "", state: "idle" });
   };
@@ -117,7 +160,14 @@ const doReset = () => {
     setGitState(makeModuleState());
     setHistory([]);
     setTicker({ command: "", state: "idle" });
-    setModule1Complete(false);
+    setShowCompletionOverlay(false);
+    setModuleAttempts(0);
+    setModuleGuided(true);
+    setModuleProgress((prev) =>
+      prev.map((p) =>
+        p.id === 'module1' && p.status === 'available' ? { ...p, status: 'in_progress' } : p
+      )
+    );
   };
 
   const enterModule2 = () => {
@@ -125,7 +175,14 @@ const doReset = () => {
     setGitState(makeModuleState());
     setHistory([]);
     setTicker({ command: "", state: "idle" });
-    setModule2Complete(false);
+    setShowCompletionOverlay(false);
+    setModuleAttempts(0);
+    setModuleGuided(true);
+    setModuleProgress((prev) =>
+      prev.map((p) =>
+        p.id === 'module2' && p.status === 'available' ? { ...p, status: 'in_progress' } : p
+      )
+    );
   };
 
   const enterModule3 = () => {
@@ -133,12 +190,18 @@ const doReset = () => {
     setGitState(makeModule3State());
     setHistory([]);
     setTicker({ command: "", state: "idle" });
-    setModule3Complete(false);
-    setModule3Attempts(0);
-    setModule3Guided(true);
+    setShowCompletionOverlay(false);
+    setModuleAttempts(0);
+    setModuleGuided(true);
+    setModuleProgress((prev) =>
+      prev.map((p) =>
+        p.id === 'module3' && p.status === 'available' ? { ...p, status: 'in_progress' } : p
+      )
+    );
   };
 
   const unlockSandbox = () => {
+    setShowCompletionOverlay(false);
     setMode("sandbox");
     setGitState((prev) => {
       if (prev.branches["feature"]) return { ...prev, HEAD: "main" };
@@ -170,15 +233,15 @@ const doReset = () => {
     setTheme,
     sidebarOpen,
     setSidebarOpen,
-    module1Complete,
-    module2Complete,
-    module3Complete,
-    module3Attempts,
-    module3Guided,
-    setModule3Guided,
+    moduleProgress,
+    showCompletionOverlay,
+    moduleAttempts,
+    moduleGuided,
+    setModuleGuided,
     doAddCommit,
     doCherryPick,
     doRebase,
+    doCheckout,
     doCreateBranch,
     doReset,
     enterModule1,

@@ -1,56 +1,75 @@
-import type { Mode, TickerEntry } from '../types';
+import type { Mode, ModuleId, ModuleProgress, ModuleStatus, TickerEntry } from '../types';
 
-interface SidebarProps {
+type SidebarProps = {
   history: TickerEntry[];
   mode: Mode;
-  module1Complete: boolean;
-  module2Complete: boolean;
-  module3Complete: boolean;
-  onEnterModule1: () => void;
-  onEnterModule2: () => void;
-  onEnterModule3: () => void;
-  onEnterSandbox: () => void;
-}
+  moduleProgress: ModuleProgress[];
+  onEnter: (id: ModuleId) => void;
+};
 
 const levelCardRadius = '255px 14px 225px 16px/16px 225px 14px 255px';
 const pillRadius = '60px 10px 60px 10px/10px 60px 10px 60px';
 
-function timeAgo(ts: number): string {
+const timeAgo = (ts: number): string => {
   const seconds = Math.floor((Date.now() - ts) / 1000);
   if (seconds < 5) return 'just now';
   if (seconds < 60) return `${seconds}s ago`;
   return `${Math.floor(seconds / 60)}m ago`;
 }
 
-interface LevelCardProps {
-  number: string;
+type CardDisplayStatus = 'active' | 'locked' | 'available' | 'in_progress' | 'complete';
+
+type ModuleCardProps = {
+  id: ModuleId;
+  number?: string;
   title: string;
   subtitle: string;
-  status: 'done' | 'active' | 'locked' | 'available';
+  status: CardDisplayStatus;
   onClick?: () => void;
-}
+};
 
-function LevelCard({ number, title, subtitle, status, onClick }: LevelCardProps) {
-  const isDone = status === 'done';
+const ModuleCard = ({ id, number, title, subtitle, status, onClick }: ModuleCardProps) => {
+  const isSandbox = id === 'sandbox';
   const isActive = status === 'active';
+  const isComplete = status === 'complete';
   const isLocked = status === 'locked';
+  const isInProgress = status === 'in_progress';
+
+  const accent = isSandbox ? 'var(--feat)' : 'var(--main)';
 
   const borderColor = isActive
-    ? 'var(--main)'
-    : isDone
+    ? accent
+    : isComplete
       ? 'var(--ok)'
-      : isLocked
-        ? 'var(--hair)'
-        : 'var(--hair)';
+      : 'var(--hair)';
 
   const bg = isActive
-    ? 'color-mix(in srgb, var(--main) 8%, var(--panel))'
-    : isDone
+    ? `color-mix(in srgb, ${accent} 8%, var(--panel))`
+    : isComplete
       ? 'color-mix(in srgb, var(--ok) 5%, var(--panel))'
       : 'var(--panel)';
 
-  const statusLabel = isActive ? 'active' : isDone ? '✓ done' : isLocked ? 'locked' : 'click to enter';
-  const statusColor = isActive ? 'var(--main)' : isDone ? 'var(--ok)' : isLocked ? 'var(--hair)' : 'var(--muted)';
+  const statusLabel = isActive
+    ? 'active'
+    : isComplete
+      ? '✓ done'
+      : isLocked
+        ? 'locked'
+        : isInProgress
+          ? 'in progress'
+          : 'click to enter';
+
+  const statusColor = isActive
+    ? accent
+    : isComplete
+      ? 'var(--ok)'
+      : isLocked
+        ? 'var(--hair)'
+        : isInProgress
+          ? accent
+          : 'var(--muted)';
+
+  const marginLeft = !isSandbox && number ? 'ml-6' : '';
 
   return (
     <div
@@ -65,19 +84,21 @@ function LevelCard({ number, title, subtitle, status, onClick }: LevelCardProps)
       }}
     >
       <div className="flex items-center gap-1.5">
-        <span
-          className="font-mono text-[10px] grid place-items-center flex-shrink-0"
-          style={{
-            width: 18,
-            height: 18,
-            borderRadius: '50%',
-            border: `1.2px solid ${statusColor}`,
-            color: statusColor,
-            fontWeight: 700,
-          }}
-        >
-          {isDone ? '✓' : number}
-        </span>
+        {!isSandbox && number && (
+          <span
+            className="font-mono text-[10px] grid place-items-center flex-shrink-0"
+            style={{
+              width: 18,
+              height: 18,
+              borderRadius: '50%',
+              border: `1.2px solid ${statusColor}`,
+              color: statusColor,
+              fontWeight: 700,
+            }}
+          >
+            {isComplete ? '✓' : number}
+          </span>
+        )}
         <div
           className="text-[var(--ink)] text-[13px]"
           style={{ fontFamily: 'var(--hand)', fontWeight: isActive ? 700 : 400 }}
@@ -85,8 +106,10 @@ function LevelCard({ number, title, subtitle, status, onClick }: LevelCardProps)
           {title}
         </div>
       </div>
-      <div className="font-mono text-[10px] text-[var(--soft)] mt-0.5 ml-6">{subtitle}</div>
-      <div className="mt-1 ml-6">
+      <div className={`font-mono text-[10px] text-[var(--soft)] mt-0.5 ${marginLeft}`}>
+        {subtitle}
+      </div>
+      <div className={`mt-1 ${marginLeft}`}>
         <span
           className="font-mono text-[10px] px-1.5 py-px"
           style={{
@@ -102,17 +125,14 @@ function LevelCard({ number, title, subtitle, status, onClick }: LevelCardProps)
   );
 }
 
-export function Sidebar({
-  history,
-  mode,
-  module1Complete,
-  module2Complete,
-  module3Complete,
-  onEnterModule1,
-  onEnterModule2,
-  onEnterModule3,
-  onEnterSandbox,
-}: SidebarProps) {
+const getCardStatus = (id: ModuleId, mode: Mode, moduleProgress: ModuleProgress[]): CardDisplayStatus => {
+  if (mode === id) return 'active';
+  const p = moduleProgress.find((prog) => prog.id === id);
+  if (!p) return 'available';
+  return p.status as CardDisplayStatus;
+}
+
+export const Sidebar = ({ history, mode, moduleProgress, onEnter }: SidebarProps) => {
   return (
     <div className="w-56 flex-shrink-0 flex flex-col bg-[var(--panel2)] border-r-2 border-dashed border-[var(--hair)] p-3 overflow-hidden h-full">
       <div
@@ -126,77 +146,41 @@ export function Sidebar({
         Levels
       </span>
 
-      <LevelCard
+      <ModuleCard
+        id="module1"
         number="1"
         title="Module 1"
         subtitle="The Linear Timeline"
-        status={mode === 'module1' ? 'active' : module1Complete ? 'done' : 'available'}
-        onClick={onEnterModule1}
+        status={getCardStatus('module1', mode, moduleProgress)}
+        onClick={() => onEnter('module1')}
       />
 
-      <LevelCard
+      <ModuleCard
+        id="module2"
         number="2"
         title="Module 2"
         subtitle="Parallel Universes"
-        status={
-          mode === 'module2'
-            ? 'active'
-            : module2Complete
-              ? 'done'
-              : !module1Complete
-                ? 'locked'
-                : 'available'
-        }
-        onClick={onEnterModule2}
+        status={getCardStatus('module2', mode, moduleProgress)}
+        onClick={() => onEnter('module2')}
       />
 
-      <LevelCard
+      <ModuleCard
+        id="module3"
         number="3"
         title="Module 3"
         subtitle="Cherry-pick"
-        status={
-          mode === 'module3'
-            ? 'active'
-            : module3Complete
-              ? 'done'
-              : !module2Complete
-                ? 'locked'
-                : 'available'
-        }
-        onClick={onEnterModule3}
+        status={getCardStatus('module3', mode, moduleProgress)}
+        onClick={() => onEnter('module3')}
       />
 
-      <div
-        className="p-2 mb-1.5 text-sm mt-1"
-        onClick={onEnterSandbox}
-        style={{
-          borderRadius: levelCardRadius,
-          border: `1.6px solid ${mode === 'sandbox' ? 'var(--feat)' : 'var(--hair)'}`,
-          background: mode === 'sandbox' ? 'color-mix(in srgb, var(--feat) 8%, var(--panel))' : 'var(--panel)',
-          cursor: 'pointer',
-        }}
-      >
-        <div
-          className="text-[var(--ink)]"
-          style={{ fontFamily: 'var(--hand)', fontWeight: mode === 'sandbox' ? 700 : 400 }}
-        >
-          Sandbox Mode
-        </div>
-        <div className="font-mono text-[10px] text-[var(--soft)] mt-0.5">
-          Free canvas · all ops
-        </div>
-        <div className="mt-1">
-          <span
-            className="font-mono text-[10px] px-1.5 py-px"
-            style={{
-              borderRadius: pillRadius,
-              color: mode === 'sandbox' ? 'var(--feat)' : 'var(--muted)',
-              border: `1px solid ${mode === 'sandbox' ? 'var(--feat)' : 'var(--muted)'}`,
-            }}
-          >
-            {mode === 'sandbox' ? 'active' : 'click to enter'}
-          </span>
-        </div>
+      <div className="mt-1">
+        <ModuleCard
+          id="sandbox"
+          title="Sandbox Mode"
+          subtitle="Free canvas · all ops"
+          status={getCardStatus('sandbox', mode, moduleProgress)}
+          onClick={() => onEnter('sandbox')}
+        />
       </div>
 
       <span className="font-mono text-[10px] uppercase tracking-widest text-[var(--muted)] mt-3 mb-1 block">
@@ -208,7 +192,7 @@ export function Sidebar({
             No commands yet
           </div>
         ) : (
-          history.map(entry => (
+          history.map((entry) => (
             <div
               key={entry.id}
               className="p-1.5 border border-[var(--hair)] bg-[var(--panel)]"
@@ -225,7 +209,7 @@ export function Sidebar({
         Docs
       </span>
       <div>
-        {(['git commit', 'git checkout -b', 'git cherry-pick', 'git rebase'] as const).map(doc => (
+        {(['git commit', 'git checkout -b', 'git cherry-pick', 'git rebase'] as const).map((doc) => (
           <span
             key={doc}
             className="inline-flex items-center px-2 py-0.5 border border-[var(--hair)] font-mono text-[10px] text-[var(--soft)] mr-1 mb-1 bg-[var(--panel)]"

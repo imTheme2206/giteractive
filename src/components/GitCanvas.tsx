@@ -16,15 +16,16 @@ import { CommitGraphNode } from './CommitGraphNode';
 import { BranchLabelNode } from './BranchLabelNode';
 import { AddCommitNode } from './AddCommitNode';
 
-interface GitCanvasProps {
+type GitCanvasProps = {
   gitState: GitState;
   mode: Mode;
   doAddCommit: () => void;
   doCherryPick: (sourceId: string, targetBranch: string) => void;
   doRebase: (branchToRebase: string, ontoBranch: string) => void;
   doCreateBranch: (commitId: string) => void;
+  doCheckout: (target: string) => void;
   setGhostCommand: (cmd: string) => void;
-}
+};
 
 const nodeTypes: NodeTypes = {
   commit: CommitGraphNode,
@@ -32,14 +33,14 @@ const nodeTypes: NodeTypes = {
   addCommit: AddCommitNode,
 };
 
-interface LayoutNode {
+type LayoutNode = {
   id: string;
   x: number;
   y: number;
   branch: string;
-}
+};
 
-function computeLayout(gitState: GitState): Map<string, LayoutNode> {
+const computeLayout = (gitState: GitState): Map<string, LayoutNode> => {
   const { commits } = gitState;
   const result = new Map<string, LayoutNode>();
 
@@ -113,17 +114,18 @@ function computeLayout(gitState: GitState): Map<string, LayoutNode> {
   }
 
   return result;
-}
+};
 
-export function GitCanvas({
+export const GitCanvas = ({
   gitState,
   mode,
   doAddCommit,
   doCherryPick,
   doRebase,
   doCreateBranch,
+  doCheckout,
   setGhostCommand,
-}: GitCanvasProps) {
+}: GitCanvasProps) => {
   const layout = useMemo(() => computeLayout(gitState), [gitState]);
 
   const headCommitId =
@@ -134,6 +136,8 @@ export function GitCanvas({
   const headLayout = layout.get(headCommitId);
 
   const canBranch = mode !== 'module1';
+  const canCheckout = mode === 'sandbox';
+  const isDetachedHead = gitState.branches[gitState.HEAD] === undefined;
 
   const nodes: Node[] = useMemo(() => {
     const result: Node[] = [];
@@ -150,6 +154,7 @@ export function GitCanvas({
           branch: pos.branch,
           isHead: id === headCommitId,
           showBranchBadge: canBranch && id === headCommitId,
+          showCheckout: canCheckout && id !== headCommitId,
         },
         draggable: mode === 'sandbox' || mode === 'module3',
       });
@@ -162,7 +167,7 @@ export function GitCanvas({
         id: `branch-${branchName}`,
         type: 'branchLabel',
         position: { x: pos.x + 50, y: pos.y - 44 },
-        data: { label: branchName, branch: branchName },
+        data: { label: branchName, branch: branchName, showCheckout: canCheckout },
         draggable: mode === 'sandbox' || mode === 'module3',
       });
     }
@@ -172,7 +177,7 @@ export function GitCanvas({
         id: 'label-HEAD',
         type: 'branchLabel',
         position: { x: headLayout.x + 50, y: headLayout.y + 44 },
-        data: { label: 'HEAD', branch: 'HEAD' },
+        data: { label: 'HEAD', branch: 'HEAD', isDetached: isDetachedHead },
         draggable: false,
       });
     }
@@ -181,14 +186,16 @@ export function GitCanvas({
       result.push({
         id: 'addCommit',
         type: 'addCommit',
-        position: { x: headLayout.x + 140, y: headLayout.y + 3 },
-        data: {},
+        position: isDetachedHead
+          ? { x: headLayout.x, y: headLayout.y - 80 }
+          : { x: headLayout.x + 140, y: headLayout.y + 3 },
+        data: { disabled: isDetachedHead },
         draggable: false,
       });
     }
 
     return result;
-  }, [layout, gitState.commits, gitState.branches, headCommitId, headLayout, mode, canBranch]);
+  }, [layout, gitState.commits, gitState.branches, headCommitId, headLayout, mode, canBranch, canCheckout, isDetachedHead]);
 
   const edges: Edge[] = useMemo(() => {
     const result: Edge[] = [];
@@ -291,20 +298,34 @@ export function GitCanvas({
 
   const onNodeClick: NodeMouseHandler = useCallback(
     (event, node) => {
+      const target = event.target as HTMLElement;
+
       if (node.id === 'addCommit') {
         doAddCommit();
         return;
       }
-      if (canBranch && node.id === headCommitId) {
-        const target = event.target as HTMLElement;
-        if (target.closest('[data-branch-badge]')) {
-          doCreateBranch(node.id);
+
+      if (canBranch && node.id === headCommitId && target.closest('[data-branch-badge]')) {
+        doCreateBranch(node.id);
+        return;
+      }
+
+      if (canCheckout && node.type === 'commit' && node.id !== headCommitId) {
+        if (target.closest('[data-checkout-commit]')) {
+          const branchAtCommit = Object.entries(gitState.branches)
+            .find(([, tipId]) => tipId === node.id)?.[0];
+          doCheckout(branchAtCommit ?? node.id);
         }
+        return;
+      }
+
+      if (canCheckout && node.type === 'branchLabel' && node.id !== 'label-HEAD') {
+        const branchName = node.id.replace(/^branch-/, '');
+        doCheckout(branchName);
       }
     },
-    [canBranch, headCommitId, doAddCommit, doCreateBranch]
+    [canBranch, canCheckout, headCommitId, doAddCommit, doCreateBranch, doCheckout]
   );
-
 
   return (
     <div className="absolute inset-0">
@@ -325,4 +346,4 @@ export function GitCanvas({
       </ReactFlow>
     </div>
   );
-}
+};

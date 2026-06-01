@@ -1,36 +1,30 @@
 import type { GitState, CommitHash } from './types';
 
-// Shared clean starting state for all guided modules (main only, no branches)
-export function makeModuleState(): GitState {
-  return {
-    commits: {
-      c1: { id: 'c1', parentIds: [], message: 'init: initial commit', branch: 'main' },
-      c2: { id: 'c2', parentIds: ['c1'], message: 'feat: add readme', branch: 'main' },
-      c3: { id: 'c3', parentIds: ['c2'], message: 'feat: setup project', branch: 'main' },
-    },
-    branches: { main: 'c3' },
-    HEAD: 'main',
-    nextCommitNum: 4,
-  };
-}
+export const makeModuleState = (): GitState => ({
+  commits: {
+    c1: { id: 'c1', parentIds: [], message: 'init: initial commit', branch: 'main' },
+    c2: { id: 'c2', parentIds: ['c1'], message: 'feat: add readme', branch: 'main' },
+    c3: { id: 'c3', parentIds: ['c2'], message: 'feat: setup project', branch: 'main' },
+  },
+  branches: { main: 'c3' },
+  HEAD: 'main',
+  nextCommitNum: 4,
+});
 
-// Module 3 state: main + feature with two commits, set up for cherry-pick lesson
-export function makeModule3State(): GitState {
-  return {
-    commits: {
-      c1: { id: 'c1', parentIds: [], message: 'init: initial commit', branch: 'main' },
-      c2: { id: 'c2', parentIds: ['c1'], message: 'feat: add readme', branch: 'main' },
-      c3: { id: 'c3', parentIds: ['c2'], message: 'feat: setup project', branch: 'main' },
-      f1: { id: 'f1', parentIds: ['c2'], message: 'feat: add login page', branch: 'feature' },
-      f2: { id: 'f2', parentIds: ['f1'], message: 'feat: add dashboard', branch: 'feature' },
-    },
-    branches: { main: 'c3', feature: 'f2' },
-    HEAD: 'main',
-    nextCommitNum: 4,
-  };
-}
+export const makeModule3State = (): GitState => ({
+  commits: {
+    c1: { id: 'c1', parentIds: [], message: 'init: initial commit', branch: 'main' },
+    c2: { id: 'c2', parentIds: ['c1'], message: 'feat: add readme', branch: 'main' },
+    c3: { id: 'c3', parentIds: ['c2'], message: 'feat: setup project', branch: 'main' },
+    f1: { id: 'f1', parentIds: ['c2'], message: 'feat: add login page', branch: 'feature' },
+    f2: { id: 'f2', parentIds: ['f1'], message: 'feat: add dashboard', branch: 'feature' },
+  },
+  branches: { main: 'c3', feature: 'f2' },
+  HEAD: 'main',
+  nextCommitNum: 4,
+});
 
-export function makeSandboxState(): GitState {
+export const makeSandboxState = (): GitState => {
   const base = makeModuleState();
   return {
     ...base,
@@ -40,33 +34,43 @@ export function makeSandboxState(): GitState {
     },
     branches: { ...base.branches, feature: 'fb1' },
   };
-}
+};
 
-export function getNextBranchName(existingBranches: string[]): string {
+export const checkout = (
+  state: GitState,
+  target: string
+): { state: GitState; command: string } | null => {
+  if (target === state.HEAD) return null;
+  if (state.branches[target] === undefined && state.commits[target] === undefined) return null;
+  return {
+    state: { ...state, HEAD: target },
+    command: `git checkout ${target}`,
+  };
+};
+
+export const getNextBranchName = (existingBranches: string[]): string => {
   let name = 'feature';
   let n = 2;
   while (existingBranches.includes(name)) {
     name = `feature${n++}`;
   }
   return name;
-}
+};
 
-export function createBranch(
+export const createBranch = (
   state: GitState,
   commitId: CommitHash,
   branchName: string
-): { state: GitState; command: string } {
-  return {
-    state: {
-      ...state,
-      branches: { ...state.branches, [branchName]: commitId },
-      HEAD: branchName,
-    },
-    command: `git checkout -b ${branchName} ${commitId}`,
-  };
-}
+): { state: GitState; command: string } => ({
+  state: {
+    ...state,
+    branches: { ...state.branches, [branchName]: commitId },
+    HEAD: branchName,
+  },
+  command: `git checkout -b ${branchName} ${commitId}`,
+});
 
-export function addCommit(state: GitState): { state: GitState; command: string } {
+export const addCommit = (state: GitState): { state: GitState; command: string } => {
   const id = Math.random().toString(36).slice(2, 9);
   const msg = `feat: new commit ${state.nextCommitNum}`;
   const headCommit =
@@ -86,13 +90,13 @@ export function addCommit(state: GitState): { state: GitState; command: string }
     },
     command: `git commit -m "${msg}"`,
   };
-}
+};
 
-export function cherryPick(
+export const cherryPick = (
   state: GitState,
   sourceId: CommitHash,
   targetBranch: string
-): { state: GitState; command: string } | null {
+): { state: GitState; command: string } | null => {
   const source = state.commits[sourceId];
   if (!source) return null;
   const targetTip = state.branches[targetBranch];
@@ -112,13 +116,13 @@ export function cherryPick(
     },
     command: `git cherry-pick ${sourceId}`,
   };
-}
+};
 
-export function rebase(
+export const rebase = (
   state: GitState,
   branchToRebase: string,
   ontoBranch: string
-): { state: GitState; command: string } | null {
+): { state: GitState; command: string } | null => {
   if (branchToRebase === ontoBranch) return null;
   const ontoTip = state.branches[ontoBranch];
   const rebaseTip = state.branches[branchToRebase];
@@ -174,4 +178,4 @@ export function rebase(
     },
     command: `git rebase ${ontoBranch}`,
   };
-}
+};

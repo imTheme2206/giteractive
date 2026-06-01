@@ -14,6 +14,7 @@
   --head: #bd463f;
   --ok: #3c8a57;
   --ghost: rgba(44,43,38,.32);
+  --backdrop: rgba(244,243,236,0.82);
   --hand: 'Kalam', cursive;
   --mono: 'JetBrains Mono', ui-monospace, monospace;
 }
@@ -32,6 +33,7 @@
   --head: #e0635b;
   --ok: #56b87b;
   --ghost: rgba(232,229,218,.30);
+  --backdrop: rgba(16,20,26,0.82);
 }
 
 body {

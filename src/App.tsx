@@ -3,12 +3,11 @@ import { useGitStore } from './useGitStore';
 import { GitCanvas } from './components/GitCanvas';
 import { Sidebar } from './components/Sidebar';
 import { CommandTicker } from './components/CommandTicker';
-import { Module1Complete } from './components/Module1Complete';
-import { Module2Complete } from './components/Module2Complete';
-import { Module3Complete } from './components/Module3Complete';
+import { ModuleCompleteModal } from './components/ModuleCompleteModal';
 import { GoalCard } from './components/GoalCard';
 import { ExplainerCard } from './components/ExplainerCard';
-import { LESSON_CHERRY_PICK } from './lessons';
+import { LESSON_LINEAR, LESSON_BRANCH, LESSON_CHERRY_PICK } from './lessons';
+import type { LessonGoal } from './types';
 
 const handBtnRadius = '60px 10px 60px 10px/10px 60px 10px 60px';
 
@@ -19,10 +18,20 @@ const MODULE_LABELS: Record<string, string> = {
   sandbox: 'Sandbox Mode',
 };
 
-export function App() {
+const MODULE_LESSONS: Partial<Record<string, LessonGoal>> = {
+  module1: LESSON_LINEAR,
+  module2: LESSON_BRANCH,
+  module3: LESSON_CHERRY_PICK,
+};
+
+export const App = () => {
   const store = useGitStore();
   const [explainerCommand, setExplainerCommand] = useState<string | null>(null);
   const explainerKeyRef = useRef(0);
+
+  const currentLesson = MODULE_LESSONS[store.mode];
+  const currentModuleProgress = store.moduleProgress.find((p) => p.id === store.mode);
+  const currentComplete = currentModuleProgress?.status === 'complete';
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', store.theme);
@@ -41,13 +50,13 @@ export function App() {
         <Sidebar
           history={store.history}
           mode={store.mode}
-          module1Complete={store.module1Complete}
-          module2Complete={store.module2Complete}
-          module3Complete={store.module3Complete}
-          onEnterModule1={store.enterModule1}
-          onEnterModule2={store.enterModule2}
-          onEnterModule3={store.enterModule3}
-          onEnterSandbox={store.unlockSandbox}
+          moduleProgress={store.moduleProgress}
+          onEnter={(id) => {
+            if (id === 'module1') store.enterModule1();
+            else if (id === 'module2') store.enterModule2();
+            else if (id === 'module3') store.enterModule3();
+            else store.unlockSandbox();
+          }}
         />
       )}
       <div className="flex-1 flex flex-col min-w-0">
@@ -90,28 +99,58 @@ export function App() {
             doCherryPick={store.doCherryPick}
             doRebase={store.doRebase}
             doCreateBranch={store.doCreateBranch}
+            doCheckout={store.doCheckout}
             setGhostCommand={cmd => store.setTicker({ command: cmd, state: cmd ? 'ghost' : 'idle' })}
           />
 
           {/* Module goal card */}
-          {store.mode === 'module3' && !store.module3Complete && (
+          {currentLesson && !currentComplete && (
             <GoalCard
-              lesson={LESSON_CHERRY_PICK}
-              attempts={store.module3Attempts}
-              guided={store.module3Guided}
-              onToggleGuided={store.setModule3Guided}
+              lesson={currentLesson}
+              attempts={store.moduleAttempts}
+              guided={store.moduleGuided}
+              onToggleGuided={store.setModuleGuided}
             />
           )}
 
           {/* Completion overlays */}
-          {store.module1Complete && store.mode === 'module1' && (
-            <Module1Complete onUnlock={store.unlockSandbox} />
+          {store.showCompletionOverlay && store.mode === 'module1' && (
+            <ModuleCompleteModal
+              icon="🎉"
+              title="Module 1 Complete!"
+              body={<p className="text-sm text-[var(--soft)] leading-relaxed m-0" style={{ fontFamily: 'var(--hand)' }}>You've mastered linear history. Ready for branches?</p>}
+              buttonLabel="Unlock Sandbox Mode"
+              onAction={store.unlockSandbox}
+            />
           )}
-          {store.module2Complete && store.mode === 'module2' && (
-            <Module2Complete onUnlock={store.unlockSandbox} />
+          {store.showCompletionOverlay && store.mode === 'module2' && (
+            <ModuleCompleteModal
+              icon="⎇"
+              title="Module 2 Complete!"
+              accentColor="var(--feat)"
+              body={
+                <>
+                  <p className="text-sm text-[var(--soft)] leading-relaxed m-0 mb-2" style={{ fontFamily: 'var(--hand)' }}>You've seen it: a branch is just a pointer to a commit — no files copied, just a label.</p>
+                  <p className="text-sm text-[var(--soft)] leading-relaxed m-0" style={{ fontFamily: 'var(--hand)' }}>In Sandbox mode you can cherry-pick and rebase across branches.</p>
+                </>
+              }
+              buttonLabel="Unlock Sandbox Mode"
+              onAction={store.unlockSandbox}
+            />
           )}
-          {store.module3Complete && store.mode === 'module3' && (
-            <Module3Complete attempts={store.module3Attempts} onUnlock={store.unlockSandbox} />
+          {store.showCompletionOverlay && store.mode === 'module3' && (
+            <ModuleCompleteModal
+              icon="✓"
+              title="Cherry-pick Complete!"
+              body={
+                <>
+                  <p className="text-sm text-[var(--soft)] leading-relaxed m-0 mb-1" style={{ fontFamily: 'var(--hand)' }}>You copied one commit onto main — its hash changed because history was re-applied, not moved.</p>
+                  <p className="text-sm text-[var(--muted)] leading-relaxed m-0 font-mono" style={{ fontSize: 11 }}>{store.moduleAttempts} attempt{store.moduleAttempts !== 1 ? 's' : ''}</p>
+                </>
+              }
+              buttonLabel="Back to Sandbox"
+              onAction={store.unlockSandbox}
+            />
           )}
 
           {/* Contextual explainer */}
