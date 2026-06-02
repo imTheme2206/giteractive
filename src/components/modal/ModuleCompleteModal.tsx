@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { ModalBackdrop } from './ModalBackdrop';
 
 type ModuleCompleteModalProps = {
   icon: string;
@@ -20,10 +21,7 @@ export const ModuleCompleteModal = ({
   accentColor = 'var(--ok)',
   onAction,
 }: ModuleCompleteModalProps) => (
-  <div
-    className="absolute inset-0 flex items-center justify-center backdrop-blur-sm z-10"
-    style={{ background: 'var(--backdrop)' }}
-  >
+  <ModalBackdrop zIndex={10}>
     <div
       className="bg-[var(--panel)] p-8 max-w-sm text-center shadow-lg"
       style={{ borderRadius: cardRadius, border: `2px solid ${accentColor}` }}
@@ -49,5 +47,5 @@ export const ModuleCompleteModal = ({
         {buttonLabel}
       </button>
     </div>
-  </div>
+  </ModalBackdrop>
 );

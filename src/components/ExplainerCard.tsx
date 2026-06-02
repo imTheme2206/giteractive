@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 type ExplainerCardProps = {
   command: string;
@@ -8,79 +9,80 @@ type ExplainerCardProps = {
 const cardRadius = '255px 14px 225px 16px/16px 225px 14px 255px';
 const pillRadius = '60px 10px 60px 10px/10px 60px 10px 60px';
 
-const getExplanation = (command: string): { title: string; body: string; color: string } | null => {
+type ExplainerKey = {
+  titleKey: string;
+  bodyKey?: string;
+  stepsKey?: string;
+  vars: Record<string, string>;
+  color: string;
+};
+
+const getExplainerKey = (command: string): ExplainerKey | null => {
   if (command.startsWith('git checkout -b')) {
     const branch = command.split(' ')[2] ?? 'feature';
-    return {
-      title: 'Branch created',
-      body: `Git created a new pointer called "${branch}" — no files were copied. Branches are just labels. HEAD now follows ${branch} forward as you add commits.`,
-      color: 'var(--feat)',
-    };
+    return { titleKey: 'explainer.branchCreated.title', bodyKey: 'explainer.branchCreated.body', vars: { branch }, color: 'var(--feat)' };
   }
   if (command.startsWith('git commit')) {
-    return {
-      title: 'New commit created',
-      body: 'Git took a snapshot of your staged changes and stored it as a new node in the history graph. Each commit gets a unique hash — that\'s why the ID looks random.',
-      color: 'var(--main)',
-    };
+    return { titleKey: 'explainer.newCommit.title', bodyKey: 'explainer.newCommit.body', vars: {}, color: 'var(--main)' };
   }
   if (command.startsWith('git cherry-pick')) {
     const hash = command.split(' ')[2] ?? '';
-    return {
-      title: 'Cherry-pick',
-      body: `Git copied commit ${hash} and re-applied its changes on top of the current branch tip. Notice the new node has a different hash — same changes, new identity.`,
-      color: 'var(--feat)',
-    };
+    return { titleKey: 'explainer.cherryPick.title', stepsKey: 'explainer.cherryPick.steps', vars: { hash }, color: 'var(--feat)' };
   }
   if (command.startsWith('git rebase')) {
     const onto = command.split(' ')[2] ?? '';
-    return {
-      title: 'Rebase',
-      body: `Git found the common ancestor of both branches, lifted your commits off their old base, and re-applied them one-by-one on top of ${onto}. Old commit IDs are gone — history was rewritten.`,
-      color: 'var(--head)',
-    };
+    return { titleKey: 'explainer.rebase.title', stepsKey: 'explainer.rebase.steps', vars: { onto }, color: 'var(--head)' };
   }
   if (command.startsWith('git merge')) {
-    const branch = command.split(' ')[2] ?? '';
-    return {
-      title: 'Merge commit created',
-      body: `Git created a new merge commit with two parents — one from the current branch and one from ${branch}. Both histories are preserved; the original commit IDs don't change.`,
-      color: 'var(--ok)',
-    };
+    const branch = command.split(' ')[2]?.replace(/#.*/, '').trim() ?? '';
+    return { titleKey: 'explainer.mergeCommit.title', stepsKey: 'explainer.mergeCommit.steps', vars: { branch }, color: 'var(--ok)' };
   }
   if (command.startsWith('git reset --hard')) {
     const target = command.split(' ')[3] ?? '';
-    return {
-      title: 'Hard reset',
-      body: `Git moved the branch pointer back to ${target} and deleted every commit after it. Those commits are gone — --hard means no trace left in the working tree either.`,
-      color: 'var(--head)',
-    };
+    return { titleKey: 'explainer.hardReset.title', stepsKey: 'explainer.hardReset.steps', vars: { target }, color: 'var(--head)' };
   }
   if (command.startsWith('git stash')) {
     const isPop = command.includes('pop');
     return {
-      title: isPop ? 'Stash popped' : 'Work stashed',
-      body: isPop ? 'Git restored the stashed snapshot onto your working tree. The stash entry is now gone.' : 'Git saved your uncommitted changes to a temporary stack and cleaned your working tree — leaving you free to switch branches.',
+      titleKey: isPop ? 'explainer.stashPopped.title' : 'explainer.workStashed.title',
+      bodyKey: isPop ? 'explainer.stashPopped.body' : 'explainer.workStashed.body',
+      vars: {},
       color: 'var(--feat)',
     };
   }
   return null;
 };
 
+const STEP_INTERVAL_MS = 700;
+const AUTO_DISMISS_MS = 8000;
+
 export const ExplainerCard = ({ command, onDismiss }: ExplainerCardProps) => {
+  const { t } = useTranslation();
   const [visible, setVisible] = useState(false);
+  const [visibleSteps, setVisibleSteps] = useState(0);
+
+  const keys = getExplainerKey(command);
+  const steps = keys?.stepsKey
+    ? (t(keys.stepsKey, { returnObjects: true, ...keys.vars }) as string[])
+    : null;
+  const totalSteps = steps?.length ?? 0;
 
   useEffect(() => {
     const t1 = setTimeout(() => setVisible(true), 50);
     const t2 = setTimeout(() => {
       setVisible(false);
       setTimeout(onDismiss, 300);
-    }, 6000);
+    }, AUTO_DISMISS_MS);
     return () => { clearTimeout(t1); clearTimeout(t2); };
   }, [onDismiss]);
 
-  const explanation = getExplanation(command);
-  if (!explanation) return null;
+  useEffect(() => {
+    if (!steps || visibleSteps >= totalSteps) return;
+    const timer = setTimeout(() => setVisibleSteps(s => s + 1), visibleSteps === 0 ? 200 : STEP_INTERVAL_MS);
+    return () => clearTimeout(timer);
+  }, [visibleSteps, totalSteps, steps]);
+
+  if (!keys) return null;
 
   return (
     <div
@@ -88,7 +90,7 @@ export const ExplainerCard = ({ command, onDismiss }: ExplainerCardProps) => {
         position: 'absolute',
         bottom: 72,
         right: 24,
-        width: 300,
+        width: 316,
         zIndex: 20,
         transition: 'opacity 0.3s, transform 0.3s',
         opacity: visible ? 1 : 0,
@@ -98,7 +100,7 @@ export const ExplainerCard = ({ command, onDismiss }: ExplainerCardProps) => {
       <div
         className="bg-[var(--panel)] p-4 shadow-lg"
         style={{
-          border: `2px solid ${explanation.color}`,
+          border: `2px solid ${keys.color}`,
           borderRadius: cardRadius,
         }}
       >
@@ -109,7 +111,7 @@ export const ExplainerCard = ({ command, onDismiss }: ExplainerCardProps) => {
               className="font-bold text-sm text-[var(--ink)]"
               style={{ fontFamily: 'var(--hand)' }}
             >
-              {explanation.title}
+              {t(keys.titleKey)}
             </span>
           </div>
           <button
@@ -121,12 +123,43 @@ export const ExplainerCard = ({ command, onDismiss }: ExplainerCardProps) => {
           </button>
         </div>
 
-        <p
-          className="text-sm text-[var(--soft)] leading-snug m-0 mb-3"
-          style={{ fontFamily: 'var(--hand)' }}
-        >
-          {explanation.body}
-        </p>
+        {keys.bodyKey && (
+          <p
+            className="text-sm text-[var(--soft)] leading-snug m-0 mb-3"
+            style={{ fontFamily: 'var(--hand)' }}
+          >
+            {t(keys.bodyKey, keys.vars)}
+          </p>
+        )}
+
+        {steps && (
+          <ol className="m-0 mb-3 pl-0 flex flex-col gap-1.5 list-none">
+            {steps.map((step, i) => (
+              <li
+                key={i}
+                className="flex gap-2 items-start"
+                style={{
+                  transition: 'opacity 0.4s, transform 0.4s',
+                  opacity: i < visibleSteps ? 1 : 0,
+                  transform: i < visibleSteps ? 'translateY(0)' : 'translateY(6px)',
+                }}
+              >
+                <span
+                  className="font-mono text-[10px] flex-shrink-0 mt-0.5"
+                  style={{ color: keys.color, minWidth: '1.2em' }}
+                >
+                  {i + 1}.
+                </span>
+                <span
+                  className="text-[13px] text-[var(--soft)] leading-snug"
+                  style={{ fontFamily: 'var(--hand)' }}
+                >
+                  {step}
+                </span>
+              </li>
+            ))}
+          </ol>
+        )}
 
         <span
           className="font-mono text-[11px] text-[var(--muted)] border border-[var(--hair)] px-2 py-0.5 bg-[var(--panel2)]"

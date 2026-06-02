@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import type { Mode, ModuleId, ModuleProgress } from '../../types';
 
 export const levelCardRadius = '255px 14px 225px 16px/16px 225px 14px 255px';
@@ -15,6 +16,7 @@ type ModuleCardProps = {
 };
 
 export const ModuleCard = ({ id, number, title, subtitle, status, onClick }: ModuleCardProps) => {
+  const { t } = useTranslation();
   const isSandbox = id === 'sandbox';
   const isActive = status === 'active';
   const isComplete = status === 'complete';
@@ -36,14 +38,14 @@ export const ModuleCard = ({ id, number, title, subtitle, status, onClick }: Mod
       : 'var(--panel)';
 
   const statusLabel = isActive
-    ? 'active'
+    ? t('moduleCard.active')
     : isComplete
-      ? '✓ done'
+      ? t('moduleCard.done')
       : isLocked
-        ? 'locked'
+        ? t('moduleCard.locked')
         : isInProgress
-          ? 'in progress'
-          : 'click to enter';
+          ? t('moduleCard.inProgress')
+          : t('moduleCard.clickToEnter');
 
   const statusColor = isActive
     ? accent

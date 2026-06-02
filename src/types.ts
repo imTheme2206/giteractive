@@ -42,6 +42,8 @@ export type ModuleProgress = {
 
 export type TickerState = 'idle' | 'ghost' | 'flash' | 'logged';
 
+export type TickerData = { command: string; subtitle?: string; state: 'idle' | 'ghost' | 'flash' };
+
 export type TickerEntry = {
   id: string;
   command: string;

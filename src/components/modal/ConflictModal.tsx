@@ -1,4 +1,6 @@
-import type { ConflictState } from '../types';
+import { useTranslation } from 'react-i18next';
+import type { ConflictState } from '../../types';
+import { ModalBackdrop } from './ModalBackdrop';
 
 type ConflictModalProps = {
   conflict: ConflictState;
@@ -10,7 +12,7 @@ const cardRadius = '255px 14px 225px 16px/16px 225px 14px 255px';
 
 type HunkOption = {
   id: 'ours' | 'theirs' | 'both';
-  label: string;
+  labelKey: string;
   lines: string[];
   color: string;
   bg: string;
@@ -19,21 +21,21 @@ type HunkOption = {
 const HUNK_OPTIONS: HunkOption[] = [
   {
     id: 'ours',
-    label: 'Keep Ours (main)',
+    labelKey: 'conflict.keepOurs',
     lines: ['greeting = "Hello, World!"'],
     color: 'var(--main)',
     bg: 'color-mix(in srgb, var(--main) 8%, var(--panel))',
   },
   {
     id: 'theirs',
-    label: 'Keep Theirs (feature)',
+    labelKey: 'conflict.keepTheirs',
     lines: ['greeting = "Hello, Developer!"'],
     color: 'var(--feat)',
     bg: 'color-mix(in srgb, var(--feat) 8%, var(--panel))',
   },
   {
     id: 'both',
-    label: 'Keep Both',
+    labelKey: 'conflict.keepBoth',
     lines: ['greeting = "Hello, World!"', 'greeting_dev = "Hello, Developer!"'],
     color: 'var(--ok)',
     bg: 'color-mix(in srgb, var(--ok) 8%, var(--panel))',
@@ -41,10 +43,10 @@ const HUNK_OPTIONS: HunkOption[] = [
 ];
 
 export const ConflictModal = ({ conflict, onResolve }: ConflictModalProps) => {
+  const { t } = useTranslation();
+
   return (
-    <div className="absolute inset-0 flex items-center justify-center z-50"
-      style={{ background: 'color-mix(in srgb, var(--conflict) 18%, transparent)' }}
-    >
+    <ModalBackdrop background="color-mix(in srgb, var(--conflict) 18%, var(--backdrop))">
       <div
         className="w-[480px] max-w-[92vw] p-5 border-2"
         style={{
@@ -60,7 +62,7 @@ export const ConflictModal = ({ conflict, onResolve }: ConflictModalProps) => {
             className="font-bold text-base text-[var(--ink)]"
             style={{ fontFamily: 'var(--hand)' }}
           >
-            Merge Conflict Detected
+            {t('conflict.title')}
           </span>
         </div>
         <p className="font-mono text-[11px] text-[var(--muted)] mb-4">
@@ -82,7 +84,7 @@ export const ConflictModal = ({ conflict, onResolve }: ConflictModalProps) => {
         </div>
 
         <p className="font-mono text-[10px] uppercase tracking-widest text-[var(--muted)] mb-2">
-          Choose resolution
+          {t('conflict.chooseResolution')}
         </p>
         <div className="flex flex-col gap-2 mb-4">
           {HUNK_OPTIONS.map((opt) => (
@@ -100,7 +102,7 @@ export const ConflictModal = ({ conflict, onResolve }: ConflictModalProps) => {
                 className="font-bold text-[12px] mb-1"
                 style={{ fontFamily: 'var(--hand)', color: opt.color }}
               >
-                {opt.label}
+                {t(opt.labelKey)}
               </div>
               {opt.lines.map((line, i) => (
                 <div key={i} className="font-mono text-[11px]" style={{ color: 'var(--ink)' }}>
@@ -112,9 +114,9 @@ export const ConflictModal = ({ conflict, onResolve }: ConflictModalProps) => {
         </div>
 
         <div className="font-mono text-[10px] text-[var(--muted)] text-center">
-          Choosing a resolution will create the merge commit
+          {t('conflict.footer')}
         </div>
       </div>
-    </div>
+    </ModalBackdrop>
   );
 };

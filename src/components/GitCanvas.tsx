@@ -1,4 +1,5 @@
 import { useCallback, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   ReactFlow,
   Background,
@@ -27,7 +28,7 @@ type GitCanvasProps = {
   doCreateBranch: (commitId: string) => void;
   doCheckout: (target: string) => void;
   doResetHard: (commitId: string) => void;
-  setGhostCommand: (cmd: string) => void;
+  setGhostCommand: (cmd: string, subtitle?: string) => void;
   wip?: string | null;
   highlightNodeIds?: string[];
 };
@@ -136,6 +137,7 @@ export const GitCanvas = ({
   wip,
   highlightNodeIds,
 }: GitCanvasProps) => {
+  const { t } = useTranslation();
   const layout = useMemo(() => computeLayout(gitState), [gitState]);
 
   const headCommitId =
@@ -377,16 +379,16 @@ export const GitCanvas = ({
       if (!canDrag) return;
       const target = findDragTarget(node);
       if (target?.type === 'cherry-pick') {
-        setGhostCommand(`git cherry-pick ${target.sourceId}`);
+        setGhostCommand(`git cherry-pick ${target.sourceId}`, t('tickerSubtitles.cherryPick'));
       } else if (target?.type === 'rebase') {
-        setGhostCommand(`git rebase ${target.ontoBranch}`);
+        setGhostCommand(`git rebase ${target.ontoBranch}`, t('tickerSubtitles.rebase'));
       } else if (target?.type === 'merge') {
-        setGhostCommand(`git merge ${target.sourceBranch}`);
+        setGhostCommand(`git merge ${target.sourceBranch}`, t('tickerSubtitles.merge'));
       } else {
         setGhostCommand('');
       }
     },
-    [canDrag, findDragTarget, setGhostCommand]
+    [canDrag, findDragTarget, setGhostCommand, t]
   );
 
   const onNodeClick: NodeMouseHandler = useCallback(

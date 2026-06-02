@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import type { LessonGoal } from '../types';
 
 type GoalCardProps = {
@@ -12,6 +13,9 @@ const pillRadius = '60px 10px 60px 10px/10px 60px 10px 60px';
 const chipRadius = '14px 4px 14px 4px / 4px 14px 4px 14px';
 
 export const GoalCard = ({ lesson, attempts, guided, onToggleGuided }: GoalCardProps) => {
+  const { t } = useTranslation();
+  const chips = t(`lessons.${lesson.id}.chips`, { returnObjects: true }) as string[];
+
   return (
     <div
       className="absolute bottom-4 left-4 z-10"
@@ -29,7 +33,7 @@ export const GoalCard = ({ lesson, attempts, guided, onToggleGuided }: GoalCardP
             className="font-bold text-sm text-[var(--ink)] m-0"
             style={{ fontFamily: 'var(--hand)' }}
           >
-            {lesson.title}
+            {t(`lessons.${lesson.id}.title`)}
           </h3>
           <div
             className="flex text-[11px] font-mono border border-[var(--hair)] overflow-hidden flex-shrink-0"
@@ -43,7 +47,7 @@ export const GoalCard = ({ lesson, attempts, guided, onToggleGuided }: GoalCardP
                 color: guided ? 'var(--panel)' : 'var(--muted)',
               }}
             >
-              Guided
+              {t('goalCard.guided')}
             </button>
             <button
               onClick={() => onToggleGuided(false)}
@@ -53,7 +57,7 @@ export const GoalCard = ({ lesson, attempts, guided, onToggleGuided }: GoalCardP
                 color: !guided ? 'var(--panel)' : 'var(--muted)',
               }}
             >
-              Sandbox
+              {t('goalCard.sandbox')}
             </button>
           </div>
         </div>
@@ -64,11 +68,12 @@ export const GoalCard = ({ lesson, attempts, guided, onToggleGuided }: GoalCardP
               className="text-[13px] text-[var(--soft)] mx-4 mb-3 mt-0 leading-snug"
               style={{ fontFamily: 'var(--hand)' }}
             >
-              <b className="text-[var(--ink)]">Goal:</b> {lesson.description}
+              <b className="text-[var(--ink)]">{t('goalCard.goal')}</b>{' '}
+              {t(`lessons.${lesson.id}.description`)}
             </p>
 
             <div className="flex flex-wrap gap-1.5 px-4 mb-3">
-              {lesson.chips.map(chip => (
+              {chips.map(chip => (
                 <span
                   key={chip}
                   className="font-mono text-[10px] px-2 py-0.5 border border-[var(--hair)] text-[var(--soft)] bg-[var(--panel2)]"
@@ -85,7 +90,7 @@ export const GoalCard = ({ lesson, attempts, guided, onToggleGuided }: GoalCardP
                   color: attempts > 0 ? 'var(--feat)' : 'var(--soft)',
                 }}
               >
-                attempts: {attempts}
+                {t('goalCard.attempts', { count: attempts })}
               </span>
             </div>
 
@@ -97,8 +102,8 @@ export const GoalCard = ({ lesson, attempts, guided, onToggleGuided }: GoalCardP
                 borderRadius: '8px 2px 8px 2px / 2px 8px 2px 8px',
               }}
             >
-              <b className="text-[var(--ink)]">Hint ▸</b>{' '}
-              {lesson.hint}
+              <b className="text-[var(--ink)]">{t('goalCard.hint')}</b>{' '}
+              {t(`lessons.${lesson.id}.hint`)}
             </div>
           </>
         )}

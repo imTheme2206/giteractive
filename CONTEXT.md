@@ -58,3 +58,11 @@
 | `--head` | `#bd463f` | `#e0635b` | HEAD pointer |
 | `--ok` | `#3c8a57` | `#56b87b` | success / committed |
 | `--ghost` | `rgba(44,43,38,.32)` | `rgba(232,229,218,.30)` | ghost/pending state |
+
+## Learning Layer
+
+**Intro modal** — Shown every time a module is entered from the sidebar (skippable). Three sections: *The Problem* (real-world scenario), *How Git Works* (mechanical concept), *Key Insight* (the one thing beginners miss). Text-only; no static diagram. Sandbox mode has no intro modal.
+
+**Ticker subtitle** — A second line below the ghost command in the command ticker, visible only during drag gestures. Plain-language description of what the operation does (e.g. "Re-applies your commits one-by-one on top of the target branch"). Absent for idle/flash states.
+
+**Sequential explainer steps** — For complex operations (cherry-pick, rebase, merge, reset), the ExplainerCard shows 2–3 numbered steps that reveal one-by-one at 700ms intervals instead of a single body paragraph. Simple operations (commit, branch, stash) keep the single-body format.

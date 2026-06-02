@@ -44,7 +44,7 @@ export const useGitStore = () => {
   const [gitState, setGitState] = useState<GitState>(makeSandboxState);
   const [mode, setMode] = useState<Mode>("sandbox");
   const [history, setHistory] = useState<TickerEntry[]>([]);
-  const [ticker, setTicker] = useState<{ command: string; state: "idle" | "ghost" | "flash" }>({
+  const [ticker, setTicker] = useState<{ command: string; subtitle?: string; state: "idle" | "ghost" | "flash" }>({
     command: "",
     state: "idle",
   });

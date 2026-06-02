@@ -1,28 +1,19 @@
 import { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import i18n from './i18n';
 import { useGitStore } from './useGitStore';
 import { GitCanvas } from './components/GitCanvas';
 import { Sidebar } from './components/sidebar/Sidebar';
 import { CommandTicker } from './components/CommandTicker';
-import { ModuleCompleteModal } from './components/ModuleCompleteModal';
+import { ModuleCompleteModal } from './components/modal/ModuleCompleteModal';
 import { GoalCard } from './components/GoalCard';
 import { ExplainerCard } from './components/ExplainerCard';
-import { ConflictModal } from './components/ConflictModal';
+import { ConflictModal } from './components/modal/ConflictModal';
+import { IntroModal } from './components/modal/IntroModal';
 import { LESSON_LINEAR, LESSON_BRANCH, LESSON_CHERRY_PICK, LESSON_REBASE, LESSON_MERGE, LESSON_CONFLICT, LESSON_RESET, LESSON_STASH } from './lessons';
-import type { LessonGoal } from './types';
+import type { LessonGoal, ModuleId } from './types';
 
 const handBtnRadius = '60px 10px 60px 10px/10px 60px 10px 60px';
-
-const MODULE_LABELS: Record<string, string> = {
-  module1: 'Module 1 · The Linear Timeline',
-  module2: 'Module 2 · Parallel Universes',
-  module3: 'Module 3 · Cherry-pick',
-  module4: 'Module 4 · Rebase',
-  module5: 'Module 5 · Merge',
-  module6: 'Module 6 · Merge Conflicts',
-  module7: 'Module 7 · git reset',
-  module8: 'Module 8 · git stash',
-  sandbox: 'Sandbox Mode',
-};
 
 const MODULE_LESSONS: Partial<Record<string, LessonGoal>> = {
   module1: LESSON_LINEAR,
@@ -47,15 +38,36 @@ const getCommandType = (command: string): string | null => {
 };
 
 export const App = () => {
+  const { t } = useTranslation();
   const store = useGitStore();
   const [explainerCommand, setExplainerCommand] = useState<string | null>(null);
   const [highlightNodeIds, setHighlightNodeIds] = useState<string[]>([]);
   const explainerKeyRef = useRef(0);
   const seenCommandTypesRef = useRef(new Set<string>());
+  const [pendingModule, setPendingModule] = useState<ModuleId | null>(null);
+
+  const enterModule = (id: ModuleId) => {
+    setPendingModule(null);
+    if (id === 'module1') store.enterModule1();
+    else if (id === 'module2') store.enterModule2();
+    else if (id === 'module3') store.enterModule3();
+    else if (id === 'module4') store.enterModule4();
+    else if (id === 'module5') store.enterModule5();
+    else if (id === 'module6') store.enterModule6();
+    else if (id === 'module7') store.enterModule7();
+    else if (id === 'module8') store.enterModule8();
+    else store.unlockSandbox();
+  };
 
   const currentLesson = MODULE_LESSONS[store.mode];
   const currentModuleProgress = store.moduleProgress.find(p => p.id === store.mode);
   const currentComplete = currentModuleProgress?.status === 'complete';
+
+  const toggleLang = () => {
+    const next = i18n.language === 'en' ? 'th' : 'en';
+    i18n.changeLanguage(next);
+    localStorage.setItem('lang', next);
+  };
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', store.theme);
@@ -80,15 +92,8 @@ export const App = () => {
           mode={store.mode}
           moduleProgress={store.moduleProgress}
           onEnter={id => {
-            if (id === 'module1') store.enterModule1();
-            else if (id === 'module2') store.enterModule2();
-            else if (id === 'module3') store.enterModule3();
-            else if (id === 'module4') store.enterModule4();
-            else if (id === 'module5') store.enterModule5();
-            else if (id === 'module6') store.enterModule6();
-            else if (id === 'module7') store.enterModule7();
-            else if (id === 'module8') store.enterModule8();
-            else store.unlockSandbox();
+            if (id === 'sandbox') { store.unlockSandbox(); return; }
+            setPendingModule(id);
           }}
         />
       )}
@@ -104,7 +109,7 @@ export const App = () => {
             {store.sidebarOpen ? '◀' : '▶'}
           </button>
           <span className="font-mono text-xs text-[var(--muted)] flex-1">
-            {MODULE_LABELS[store.mode] ?? store.mode}
+            {t(`modules.${store.mode}`, store.mode)}
           </span>
           {(store.mode === 'module8' || (store.mode === 'sandbox' && store.wip)) && (
             <button
@@ -114,7 +119,7 @@ export const App = () => {
               className="font-mono text-sm bg-[var(--panel)] border border-dashed border-[var(--hair)] px-3 py-1 cursor-pointer whitespace-nowrap"
               style={{ fontFamily: 'var(--hand)', borderRadius: handBtnRadius, color: store.wip ? 'var(--feat)' : 'var(--muted)', opacity: store.wip ? 1 : 0.5 }}
             >
-              ⬇ Stash
+              {t('toolbar.stash')}
             </button>
           )}
           {(store.mode === 'module8' || store.mode === 'sandbox') && store.stashStack.length > 0 && (
@@ -124,7 +129,7 @@ export const App = () => {
               className="font-mono text-sm bg-[var(--panel)] border border-dashed border-[var(--hair)] px-3 py-1 cursor-pointer whitespace-nowrap"
               style={{ fontFamily: 'var(--hand)', borderRadius: handBtnRadius, color: 'var(--feat)' }}
             >
-              ⬆ Pop ({store.stashStack.length})
+              {t('toolbar.pop', { count: store.stashStack.length })}
             </button>
           )}
           <button
@@ -133,14 +138,21 @@ export const App = () => {
             className="font-mono text-sm text-[var(--ink)] bg-[var(--panel)] border border-dashed border-[var(--hair)] px-3 py-1 cursor-pointer whitespace-nowrap"
             style={{ fontFamily: 'var(--hand)', borderRadius: handBtnRadius }}
           >
-            ↺ Reset
+            {t('toolbar.reset')}
           </button>
           <button
             onClick={() => store.setTheme(t => (t === 'light' ? 'dark' : 'light'))}
             className="font-mono text-sm text-[var(--ink)] bg-[var(--panel)] border border-dashed border-[var(--hair)] px-3 py-1 cursor-pointer whitespace-nowrap"
             style={{ fontFamily: 'var(--hand)', borderRadius: handBtnRadius }}
           >
-            {store.theme === 'light' ? '◑' : '○'} Theme
+            {store.theme === 'light' ? '◑' : '○'} {t('toolbar.theme')}
+          </button>
+          <button
+            onClick={toggleLang}
+            className="font-mono text-xs text-[var(--ink)] bg-[var(--panel)] border border-dashed border-[var(--hair)] px-3 py-1 cursor-pointer whitespace-nowrap"
+            style={{ fontFamily: 'var(--hand)', borderRadius: handBtnRadius }}
+          >
+            {i18n.language === 'en' ? 'EN' : 'TH'}
           </button>
           <button
             onClick={store.unlockAll}
@@ -153,7 +165,7 @@ export const App = () => {
               color: store.devMode ? 'var(--feat)' : 'var(--muted)',
             }}
           >
-            {store.devMode ? '⚙ dev' : '⚙'}
+            {store.devMode ? `⚙ ${t('toolbar.dev')}` : '⚙'}
           </button>
         </div>
 
@@ -170,7 +182,7 @@ export const App = () => {
             doCreateBranch={store.doCreateBranch}
             doCheckout={store.doCheckout}
             doResetHard={store.doResetHard}
-            setGhostCommand={cmd => store.setTicker({ command: cmd, state: cmd ? 'ghost' : 'idle' })}
+            setGhostCommand={(cmd, subtitle) => store.setTicker({ command: cmd, subtitle, state: cmd ? 'ghost' : 'idle' })}
             wip={store.wip}
             highlightNodeIds={highlightNodeIds}
           />
@@ -189,145 +201,145 @@ export const App = () => {
           {store.showCompletionOverlay && store.mode === 'module1' && (
             <ModuleCompleteModal
               icon="🎉"
-              title="Module 1 Complete!"
+              title={t('completion.module1.title')}
               body={
                 <p className="text-sm text-[var(--soft)] leading-relaxed m-0" style={{ fontFamily: 'var(--hand)' }}>
-                  You've mastered linear history. Ready for branches?
+                  {t('completion.module1.body')}
                 </p>
               }
-              buttonLabel="Unlock Module 2"
+              buttonLabel={t('completion.module1.button')}
               onAction={store.enterModule2}
             />
           )}
           {store.showCompletionOverlay && store.mode === 'module2' && (
             <ModuleCompleteModal
               icon="⎇"
-              title="Module 2 Complete!"
+              title={t('completion.module2.title')}
               accentColor="var(--feat)"
               body={
                 <>
                   <p className="text-sm text-[var(--soft)] leading-relaxed m-0 mb-2" style={{ fontFamily: 'var(--hand)' }}>
-                    A branch is just a pointer to a commit — no files copied, just a label.
+                    {t('completion.module2.body1')}
                   </p>
                   <p className="text-sm text-[var(--soft)] leading-relaxed m-0" style={{ fontFamily: 'var(--hand)' }}>
-                    Next: cherry-pick a single commit across branches.
+                    {t('completion.module2.body2')}
                   </p>
                 </>
               }
-              buttonLabel="Unlock Module 3"
+              buttonLabel={t('completion.module2.button')}
               onAction={store.enterModule3}
             />
           )}
           {store.showCompletionOverlay && store.mode === 'module3' && (
             <ModuleCompleteModal
               icon="✓"
-              title="Cherry-pick Complete!"
+              title={t('completion.module3.title')}
               body={
                 <>
                   <p className="text-sm text-[var(--soft)] leading-relaxed m-0 mb-1" style={{ fontFamily: 'var(--hand)' }}>
-                    You copied one commit onto main — its hash changed because it was re-applied, not moved.
+                    {t('completion.module3.body')}
                   </p>
                   <p className="text-sm text-[var(--muted)] leading-relaxed m-0 font-mono" style={{ fontSize: 11 }}>
-                    {store.moduleAttempts} attempt{store.moduleAttempts !== 1 ? 's' : ''}
+                    {t('completion.attempts', { count: store.moduleAttempts })}
                   </p>
                 </>
               }
-              buttonLabel="Unlock Module 4"
+              buttonLabel={t('completion.module3.button')}
               onAction={store.enterModule4}
             />
           )}
           {store.showCompletionOverlay && store.mode === 'module4' && (
             <ModuleCompleteModal
               icon="⟳"
-              title="Rebase Complete!"
+              title={t('completion.module4.title')}
               accentColor="var(--head)"
               body={
                 <>
                   <p className="text-sm text-[var(--soft)] leading-relaxed m-0 mb-1" style={{ fontFamily: 'var(--hand)' }}>
-                    The feature commits were lifted off their old base and re-applied on top of main. Notice the IDs changed — history was rewritten.
+                    {t('completion.module4.body')}
                   </p>
                   <p className="text-sm text-[var(--muted)] leading-relaxed m-0 font-mono" style={{ fontSize: 11 }}>
-                    {store.moduleAttempts} attempt{store.moduleAttempts !== 1 ? 's' : ''}
+                    {t('completion.attempts', { count: store.moduleAttempts })}
                   </p>
                 </>
               }
-              buttonLabel="Unlock Module 5"
+              buttonLabel={t('completion.module4.button')}
               onAction={store.enterModule5}
             />
           )}
           {store.showCompletionOverlay && store.mode === 'module5' && (
             <ModuleCompleteModal
               icon="⊕"
-              title="Merge Complete!"
+              title={t('completion.module5.title')}
               accentColor="var(--ok)"
               body={
                 <>
                   <p className="text-sm text-[var(--soft)] leading-relaxed m-0 mb-1" style={{ fontFamily: 'var(--hand)' }}>
-                    You created a merge commit with two parents — both histories are preserved. Unlike rebase, the original commit IDs don't change.
+                    {t('completion.module5.body')}
                   </p>
                   <p className="text-sm text-[var(--muted)] leading-relaxed m-0 font-mono" style={{ fontSize: 11 }}>
-                    {store.moduleAttempts} attempt{store.moduleAttempts !== 1 ? 's' : ''}
+                    {t('completion.attempts', { count: store.moduleAttempts })}
                   </p>
                 </>
               }
-              buttonLabel="Unlock Module 6"
+              buttonLabel={t('completion.module5.button')}
               onAction={store.enterModule6}
             />
           )}
           {store.showCompletionOverlay && store.mode === 'module6' && (
             <ModuleCompleteModal
               icon="⚡"
-              title="Conflict Resolved!"
+              title={t('completion.module6.title')}
               accentColor="var(--conflict)"
               body={
                 <>
                   <p className="text-sm text-[var(--soft)] leading-relaxed m-0 mb-1" style={{ fontFamily: 'var(--hand)' }}>
-                    You navigated a merge conflict — choosing which version of the file to keep before committing. Real git conflict resolution works the same way.
+                    {t('completion.module6.body')}
                   </p>
                   <p className="text-sm text-[var(--muted)] leading-relaxed m-0 font-mono" style={{ fontSize: 11 }}>
-                    {store.moduleAttempts} attempt{store.moduleAttempts !== 1 ? 's' : ''}
+                    {t('completion.attempts', { count: store.moduleAttempts })}
                   </p>
                 </>
               }
-              buttonLabel="Unlock Module 7"
+              buttonLabel={t('completion.module6.button')}
               onAction={store.enterModule7}
             />
           )}
           {store.showCompletionOverlay && store.mode === 'module7' && (
             <ModuleCompleteModal
               icon="↺"
-              title="Reset Complete!"
+              title={t('completion.module7.title')}
               accentColor="var(--head)"
               body={
                 <>
                   <p className="text-sm text-[var(--soft)] leading-relaxed m-0 mb-1" style={{ fontFamily: 'var(--hand)' }}>
-                    git reset --hard moved the branch pointer back and permanently erased the commits after it. Unlike revert, there's no "undo" commit — the history is gone.
+                    {t('completion.module7.body')}
                   </p>
                   <p className="text-sm text-[var(--muted)] leading-relaxed m-0 font-mono" style={{ fontSize: 11 }}>
-                    {store.moduleAttempts} attempt{store.moduleAttempts !== 1 ? 's' : ''}
+                    {t('completion.attempts', { count: store.moduleAttempts })}
                   </p>
                 </>
               }
-              buttonLabel="Unlock Module 8"
+              buttonLabel={t('completion.module7.button')}
               onAction={store.enterModule8}
             />
           )}
           {store.showCompletionOverlay && store.mode === 'module8' && (
             <ModuleCompleteModal
               icon="⬇"
-              title="Stash Mastered!"
+              title={t('completion.module8.title')}
               accentColor="var(--feat)"
               body={
                 <>
                   <p className="text-sm text-[var(--soft)] leading-relaxed m-0 mb-1" style={{ fontFamily: 'var(--hand)' }}>
-                    You saved uncommitted work to the stash, switched contexts to fix main, then popped it back. The stash is a stack — you can push multiple times.
+                    {t('completion.module8.body')}
                   </p>
                   <p className="text-sm text-[var(--muted)] leading-relaxed m-0 font-mono" style={{ fontSize: 11 }}>
-                    {store.moduleAttempts} attempt{store.moduleAttempts !== 1 ? 's' : ''}
+                    {t('completion.attempts', { count: store.moduleAttempts })}
                   </p>
                 </>
               }
-              buttonLabel="Go to Sandbox"
+              buttonLabel={t('completion.module8.button')}
               onAction={store.unlockSandbox}
             />
           )}
@@ -354,6 +366,15 @@ export const App = () => {
               key={explainerKeyRef.current}
               command={explainerCommand}
               onDismiss={() => setExplainerCommand(null)}
+            />
+          )}
+
+          {/* Intro modal */}
+          {pendingModule && pendingModule !== 'sandbox' && (
+            <IntroModal
+              moduleId={pendingModule}
+              onStart={() => enterModule(pendingModule)}
+              onSkip={() => enterModule(pendingModule)}
             />
           )}
         </div>

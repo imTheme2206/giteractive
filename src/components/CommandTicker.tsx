@@ -2,7 +2,7 @@ import { useState } from 'react';
 import type { TickerEntry, GitState } from '../types';
 
 type CommandTickerProps = {
-  ticker: { command: string; state: 'idle' | 'ghost' | 'flash' };
+  ticker: { command: string; subtitle?: string; state: 'idle' | 'ghost' | 'flash' };
   history: TickerEntry[];
   gitState: GitState;
   onTokenHover: (nodeIds: string[]) => void;
@@ -178,10 +178,12 @@ export const CommandTicker = ({ ticker, history, gitState, onTokenHover }: Comma
       ? 'var(--ghost)'
       : 'var(--soft)';
 
+  const hasSubtitle = isGhost && !!ticker.subtitle;
+
   return (
     <div
       className={[
-        'h-14 flex items-center px-4 gap-2 flex-shrink-0 font-mono text-sm',
+        'flex flex-col justify-center px-4 gap-0.5 flex-shrink-0 font-mono text-sm',
         isFlash
           ? 'border-t border-[var(--ok)] text-[var(--ok)]'
           : isGhost
@@ -189,6 +191,9 @@ export const CommandTicker = ({ ticker, history, gitState, onTokenHover }: Comma
             : 'border-t border-[var(--hair)] text-[var(--soft)]',
       ].join(' ')}
       style={{
+        minHeight: 56,
+        paddingTop: hasSubtitle ? 8 : undefined,
+        paddingBottom: hasSubtitle ? 8 : undefined,
         background: isFlash
           ? 'color-mix(in srgb, var(--ok) 8%, var(--panel))'
           : 'var(--panel)',
@@ -227,6 +232,14 @@ export const CommandTicker = ({ ticker, history, gitState, onTokenHover }: Comma
           </>
         )}
       </span>
+      {hasSubtitle && (
+        <span
+          className="text-[11px] text-[var(--muted)] leading-tight"
+          style={{ fontFamily: 'var(--hand)', paddingLeft: '1.1em' }}
+        >
+          {ticker.subtitle}
+        </span>
+      )}
     </div>
   );
 };
