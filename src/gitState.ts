@@ -142,9 +142,9 @@ export const createBranch = (
   command: `git checkout -b ${branchName} ${commitId}`,
 });
 
-export const addCommit = (state: GitState): { state: GitState; command: string } => {
+export const addCommit = (state: GitState, overrideMessage?: string): { state: GitState; command: string } => {
   const id = Math.random().toString(36).slice(2, 9);
-  const msg = `feat: new commit ${state.nextCommitNum}`;
+  const msg = overrideMessage ?? `feat: new commit ${state.nextCommitNum}`;
   const headCommit =
     state.branches[state.HEAD] !== undefined
       ? state.branches[state.HEAD] ?? state.HEAD

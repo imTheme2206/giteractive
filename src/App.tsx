@@ -165,6 +165,7 @@ export const App = () => {
             doCherryPick={store.doCherryPick}
             doRebase={store.doRebase}
             doMerge={store.doMerge}
+            doStartWip={store.doStartWip}
             doCreateBranch={store.doCreateBranch}
             doCheckout={store.doCheckout}
             doResetHard={store.doResetHard}

@@ -20,6 +20,7 @@ type GitCanvasProps = {
   gitState: GitState;
   mode: Mode;
   doAddCommit: () => void;
+  doStartWip: () => void;
   doCherryPick: (sourceId: string, targetBranch: string) => void;
   doRebase: (branchToRebase: string, ontoBranch: string) => void;
   doMerge: (sourceBranch: string, targetBranch: string) => void;
@@ -123,6 +124,7 @@ export const GitCanvas = ({
   gitState,
   mode,
   doAddCommit,
+  doStartWip,
   doCherryPick,
   doRebase,
   doMerge,
@@ -172,6 +174,8 @@ export const GitCanvas = ({
         position: { x: pos.x, y: pos.y },
         data: {
           label: isMerge ? '⊕' : id.slice(0, 4),
+          hash: id,
+          message: commit.message,
           branch: pos.branch,
           isHead: id === headCommitId,
           isMerge,
@@ -205,29 +209,41 @@ export const GitCanvas = ({
       });
     }
 
-    if (headLayout) {
+    if (headLayout && !isDetachedHead) {
+      if (wip !== null) {
+        // State 2: WIP active — show ghost node, clicking commits it
+        result.push({
+          id: 'ghost-wip',
+          type: 'commit',
+          position: { x: headLayout.x + 130, y: headLayout.y },
+          data: {
+            label: 'WIP',
+            branch: gitState.commits[headCommitId]?.branch ?? 'main',
+            isGhost: true,
+            isHead: false,
+            isWip: true,
+            wipMessage: wip,
+          },
+          draggable: false,
+        });
+      } else {
+        // State 1: no WIP — show + button, clicking enters WIP state
+        result.push({
+          id: 'addCommit',
+          type: 'addCommit',
+          position: { x: headLayout.x + 130, y: headLayout.y + 3 },
+          data: {},
+          draggable: false,
+        });
+      }
+    }
+
+    if (headLayout && isDetachedHead) {
       result.push({
         id: 'addCommit',
         type: 'addCommit',
-        position: isDetachedHead
-          ? { x: headLayout.x, y: headLayout.y - 80 }
-          : { x: headLayout.x + 140, y: headLayout.y + 3 },
-        data: { disabled: isDetachedHead },
-        draggable: false,
-      });
-    }
-
-    if (wip && headLayout) {
-      result.push({
-        id: 'ghost-wip',
-        type: 'commit',
-        position: { x: headLayout.x + 130, y: headLayout.y },
-        data: {
-          label: 'WIP',
-          branch: gitState.commits[headCommitId]?.branch ?? 'main',
-          isGhost: true,
-          isHead: false,
-        },
+        position: { x: headLayout.x, y: headLayout.y - 80 },
+        data: { disabled: true },
         draggable: false,
       });
     }
@@ -260,7 +276,7 @@ export const GitCanvas = ({
         });
       });
     }
-    if (wip && headCommitId) {
+    if (headCommitId && !isDetachedHead && wip !== null) {
       result.push({
         id: 'e-wip',
         source: headCommitId,
@@ -271,7 +287,7 @@ export const GitCanvas = ({
     }
 
     return result;
-  }, [gitState.commits, layout, wip, headCommitId]);
+  }, [gitState.commits, layout, wip, headCommitId, isDetachedHead, mode]);
 
   type DragTarget =
     | { type: 'cherry-pick'; sourceId: string; targetBranch: string }
@@ -375,6 +391,11 @@ export const GitCanvas = ({
       const target = event.target as HTMLElement;
 
       if (node.id === 'addCommit') {
+        doStartWip();
+        return;
+      }
+
+      if (node.id === 'ghost-wip') {
         doAddCommit();
         return;
       }

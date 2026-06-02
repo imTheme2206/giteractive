@@ -104,8 +104,14 @@ export const useGitStore = () => {
     setShowCompletionOverlay(true);
   };
 
+  const doStartWip = () => {
+    setWip(`feat: new commit ${gitState.nextCommitNum}`);
+  };
+
   const doAddCommit = () => {
-    const result = addCommit(gitState);
+    const message = wip ?? `feat: new commit ${gitState.nextCommitNum}`;
+    const result = addCommit(gitState, message);
+    setWip(null);
     setGitState(result.state);
     logCommand(result.command);
 
@@ -373,6 +379,7 @@ export const useGitStore = () => {
     resolveConflict,
     wip,
     stashStack,
+    doStartWip,
     doResetHard,
     doStash,
     doStashPop,
