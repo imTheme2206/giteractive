@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { CommandHistoryTab } from "./components/CommandHistoryTab";
+import { CommandPanel } from "./components/CommandPanel";
 import { CommandTicker } from "./components/CommandTicker";
 import { Button } from "./components/common/Button";
 import { Toast } from "./components/common/Toast";
@@ -27,6 +28,21 @@ import {
 } from "./lessons";
 import type { LessonGoal, ModuleId } from "./types";
 import { useGitStore } from "./useGitStore";
+
+const MODULE_COMMANDS: Partial<Record<ModuleId, string[]>> = {
+  module1: ['git commit -m "feat: ..."'],
+  module2: ['git checkout -b feature', 'git commit -m "feat: ..."'],
+  module3: ['git cherry-pick <hash>'],
+  module4: ['git rebase main'],
+  module5: ['git merge feature'],
+  module6: ['git merge feature'],
+  module7: ['git reset --hard c3'],
+  module8: ['git stash', 'git checkout main', 'git stash pop'],
+  module9: ['git rebase -i HEAD~3'],
+  module10: ['git checkout c2', 'git checkout main'],
+  module11: ['git reflog', 'git reset --hard <hash>'],
+  sandbox: ['git commit -m "feat: ..."', 'git checkout -b feature', 'git merge feature', 'git rebase main'],
+};
 
 const MODULE_IDS: ModuleId[] = [
   'module1', 'module2', 'module3', 'module4', 'module5',
@@ -135,6 +151,64 @@ export const App = () => {
   );
   const currentComplete = currentModuleProgress?.status === "complete";
 
+  const executeModuleCommand = (cmd: string) => {
+    const { branches, commits, HEAD } = store.gitState;
+
+    if (cmd.startsWith('git commit')) {
+      store.doAddCommit();
+    } else if (cmd === 'git checkout -b feature') {
+      const headCommit = branches[HEAD] ?? HEAD;
+      store.doCreateBranch(headCommit);
+    } else if (cmd.startsWith('git checkout') && !cmd.includes('-b')) {
+      const target = cmd.split(' ').pop();
+      if (target) store.doCheckout(target);
+    } else if (cmd.startsWith('git cherry-pick')) {
+      const otherBranch = Object.keys(branches).find((b) => b !== HEAD);
+      if (otherBranch) {
+        const sourceCommit = branches[otherBranch];
+        if (sourceCommit) store.doCherryPick(sourceCommit, HEAD);
+      }
+    } else if (cmd === 'git rebase main') {
+      const featureBranch = Object.keys(branches).find((b) => b !== 'main') ?? HEAD;
+      store.doRebase(featureBranch, 'main');
+    } else if (cmd.startsWith('git merge')) {
+      const sourceBranch = cmd.split(' ')[2];
+      const targetBranch = HEAD !== sourceBranch ? HEAD : 'main';
+      if (sourceBranch) store.doMerge(sourceBranch, targetBranch);
+    } else if (cmd.startsWith('git reset --hard') && !cmd.includes('<')) {
+      const target = cmd.split(' ').pop();
+      if (target) store.doResetHard(target);
+    } else if (cmd === 'git stash') {
+      store.doStash();
+    } else if (cmd === 'git stash pop') {
+      store.doStashPop();
+    } else if (cmd.startsWith('git rebase -i')) {
+      const featureBranch = Object.keys(branches).find((b) => b !== 'main') ?? HEAD;
+      const featureTip = branches[featureBranch];
+      if (!featureTip) return;
+      const mainTip = branches['main'];
+      const mainCommits = new Set<string>();
+      let cur: string | undefined = mainTip;
+      while (cur) {
+        mainCommits.add(cur);
+        cur = commits[cur]?.parentIds[0];
+      }
+      let count = 0;
+      cur = featureTip;
+      while (cur && !mainCommits.has(cur)) {
+        count++;
+        cur = commits[cur]?.parentIds[0];
+      }
+      if (count > 1) store.doSquash(featureBranch, count, 'feat: squashed');
+    } else if (cmd === 'git reflog') {
+      store.setTicker({ command: 'git reflog', state: 'flash' });
+      setTimeout(() => store.setTicker({ command: '', state: 'idle' }), 1200);
+    } else if (cmd.startsWith('git reset --hard') && cmd.includes('<')) {
+      const firstEntry = store.reflog[0];
+      if (firstEntry) store.doReflogRecover(firstEntry.hash);
+    }
+  };
+
   const toggleLang = () => {
     const next = i18n.language === "en" ? "th" : "en";
     i18n.changeLanguage(next);
@@ -179,9 +253,6 @@ export const App = () => {
               enterModule(id);
             }
           }}
-          onCommandPreview={(cmd) =>
-            store.setTicker({ command: cmd, state: cmd ? 'ghost' : 'idle' })
-          }
         />
       )}
       <div className="flex-1 flex flex-col min-w-0">
@@ -355,6 +426,14 @@ export const App = () => {
           )}
           </div>
         </div>
+
+        {/* Command panel */}
+        <CommandPanel
+          mode={store.mode as ModuleId}
+          commands={MODULE_COMMANDS[store.mode as ModuleId] ?? []}
+          onPreview={(cmd) => store.setTicker({ command: cmd, state: cmd ? 'ghost' : 'idle' })}
+          onExecute={executeModuleCommand}
+        />
 
         {/* Ticker */}
         <CommandTicker

@@ -10,27 +10,11 @@ type SidebarProps = {
   moduleProgress: ModuleProgress[];
   justUnlockedId: ModuleId | null;
   onEnter: (id: ModuleId) => void;
-  onCommandPreview: (cmd: string) => void;
 };
 
 const MODULE_IDS = ['module1', 'module2', 'module3', 'module4', 'module5', 'module6', 'module7', 'module8', 'module9', 'module10', 'module11', 'sandbox'] as const;
 
-const MODULE_COMMANDS: Partial<Record<Mode, string[]>> = {
-  module1: ['git commit -m "feat: ..."'],
-  module2: ['git checkout -b feature', 'git commit -m "feat: ..."'],
-  module3: ['git cherry-pick <hash>'],
-  module4: ['git rebase main'],
-  module5: ['git merge feature'],
-  module6: ['git merge feature'],
-  module7: ['git reset --hard c3'],
-  module8: ['git stash', 'git checkout main', 'git stash pop'],
-  module9: ['git rebase -i HEAD~3'],
-  module10: ['git checkout c2', 'git checkout main'],
-  module11: ['git reflog', 'git reset --hard <hash>'],
-  sandbox: ['git commit -m "feat: ..."', 'git checkout -b feature', 'git merge feature', 'git rebase main'],
-};
-
-export const Sidebar = ({ history, mode, moduleProgress, justUnlockedId, onEnter, onCommandPreview }: SidebarProps) => {
+export const Sidebar = ({ history, mode, moduleProgress, justUnlockedId, onEnter }: SidebarProps) => {
   const { t } = useTranslation();
 
   const timeAgo = (ts: number): string => {
@@ -82,21 +66,6 @@ export const Sidebar = ({ history, mode, moduleProgress, justUnlockedId, onEnter
         )}
       </div>
 
-      <SectionLabel>{t('sidebar.commands')}</SectionLabel>
-      <div className="flex-shrink-0 flex flex-col gap-1">
-        {(MODULE_COMMANDS[mode] ?? []).map((cmd) => (
-          <button
-            key={cmd}
-            type="button"
-            className="text-left px-2 py-1 border border-[var(--hair)] bg-[var(--panel)] font-mono text-[10px] text-[var(--soft)] hover:border-[var(--ink)] hover:text-[var(--ink)] transition-colors"
-            style={{ borderRadius: cardRadius }}
-            onClick={() => onCommandPreview(cmd)}
-            onMouseLeave={() => onCommandPreview('')}
-          >
-            {cmd}
-          </button>
-        ))}
-      </div>
     </div>
   );
 };

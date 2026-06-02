@@ -47,8 +47,10 @@ const buildCards = (op: DragOp): OptionCard[] => {
 };
 
 const getSmartDefault = (op: DragOp, headBranch: string): 'rebase' | 'merge' | null => {
-  if (op.type === 'rebase' && op.branchToRebase === headBranch) return 'rebase';
-  if (op.type === 'merge' && op.targetBranch === headBranch) return 'merge';
+  const draggedBranch = op.type === 'rebase' ? op.branchToRebase : op.sourceBranch;
+  const onto = op.type === 'rebase' ? op.ontoBranch : op.targetBranch;
+  if (draggedBranch === headBranch) return 'rebase';
+  if (onto === headBranch) return 'merge';
   return null;
 };
 
