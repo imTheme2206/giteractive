@@ -5,6 +5,8 @@ const en = {
     reset: '↺ Reset',
     theme: 'Theme',
     dev: 'dev',
+    tabGraph: 'Graph',
+    tabHistory: 'History',
   },
   modules: {
     module1: 'Module 1 · The Linear Timeline',
@@ -25,6 +27,7 @@ const en = {
     session: 'Session',
     noCommands: 'No commands yet',
     docs: 'Docs',
+    commands: 'Commands',
     timeJustNow: 'just now',
     timeSeconds: '{{count}}s ago',
     timeMinutes: '{{count}}m ago',
@@ -186,6 +189,25 @@ const en = {
       keyInsight: "The reflog is your safety net. It's local-only (not pushed), so it won't help your teammate recover their lost commits — but it will save you. Git's garbage collector eventually prunes orphaned commits, so act fast.",
     },
   },
+  tooltips: {
+    head: {
+      title: 'HEAD',
+      body: 'HEAD points to your current branch or commit. Commands like git commit update wherever HEAD points.',
+      detached: 'HEAD is detached — pointing directly at a commit hash, not a branch. Any commits made here will be orphaned when you switch away.',
+      attached: 'HEAD is attached to branch "{{branch}}" — this is your active branch.',
+    },
+    branch: {
+      title: 'Branch: {{name}}',
+      pointer: 'Points to commit {{hash}}',
+      headHere: 'HEAD is here — this is your active branch',
+    },
+    commit: {
+      hash: 'Hash',
+      branch: 'Branch',
+      parents: 'Parents',
+      message: 'Message',
+    },
+  },
   tickerSubtitles: {
     cherryPick: "Copies just this commit's diff onto your current branch",
     rebase: 'Re-applies your commits one-by-one on top of the target branch',
@@ -249,72 +271,16 @@ const en = {
     keepBoth: 'Keep Both',
     footer: 'Choosing a resolution will create the merge commit',
   },
+  toast: {
+    complete: 'Module {{n}} complete! 🎉',
+    hint: 'Click the next module in the sidebar →',
+  },
   moduleCard: {
     active: 'active',
     done: '✓ done',
     locked: 'locked',
     inProgress: 'in progress',
     clickToEnter: 'click to enter',
-  },
-  completion: {
-    module1: {
-      title: 'Module 1 Complete!',
-      body: "You've mastered linear history. Ready for branches?",
-      button: 'Unlock Module 2',
-    },
-    module2: {
-      title: 'Module 2 Complete!',
-      body1: 'A branch is just a pointer to a commit — no files copied, just a label.',
-      body2: 'Next: cherry-pick a single commit across branches.',
-      button: 'Unlock Module 3',
-    },
-    module3: {
-      title: 'Cherry-pick Complete!',
-      body: "You copied one commit onto main — its hash changed because it was re-applied, not moved.",
-      button: 'Unlock Module 4',
-    },
-    module4: {
-      title: 'Rebase Complete!',
-      body: "The feature commits were lifted off their old base and re-applied on top of main. Notice the IDs changed — history was rewritten.",
-      button: 'Unlock Module 5',
-    },
-    module5: {
-      title: 'Merge Complete!',
-      body: "You created a merge commit with two parents — both histories are preserved. Unlike rebase, the original commit IDs don't change.",
-      button: 'Unlock Module 6',
-    },
-    module6: {
-      title: 'Conflict Resolved!',
-      body: 'You navigated a merge conflict — choosing which version of the file to keep before committing. Real git conflict resolution works the same way.',
-      button: 'Unlock Module 7',
-    },
-    module7: {
-      title: 'Reset Complete!',
-      body: "git reset --hard moved the branch pointer back and permanently erased the commits after it. Unlike revert, there's no \"undo\" commit — the history is gone.",
-      button: 'Unlock Module 8',
-    },
-    module8: {
-      title: 'Stash Mastered!',
-      body: 'You saved uncommitted work to the stash, switched contexts to fix main, then popped it back. The stash is a stack — you can push multiple times.',
-      button: 'Unlock Module 9',
-    },
-    module9: {
-      title: 'Squash Complete!',
-      body: 'Three WIP commits collapsed into one clean commit. In real git rebase -i, you pick which commits to squash and rewrite the message. The history is now atomic and reviewable.',
-      button: 'Unlock Module 10',
-    },
-    module10: {
-      title: 'Detached HEAD Mastered!',
-      body: "You checked out a commit directly — HEAD pointed at a hash, not a branch. Commits made in this state are orphaned when you leave. Always reattach to a branch to keep your work.",
-      button: 'Unlock Module 11',
-    },
-    module11: {
-      title: 'Reflog Recovery!',
-      body: "Lost commits are never truly gone — until garbage collection runs. The reflog tracks every position HEAD has been in, letting you recover from even the most destructive resets.",
-      button: 'Go to Sandbox',
-    },
-    attempts_one: '{{count}} attempt',
-    attempts_other: '{{count}} attempts',
   },
 } as const;
 

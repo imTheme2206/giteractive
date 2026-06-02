@@ -89,3 +89,23 @@ body {
   0% { background: color-mix(in srgb, var(--ok) 10%, var(--panel)); }
   100% { background: var(--panel); }
 }
+
+@keyframes moduleUnlockGlow {
+  0%, 100% { box-shadow: 0 0 0 0 transparent; }
+  40% { box-shadow: 0 0 0 3px var(--glow-color, var(--ok)); }
+}
+
+@keyframes toastSlideIn {
+  from { transform: translateX(110%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes toastSlideOut {
+  from { transform: translateX(0); opacity: 1; }
+  to { transform: translateX(110%); opacity: 0; }
+}
+
+@keyframes progressShrink {
+  from { width: 100%; }
+  to { width: 0%; }
+}

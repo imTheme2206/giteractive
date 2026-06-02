@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   ReactFlow,
@@ -16,6 +16,7 @@ import { getNextBranchName } from '../gitState';
 import { CommitGraphNode } from './CommitGraphNode';
 import { BranchLabelNode } from './BranchLabelNode';
 import { AddCommitNode } from './AddCommitNode';
+import { DragConfirmModal } from './modal/DragConfirmModal';
 
 type GitCanvasProps = {
   gitState: GitState;
@@ -39,6 +40,15 @@ const nodeTypes: NodeTypes = {
   branchLabel: BranchLabelNode,
   addCommit: AddCommitNode,
 };
+
+type DragTarget =
+  | { type: 'cherry-pick'; sourceId: string; targetBranch: string }
+  | { type: 'rebase'; branchToRebase: string; ontoBranch: string }
+  | { type: 'merge'; sourceBranch: string; targetBranch: string };
+
+type PendingDragOp =
+  | { type: 'rebase'; branchToRebase: string; ontoBranch: string }
+  | { type: 'merge'; sourceBranch: string; targetBranch: string };
 
 type LayoutNode = {
   id: string;
@@ -185,6 +195,7 @@ export const GitCanvas = ({
           hash: id,
           message: commit.message,
           branch: pos.branch,
+          parentIds: commit.parentIds,
           isHead: id === headCommitId,
           isMerge,
           showBranchBadge: canBranch && id === headCommitId,
@@ -204,7 +215,7 @@ export const GitCanvas = ({
         id: `branch-${branchName}`,
         type: 'branchLabel',
         position: { x: pos.x + 50, y: pos.y - 44 },
-        data: { label: branchName, branch: branchName, showCheckout: canCheckout, canDrag, highlighted: highlightNodeIds?.includes(`branch-${branchName}`) ?? false },
+        data: { label: branchName, branch: branchName, showCheckout: canCheckout, canDrag, tipHash: tipId, isCurrentHead: gitState.HEAD === branchName, highlighted: highlightNodeIds?.includes(`branch-${branchName}`) ?? false },
         draggable: canDrag,
       });
     }
@@ -214,7 +225,7 @@ export const GitCanvas = ({
         id: 'label-HEAD',
         type: 'branchLabel',
         position: { x: headLayout.x + 50, y: headLayout.y + 44 },
-        data: { label: 'HEAD', branch: 'HEAD', isDetached: isDetachedHead, canDrag: false, highlighted: highlightNodeIds?.includes('label-HEAD') ?? false },
+        data: { label: 'HEAD', branch: 'HEAD', isDetached: isDetachedHead, attachedBranch: isDetachedHead ? undefined : gitState.HEAD, canDrag: false, highlighted: highlightNodeIds?.includes('label-HEAD') ?? false },
         draggable: false,
       });
     }
@@ -299,10 +310,121 @@ export const GitCanvas = ({
     return result;
   }, [gitState.commits, layout, wip, headCommitId, isDetachedHead, mode]);
 
-  type DragTarget =
-    | { type: 'cherry-pick'; sourceId: string; targetBranch: string }
-    | { type: 'rebase'; branchToRebase: string; ontoBranch: string }
-    | { type: 'merge'; sourceBranch: string; targetBranch: string };
+  const [pendingDragOp, setPendingDragOp] = useState<PendingDragOp | null>(null);
+  const [dragPreview, setDragPreview] = useState<DragTarget | null>(null);
+
+  const ancestorSet = useCallback((tipId: string): Set<string> => {
+    const visited = new Set<string>();
+    const walk = (id: string) => {
+      if (visited.has(id)) return;
+      visited.add(id);
+      gitState.commits[id]?.parentIds.forEach(walk);
+    };
+    walk(tipId);
+    return visited;
+  }, [gitState.commits]);
+
+  const ghostElements = useMemo((): { nodes: Node[]; edges: Edge[] } => {
+    if (!dragPreview || dragPreview.type === 'cherry-pick') return { nodes: [], edges: [] };
+
+    const ghostNodes: Node[] = [];
+    const ghostEdges: Edge[] = [];
+
+    if (dragPreview.type === 'rebase') {
+      const { branchToRebase, ontoBranch } = dragPreview;
+      const rebaseTip = gitState.branches[branchToRebase];
+      const ontoTip = gitState.branches[ontoBranch];
+      if (!rebaseTip || !ontoTip) return { nodes: [], edges: [] };
+
+      const ontoAncestors = ancestorSet(ontoTip);
+      const movingCommits: string[] = [];
+      const walk = (id: string) => {
+        if (ontoAncestors.has(id)) return;
+        movingCommits.unshift(id);
+        const parents = gitState.commits[id]?.parentIds ?? [];
+        if (parents[0]) walk(parents[0]);
+      };
+      walk(rebaseTip);
+
+      const ontoPos = layout.get(ontoTip);
+      if (!ontoPos) return { nodes: [], edges: [] };
+
+      movingCommits.forEach((commitId, i) => {
+        const ghostId = `ghost-rebase-${commitId}`;
+        const commit = gitState.commits[commitId];
+        ghostNodes.push({
+          id: ghostId,
+          type: 'commit',
+          position: { x: ontoPos.x + 130 * (i + 1), y: ontoPos.y },
+          data: {
+            label: commitId.slice(0, 4),
+            hash: commitId,
+            message: commit?.message,
+            branch: ontoBranch,
+            isGhost: true,
+            isHead: false,
+          },
+          draggable: false,
+          selectable: false,
+        });
+
+        const sourceId = i === 0 ? ontoTip : `ghost-rebase-${movingCommits[i - 1]}`;
+        ghostEdges.push({
+          id: `e-ghost-rebase-${i}`,
+          source: sourceId,
+          target: ghostId,
+          type: 'smoothstep',
+          style: { stroke: 'var(--main)', strokeWidth: 1.5, strokeDasharray: '5 4', opacity: 0.4 },
+          selectable: false,
+        });
+      });
+    }
+
+    if (dragPreview.type === 'merge') {
+      const { sourceBranch, targetBranch } = dragPreview;
+      const sourceTip = gitState.branches[sourceBranch];
+      const targetTip = gitState.branches[targetBranch];
+      if (!sourceTip || !targetTip) return { nodes: [], edges: [] };
+
+      const targetPos = layout.get(targetTip);
+      if (!targetPos) return { nodes: [], edges: [] };
+
+      const ghostId = 'ghost-merge-commit';
+      ghostNodes.push({
+        id: ghostId,
+        type: 'commit',
+        position: { x: targetPos.x + 130, y: targetPos.y },
+        data: {
+          label: '⊕',
+          branch: targetBranch,
+          isGhost: true,
+          isHead: false,
+          isMerge: true,
+        },
+        draggable: false,
+        selectable: false,
+      });
+
+      ghostEdges.push({
+        id: 'e-ghost-merge-target',
+        source: targetTip,
+        target: ghostId,
+        type: 'smoothstep',
+        style: { stroke: 'var(--ok)', strokeWidth: 1.5, strokeDasharray: '5 4', opacity: 0.4 },
+        selectable: false,
+      });
+      ghostEdges.push({
+        id: 'e-ghost-merge-source',
+        source: sourceTip,
+        target: ghostId,
+        type: 'smoothstep',
+        style: { stroke: 'var(--ok)', strokeWidth: 1.5, strokeDasharray: '5 4', opacity: 0.4 },
+        selectable: false,
+      });
+    }
+
+    return { nodes: ghostNodes, edges: ghostEdges };
+  }, [dragPreview, gitState.branches, gitState.commits, layout, ancestorSet]);
 
   const SNAP_DISTANCE_PX = 80;
   const MERGE_SNAP_PX = 60;
@@ -366,17 +488,20 @@ export const GitCanvas = ({
   const onNodeDragStop: OnNodeDrag = useCallback(
     (_event, node) => {
       if (!canDrag) return;
+      setDragPreview(null);
       const target = findDragTarget(node);
       if (target?.type === 'cherry-pick') {
         doCherryPick(target.sourceId, target.targetBranch);
+        setGhostCommand('');
       } else if (target?.type === 'rebase') {
-        doRebase(target.branchToRebase, target.ontoBranch);
+        setPendingDragOp({ type: 'rebase', branchToRebase: target.branchToRebase, ontoBranch: target.ontoBranch });
       } else if (target?.type === 'merge') {
-        doMerge(target.sourceBranch, target.targetBranch);
+        setPendingDragOp({ type: 'merge', sourceBranch: target.sourceBranch, targetBranch: target.targetBranch });
+      } else {
+        setGhostCommand('');
       }
-      setGhostCommand('');
     },
-    [canDrag, findDragTarget, doCherryPick, doRebase, doMerge, setGhostCommand]
+    [canDrag, findDragTarget, doCherryPick, setGhostCommand]
   );
 
   const onNodeDrag: OnNodeDrag = useCallback(
@@ -384,12 +509,16 @@ export const GitCanvas = ({
       if (!canDrag) return;
       const target = findDragTarget(node);
       if (target?.type === 'cherry-pick') {
+        setDragPreview(null);
         setGhostCommand(`git cherry-pick ${target.sourceId}`, t('tickerSubtitles.cherryPick'));
       } else if (target?.type === 'rebase') {
+        setDragPreview(target);
         setGhostCommand(`git rebase ${target.ontoBranch}`, t('tickerSubtitles.rebase'));
       } else if (target?.type === 'merge') {
+        setDragPreview(target);
         setGhostCommand(`git merge ${target.sourceBranch}`, t('tickerSubtitles.merge'));
       } else {
+        setDragPreview(null);
         setGhostCommand('');
       }
     },
@@ -446,11 +575,35 @@ export const GitCanvas = ({
     [canBranch, canCheckout, canReset, canSquash, headCommitId, headAncestors, gitState.branches, doAddCommit, doCreateBranch, doCheckout, doResetHard, doSquash]
   );
 
+  const handleModalConfirm = useCallback(
+    (choice: 'rebase' | 'merge') => {
+      if (!pendingDragOp) return;
+      const op = pendingDragOp;
+      setPendingDragOp(null);
+      setGhostCommand('');
+      if (choice === 'rebase') {
+        const branchToRebase = op.type === 'rebase' ? op.branchToRebase : op.sourceBranch;
+        const ontoBranch = op.type === 'rebase' ? op.ontoBranch : op.targetBranch;
+        doRebase(branchToRebase, ontoBranch);
+      } else {
+        const sourceBranch = op.type === 'merge' ? op.sourceBranch : op.branchToRebase;
+        const targetBranch = op.type === 'merge' ? op.targetBranch : op.ontoBranch;
+        doMerge(sourceBranch, targetBranch);
+      }
+    },
+    [pendingDragOp, doRebase, doMerge, setGhostCommand]
+  );
+
+  const handleModalCancel = useCallback(() => {
+    setPendingDragOp(null);
+    setGhostCommand('');
+  }, [setGhostCommand]);
+
   return (
     <div className="absolute inset-0">
       <ReactFlow
-        nodes={nodes}
-        edges={edges}
+        nodes={[...nodes, ...ghostElements.nodes]}
+        edges={[...edges, ...ghostElements.edges]}
         nodeTypes={nodeTypes}
         nodesDraggable={canDrag}
         nodesConnectable={false}
@@ -463,6 +616,14 @@ export const GitCanvas = ({
       >
         <Background variant={BackgroundVariant.Dots} gap={22} size={1.4} color="var(--grid)" />
       </ReactFlow>
+      {pendingDragOp && (
+        <DragConfirmModal
+          op={pendingDragOp}
+          headBranch={gitState.HEAD}
+          onConfirm={handleModalConfirm}
+          onCancel={handleModalCancel}
+        />
+      )}
     </div>
   );
 };

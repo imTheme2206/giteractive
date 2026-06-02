@@ -1,3 +1,4 @@
+import type { CSSProperties } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { Mode, ModuleId, ModuleProgress } from '../../types';
 import { Badge } from '../common/Badge';
@@ -11,10 +12,11 @@ type ModuleCardProps = {
   title: string;
   subtitle: string;
   status: CardDisplayStatus;
+  isJustUnlocked?: boolean;
   onClick?: () => void;
 };
 
-export const ModuleCard = ({ id, number, title, subtitle, status, onClick }: ModuleCardProps) => {
+export const ModuleCard = ({ id, number, title, subtitle, status, isJustUnlocked = false, onClick }: ModuleCardProps) => {
   const { t } = useTranslation();
   const isSandbox = id === 'sandbox';
   const isActive = status === 'active';
@@ -68,6 +70,10 @@ export const ModuleCard = ({ id, number, title, subtitle, status, onClick }: Mod
         background: bg,
         cursor: isLocked ? 'default' : 'pointer',
         opacity: isLocked ? 0.5 : 1,
+        ...(isJustUnlocked && {
+          '--glow-color': accent,
+          animation: 'moduleUnlockGlow 0.9s ease-in-out 3',
+        } as CSSProperties),
       }}
     >
       <div className="flex items-center gap-1.5">

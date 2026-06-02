@@ -5,6 +5,8 @@ const th = {
     reset: "↺ รีเซ็ต",
     theme: "ธีม",
     dev: "นักพัฒนา",
+    tabGraph: "กราฟ",
+    tabHistory: "ประวัติ",
   },
 
   modules: {
@@ -282,6 +284,25 @@ const th = {
         "Reflog คือตาข่ายนิรภัยของคุณ มันอยู่เฉพาะในเครื่อง (ไม่ถูก push) ดังนั้นจะช่วยได้แค่ตัวคุณเอง ไม่ใช่เพื่อนร่วมทีม garbage collector ของ Git จะลบ commit ที่ถูกทิ้งในที่สุด ดังนั้นรีบดำเนินการ",
     },
   },
+  tooltips: {
+    head: {
+      title: 'HEAD',
+      body: 'HEAD ชี้ไปที่ branch หรือ commit ที่คุณกำลังทำงานอยู่ คำสั่งอย่าง git commit จะอัปเดตตรงที่ HEAD ชี้อยู่',
+      detached: 'HEAD หลุดออกจาก branch — กำลังชี้ตรงไปที่ commit hash ไม่ใช่ branch ถ้า commit ในสถานะนี้จะกลายเป็น orphan เมื่อเปลี่ยนไปที่อื่น',
+      attached: 'HEAD ติดอยู่กับ branch "{{branch}}" — นี่คือ branch ที่คุณกำลังทำงานอยู่',
+    },
+    branch: {
+      title: 'Branch: {{name}}',
+      pointer: 'ชี้ไปที่ commit {{hash}}',
+      headHere: 'HEAD อยู่ที่นี่ — นี่คือ branch ที่ใช้งานอยู่',
+    },
+    commit: {
+      hash: 'Hash',
+      branch: 'Branch',
+      parents: 'Parents',
+      message: 'Message',
+    },
+  },
   tickerSubtitles: {
     cherryPick: "คัดลอกเฉพาะการเปลี่ยนแปลงจาก commit นี้มายัง branch ปัจจุบัน",
     rebase: "นำ commit ของคุณมาเรียงใหม่บน branch เป้าหมายทีละตัว",
@@ -361,6 +382,10 @@ const th = {
     footer: "เมื่อเลือกแล้ว ระบบจะสร้าง merge commit",
   },
 
+  toast: {
+    complete: 'โมดูล {{n}} สำเร็จ! 🎉',
+    hint: 'คลิกโมดูลถัดไปในแถบด้านข้าง →',
+  },
   moduleCard: {
     active: "กำลังเล่น",
     done: "✓ ผ่านแล้ว",
@@ -369,74 +394,6 @@ const th = {
     clickToEnter: "คลิกเพื่อเข้า",
   },
 
-  completion: {
-    module1: {
-      title: "ผ่านโมดูล 1 แล้ว!",
-      body: "คุณเข้าใจประวัติแบบเส้นตรงแล้ว พร้อมเรียนรู้เรื่อง Branch หรือยัง?",
-      button: "ปลดล็อกโมดูล 2",
-    },
-
-    module2: {
-      title: "ผ่านโมดูล 2 แล้ว!",
-      body1: "Branch เป็นเพียงตัวชี้ไปยัง commit ไม่ได้คัดลอกไฟล์ใด ๆ",
-      body2: "ต่อไป: ย้าย commit เดียวข้าม branch ด้วย Cherry-pick",
-      button: "ปลดล็อกโมดูล 3",
-    },
-
-    module3: {
-      title: "Cherry-pick สำเร็จ!",
-      body: "คุณคัดลอก commit ไปยัง main ได้แล้ว Hash เปลี่ยนเพราะถูกสร้างใหม่ ไม่ได้ถูกย้าย",
-      button: "ปลดล็อกโมดูล 4",
-    },
-
-    module4: {
-      title: "Rebase สำเร็จ!",
-      body: "Commit ของ feature ถูกนำไปวางใหม่บน main สังเกตว่า ID เปลี่ยน เพราะประวัติถูกเขียนใหม่",
-      button: "ปลดล็อกโมดูล 5",
-    },
-
-    module5: {
-      title: "Merge สำเร็จ!",
-      body: "คุณสร้าง merge commit ที่มี parent สองตัว ประวัติเดิมยังอยู่ครบ ต่างจาก rebase ที่จะเขียนใหม่",
-      button: "ปลดล็อกโมดูล 6",
-    },
-
-    module6: {
-      title: "แก้ Conflict สำเร็จ!",
-      body: "คุณจัดการ merge conflict ได้แล้ว หลักการเดียวกับที่ใช้ใน Git จริง",
-      button: "ปลดล็อกโมดูล 7",
-    },
-
-    module7: {
-      title: "Reset สำเร็จ!",
-      body: "git reset --hard ย้อน branch กลับไปและลบ commit ที่ตามมาทั้งหมด ต่างจาก revert ที่จะสร้าง commit ใหม่เพื่อย้อนการเปลี่ยนแปลง",
-      button: "ปลดล็อกโมดูล 8",
-    },
-
-    module8: {
-      title: "เชี่ยวชาญ git stash แล้ว!",
-      body: "คุณเก็บงานค้างไว้ สลับไปแก้ปัญหา แล้วดึงงานกลับมาได้สำเร็จ จำไว้ว่า stash ทำงานเป็นแบบ Stack",
-      button: "ปลดล็อกโมดูล 9",
-    },
-    module9: {
-      title: "Squash สำเร็จ!",
-      body: "สาม commit WIP รวมเป็น commit เดียวที่สะอาดแล้ว ใน git rebase -i จริง คุณเลือกได้ว่าจะ squash commit ไหน และเขียน message ใหม่ ประวัติตอนนี้เป็น atomic และ review ได้ง่าย",
-      button: "ปลดล็อกโมดูล 10",
-    },
-    module10: {
-      title: "เชี่ยวชาญ Detached HEAD แล้ว!",
-      body: "คุณ checkout commit โดยตรงและ HEAD แยกออกจาก branch แล้ว commit ที่ทำในสถานะนี้จะกลายเป็น orphan เมื่อออก ให้ reattach กับ branch เสมอเพื่อรักษางาน",
-      button: "ปลดล็อกโมดูล 11",
-    },
-    module11: {
-      title: "กู้คืน Reflog สำเร็จ!",
-      body: "commit ที่หายไปไม่ได้หายถาวร — reflog บันทึกทุกตำแหน่งที่ HEAD เคยอยู่ ช่วยให้กู้คืนได้แม้หลัง reset --hard",
-      button: "ไปยัง Sandbox",
-    },
-
-    attempts_one: "{{count}} ครั้ง",
-    attempts_other: "{{count}} ครั้ง",
-  },
 };
 
 export default th;

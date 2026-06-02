@@ -48,6 +48,8 @@ export type TickerEntry = {
   id: string;
   command: string;
   timestamp: number;
+  stateBefore?: GitState;
+  stateAfter?: GitState;
 };
 
 export type ReflogEntry = {

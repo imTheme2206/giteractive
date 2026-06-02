@@ -1,14 +1,15 @@
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { CommandHistoryTab } from "./components/CommandHistoryTab";
 import { CommandTicker } from "./components/CommandTicker";
 import { Button } from "./components/common/Button";
+import { Toast } from "./components/common/Toast";
 import { ExplainerCard } from "./components/ExplainerCard";
 import { GitCanvas } from "./components/GitCanvas";
 import { GoalCard } from "./components/GoalCard";
 import { ReflogPanel } from "./components/ReflogPanel";
 import { ConflictModal } from "./components/modal/ConflictModal";
 import { IntroModal } from "./components/modal/IntroModal";
-import { ModuleCompleteModal } from "./components/modal/ModuleCompleteModal";
 import { Sidebar } from "./components/sidebar/Sidebar";
 import i18n from "./i18n";
 import {
@@ -27,6 +28,27 @@ import {
 import type { LessonGoal, ModuleId } from "./types";
 import { useGitStore } from "./useGitStore";
 
+const MODULE_IDS: ModuleId[] = [
+  'module1', 'module2', 'module3', 'module4', 'module5',
+  'module6', 'module7', 'module8', 'module9', 'module10',
+  'module11', 'sandbox',
+];
+
+const MODULE_ACCENT: Record<ModuleId, string> = {
+  module1: 'var(--ok)',
+  module2: 'var(--feat)',
+  module3: 'var(--ok)',
+  module4: 'var(--head)',
+  module5: 'var(--ok)',
+  module6: 'var(--conflict)',
+  module7: 'var(--head)',
+  module8: 'var(--feat)',
+  module9: 'var(--feat)',
+  module10: 'var(--head)',
+  module11: 'var(--ok)',
+  sandbox: 'var(--feat)',
+};
+
 const MODULE_LESSONS: Partial<Record<string, LessonGoal>> = {
   module1: LESSON_LINEAR,
   module2: LESSON_BRANCH,
@@ -42,6 +64,9 @@ const MODULE_LESSONS: Partial<Record<string, LessonGoal>> = {
 };
 
 const getCommandType = (command: string): string | null => {
+  if (command.startsWith("git add")) return null;
+  if (command.startsWith("git push")) return null;
+  if (command.startsWith("git pull")) return null;
   if (command.startsWith("git checkout -b")) return "checkout-b";
   if (command.startsWith("git checkout") && !command.includes("-b")) return "checkout";
   if (command.startsWith("git commit")) return "commit";
@@ -63,6 +88,11 @@ export const App = () => {
   const explainerKeyRef = useRef(0);
   const seenCommandTypesRef = useRef(new Set<string>());
   const [pendingModule, setPendingModule] = useState<ModuleId | null>(null);
+  const [activeTab, setActiveTab] = useState<'graph' | 'history'>('graph');
+
+  const [toastModuleId, setToastModuleId] = useState<ModuleId | null>(null);
+  const [justUnlockedId, setJustUnlockedId] = useState<ModuleId | null>(null);
+  const pulseTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const enterModule = (id: ModuleId) => {
     setPendingModule(null);
@@ -79,6 +109,25 @@ export const App = () => {
     else if (id === "module11") store.enterModule11();
     else store.unlockSandbox();
   };
+
+  useEffect(() => {
+    if (store.showCompletionOverlay) {
+      setToastModuleId(store.mode as ModuleId);
+      const currentIndex = MODULE_IDS.indexOf(store.mode as ModuleId);
+      const nextId = currentIndex >= 0 && currentIndex < MODULE_IDS.length - 1
+        ? MODULE_IDS[currentIndex + 1]
+        : null;
+      if (nextId) {
+        setJustUnlockedId(nextId);
+        if (pulseTimerRef.current) clearTimeout(pulseTimerRef.current);
+        pulseTimerRef.current = setTimeout(() => setJustUnlockedId(null), 3500);
+      }
+    }
+  }, [store.showCompletionOverlay, store.mode]);
+
+  useEffect(() => () => {
+    if (pulseTimerRef.current) clearTimeout(pulseTimerRef.current);
+  }, []);
 
   const currentLesson = MODULE_LESSONS[store.mode];
   const currentModuleProgress = store.moduleProgress.find(
@@ -118,6 +167,7 @@ export const App = () => {
           history={store.history}
           mode={store.mode}
           moduleProgress={store.moduleProgress}
+          justUnlockedId={justUnlockedId}
           onEnter={(id) => {
             if (id === store.mode) return;
             if (id === 'sandbox') { store.unlockSandbox(); return; }
@@ -129,6 +179,9 @@ export const App = () => {
               enterModule(id);
             }
           }}
+          onCommandPreview={(cmd) =>
+            store.setTicker({ command: cmd, state: cmd ? 'ghost' : 'idle' })
+          }
         />
       )}
       <div className="flex-1 flex flex-col min-w-0">
@@ -140,9 +193,34 @@ export const App = () => {
           >
             {store.sidebarOpen ? "◀" : "▶"}
           </Button>
-          <span className="font-mono text-xs text-[var(--muted)] flex-1">
+          <span className="font-mono text-xs text-[var(--muted)]">
             {t(`modules.${store.mode}`, store.mode)}
           </span>
+          <div className="flex gap-1 flex-1">
+            <Button
+              onClick={() => setActiveTab('graph')}
+              style={{
+                borderColor: activeTab === 'graph' ? 'var(--ink)' : 'var(--hair)',
+                color: activeTab === 'graph' ? 'var(--ink)' : 'var(--muted)',
+              }}
+            >
+              {t('toolbar.tabGraph')}
+            </Button>
+            <Button
+              onClick={() => setActiveTab('history')}
+              style={{
+                borderColor: activeTab === 'history' ? 'var(--ink)' : 'var(--hair)',
+                color: activeTab === 'history' ? 'var(--ink)' : 'var(--muted)',
+              }}
+            >
+              {t('toolbar.tabHistory')}
+              {store.history.length > 0 && (
+                <span className="ml-1 text-[10px] text-[var(--muted)]">
+                  {store.history.length}
+                </span>
+              )}
+            </Button>
+          </div>
           {(store.mode === "module8" ||
             (store.mode === "sandbox" && store.wip)) && (
             <Button
@@ -192,8 +270,12 @@ export const App = () => {
           </Button>
         </div>
 
-        {/* Canvas */}
-        <div className="flex-1 relative overflow-hidden">
+        {/* Canvas / History tab */}
+        <div className="flex-1 relative overflow-hidden flex flex-col">
+          {activeTab === 'history' && (
+            <CommandHistoryTab history={store.history} />
+          )}
+          <div className={activeTab === 'graph' ? 'flex-1 relative' : 'hidden'}>
           <GitCanvas
             gitState={store.gitState}
             mode={store.mode}
@@ -227,193 +309,6 @@ export const App = () => {
             />
           )}
 
-          {/* Completion overlays */}
-          {store.showCompletionOverlay && store.mode === "module1" && (
-            <ModuleCompleteModal
-              icon="🎉"
-              title={t("completion.module1.title")}
-              body={
-                <p className="text-sm text-[var(--soft)] leading-relaxed m-0 font-hand">
-                  {t("completion.module1.body")}
-                </p>
-              }
-              buttonLabel={t("completion.module1.button")}
-              onAction={store.enterModule2}
-            />
-          )}
-          {store.showCompletionOverlay && store.mode === "module2" && (
-            <ModuleCompleteModal
-              icon="⎇"
-              title={t("completion.module2.title")}
-              accentColor="var(--feat)"
-              body={
-                <>
-                  <p className="text-sm text-[var(--soft)] leading-relaxed m-0 mb-2 font-hand">
-                    {t("completion.module2.body1")}
-                  </p>
-                  <p className="text-sm text-[var(--soft)] leading-relaxed m-0 font-hand">
-                    {t("completion.module2.body2")}
-                  </p>
-                </>
-              }
-              buttonLabel={t("completion.module2.button")}
-              onAction={store.enterModule3}
-            />
-          )}
-          {store.showCompletionOverlay && store.mode === "module3" && (
-            <ModuleCompleteModal
-              icon="✓"
-              title={t("completion.module3.title")}
-              body={
-                <>
-                  <p className="text-sm text-[var(--soft)] leading-relaxed m-0 mb-1 font-hand">
-                    {t("completion.module3.body")}
-                  </p>
-                  <p
-                    className="text-sm text-[var(--muted)] leading-relaxed m-0 font-mono"
-                    style={{ fontSize: 11 }}
-                  >
-                    {t("completion.attempts", { count: store.moduleAttempts })}
-                  </p>
-                </>
-              }
-              buttonLabel={t("completion.module3.button")}
-              onAction={store.enterModule4}
-            />
-          )}
-          {store.showCompletionOverlay && store.mode === "module4" && (
-            <ModuleCompleteModal
-              icon="⟳"
-              title={t("completion.module4.title")}
-              accentColor="var(--head)"
-              body={
-                <>
-                  <p className="text-sm text-[var(--soft)] leading-relaxed m-0 mb-1 font-hand">
-                    {t("completion.module4.body")}
-                  </p>
-                  <p
-                    className="text-sm text-[var(--muted)] leading-relaxed m-0 font-mono"
-                    style={{ fontSize: 11 }}
-                  >
-                    {t("completion.attempts", { count: store.moduleAttempts })}
-                  </p>
-                </>
-              }
-              buttonLabel={t("completion.module4.button")}
-              onAction={store.enterModule5}
-            />
-          )}
-          {store.showCompletionOverlay && store.mode === "module5" && (
-            <ModuleCompleteModal
-              icon="⊕"
-              title={t("completion.module5.title")}
-              accentColor="var(--ok)"
-              body={
-                <>
-                  <p className="text-sm text-[var(--soft)] leading-relaxed m-0 mb-1 font-hand">
-                    {t("completion.module5.body")}
-                  </p>
-                  <p
-                    className="text-sm text-[var(--muted)] leading-relaxed m-0 font-mono"
-                    style={{ fontSize: 11 }}
-                  >
-                    {t("completion.attempts", { count: store.moduleAttempts })}
-                  </p>
-                </>
-              }
-              buttonLabel={t("completion.module5.button")}
-              onAction={store.enterModule6}
-            />
-          )}
-          {store.showCompletionOverlay && store.mode === "module6" && (
-            <ModuleCompleteModal
-              icon="⚡"
-              title={t("completion.module6.title")}
-              accentColor="var(--conflict)"
-              body={
-                <>
-                  <p className="text-sm text-[var(--soft)] leading-relaxed m-0 mb-1 font-hand">
-                    {t("completion.module6.body")}
-                  </p>
-                  <p
-                    className="text-sm text-[var(--muted)] leading-relaxed m-0 font-mono"
-                    style={{ fontSize: 11 }}
-                  >
-                    {t("completion.attempts", { count: store.moduleAttempts })}
-                  </p>
-                </>
-              }
-              buttonLabel={t("completion.module6.button")}
-              onAction={store.enterModule7}
-            />
-          )}
-          {store.showCompletionOverlay && store.mode === "module7" && (
-            <ModuleCompleteModal
-              icon="↺"
-              title={t("completion.module7.title")}
-              accentColor="var(--head)"
-              body={
-                <>
-                  <p className="text-sm text-[var(--soft)] leading-relaxed m-0 mb-1 font-hand">
-                    {t("completion.module7.body")}
-                  </p>
-                  <p
-                    className="text-sm text-[var(--muted)] leading-relaxed m-0 font-mono"
-                    style={{ fontSize: 11 }}
-                  >
-                    {t("completion.attempts", { count: store.moduleAttempts })}
-                  </p>
-                </>
-              }
-              buttonLabel={t("completion.module7.button")}
-              onAction={store.enterModule8}
-            />
-          )}
-          {store.showCompletionOverlay && store.mode === "module8" && (
-            <ModuleCompleteModal
-              icon="⬇"
-              title={t("completion.module8.title")}
-              accentColor="var(--feat)"
-              body={
-                <>
-                  <p className="text-sm text-[var(--soft)] leading-relaxed m-0 mb-1 font-hand">
-                    {t("completion.module8.body")}
-                  </p>
-                  <p
-                    className="text-sm text-[var(--muted)] leading-relaxed m-0 font-mono"
-                    style={{ fontSize: 11 }}
-                  >
-                    {t("completion.attempts", { count: store.moduleAttempts })}
-                  </p>
-                </>
-              }
-              buttonLabel={t("completion.module8.button")}
-              onAction={store.enterModule9}
-            />
-          )}
-          {store.showCompletionOverlay && store.mode === "module9" && (
-            <ModuleCompleteModal
-              icon="⊕"
-              title={t("completion.module9.title")}
-              accentColor="var(--feat)"
-              body={
-                <>
-                  <p className="text-sm text-[var(--soft)] leading-relaxed m-0 mb-1 font-hand">
-                    {t("completion.module9.body")}
-                  </p>
-                  <p
-                    className="text-sm text-[var(--muted)] leading-relaxed m-0 font-mono"
-                    style={{ fontSize: 11 }}
-                  >
-                    {t("completion.attempts", { count: store.moduleAttempts })}
-                  </p>
-                </>
-              }
-              buttonLabel={t("completion.module9.button")}
-              onAction={store.enterModule10}
-            />
-          )}
-
           {/* Reflog panel for module11 */}
           <ReflogPanel
             visible={store.mode === "module11"}
@@ -422,52 +317,7 @@ export const App = () => {
             currentCommits={new Set(Object.keys(store.gitState.commits))}
           />
 
-          {store.showCompletionOverlay && store.mode === "module10" && (
-            <ModuleCompleteModal
-              icon="↩"
-              title={t("completion.module10.title")}
-              accentColor="var(--head)"
-              body={
-                <>
-                  <p className="text-sm text-[var(--soft)] leading-relaxed m-0 mb-1 font-hand">
-                    {t("completion.module10.body")}
-                  </p>
-                  <p
-                    className="text-sm text-[var(--muted)] leading-relaxed m-0 font-mono"
-                    style={{ fontSize: 11 }}
-                  >
-                    {t("completion.attempts", { count: store.moduleAttempts })}
-                  </p>
-                </>
-              }
-              buttonLabel={t("completion.module10.button")}
-              onAction={store.enterModule11}
-            />
-          )}
-          {store.showCompletionOverlay && store.mode === "module11" && (
-            <ModuleCompleteModal
-              icon="⏎"
-              title={t("completion.module11.title")}
-              accentColor="var(--ok)"
-              body={
-                <>
-                  <p className="text-sm text-[var(--soft)] leading-relaxed m-0 mb-1 font-hand">
-                    {t("completion.module11.body")}
-                  </p>
-                  <p
-                    className="text-sm text-[var(--muted)] leading-relaxed m-0 font-mono"
-                    style={{ fontSize: 11 }}
-                  >
-                    {t("completion.attempts", { count: store.moduleAttempts })}
-                  </p>
-                </>
-              }
-              buttonLabel={t("completion.module11.button")}
-              onAction={store.unlockSandbox}
-            />
-          )}
-
-          {/* Orange conflict flash */}
+{/* Orange conflict flash */}
           {store.conflictFlash && (
             <div
               className="absolute inset-0 pointer-events-none z-40"
@@ -503,6 +353,7 @@ export const App = () => {
               onSkip={() => enterModule(pendingModule)}
             />
           )}
+          </div>
         </div>
 
         {/* Ticker */}
@@ -513,6 +364,13 @@ export const App = () => {
           onTokenHover={setHighlightNodeIds}
         />
       </div>
+      {toastModuleId && (
+        <Toast
+          moduleId={toastModuleId}
+          accentColor={MODULE_ACCENT[toastModuleId]}
+          onDismiss={() => setToastModuleId(null)}
+        />
+      )}
     </div>
   );
 };

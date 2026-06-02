@@ -89,11 +89,11 @@ export const useGitStore = () => {
     setDevMode(true);
   };
 
-  const logCommand = (command: string) => {
+  const logCommand = (command: string, stateBefore?: GitState, stateAfter?: GitState) => {
     setTicker({ command, state: "flash" });
     setTimeout(() => {
       setHistory(h => [
-        { id: Math.random().toString(36).slice(2, 9), command, timestamp: Date.now() },
+        { id: Math.random().toString(36).slice(2, 9), command, timestamp: Date.now(), stateBefore, stateAfter },
         ...h,
       ]);
       setTicker(t => ({ ...t, state: "idle" }));
@@ -121,10 +121,23 @@ export const useGitStore = () => {
 
   const doAddCommit = () => {
     const message = wip ?? `feat: new commit ${gitState.nextCommitNum}`;
+    const stateBefore = gitState;
     const result = addCommit(gitState, message);
+    const stateAfter = result.state;
+    const branch = gitState.HEAD;
     setWip(null);
-    setGitState(result.state);
-    logCommand(result.command);
+    setGitState(stateAfter);
+    setTicker({ command: result.command, state: "flash" });
+    setTimeout(() => {
+      const now = Date.now();
+      setHistory(h => [
+        { id: Math.random().toString(36).slice(2, 9), command: `git push origin ${branch}`, timestamp: now + 2, stateBefore: stateAfter, stateAfter },
+        { id: Math.random().toString(36).slice(2, 9), command: result.command, timestamp: now + 1, stateBefore, stateAfter },
+        { id: Math.random().toString(36).slice(2, 9), command: 'git add .', timestamp: now, stateBefore, stateAfter: stateBefore },
+        ...h,
+      ]);
+      setTicker(t => ({ ...t, state: "idle" }));
+    }, 1200);
 
     if (mode === "module1") {
       setModuleAttempts(n => n + 1);
@@ -141,10 +154,11 @@ export const useGitStore = () => {
   };
 
   const doCherryPick = (sourceId: string, targetBranch: string) => {
+    const stateBefore = gitState;
     const result = cherryPick(gitState, sourceId, targetBranch);
     if (!result) return;
     setGitState(result.state);
-    logCommand(result.command);
+    logCommand(result.command, stateBefore, result.state);
 
     if (mode === "module3") {
       setModuleAttempts(n => n + 1);
@@ -153,10 +167,11 @@ export const useGitStore = () => {
   };
 
   const doRebase = (branchToRebase: string, ontoBranch: string) => {
+    const stateBefore = gitState;
     const result = rebase(gitState, branchToRebase, ontoBranch);
     if (!result) return;
     setGitState(result.state);
-    logCommand(result.command);
+    logCommand(result.command, stateBefore, result.state);
 
     if (mode === "module4") {
       setModuleAttempts(n => n + 1);
@@ -175,10 +190,11 @@ export const useGitStore = () => {
       return;
     }
 
+    const stateBefore = gitState;
     const result = merge(gitState, sourceBranch, targetBranch);
     if (!result) return;
     setGitState(result.state);
-    logCommand(result.command);
+    logCommand(result.command, stateBefore, result.state);
 
     if (mode === "module5") {
       setModuleAttempts(n => n + 1);
@@ -204,7 +220,7 @@ export const useGitStore = () => {
       },
     };
     setGitState(finalState);
-    logCommand(`git merge ${sourceBranch} # conflict resolved (${resolution})`);
+    logCommand(`git merge ${sourceBranch} # conflict resolved (${resolution})`, gitState, finalState);
     setConflictState(null);
     setPendingConflictMerge(null);
 
@@ -228,7 +244,7 @@ export const useGitStore = () => {
 
       if (hasDetached && target === 'main') {
         setGitState(result.state);
-        logCommand(result.command);
+        logCommand(result.command, gitState, result.state);
         setModuleAttempts(n => n + 1);
         if (LESSON_DETACHED_HEAD.validate(result.state)) {
           completeModule('module10', 'module11');
@@ -238,7 +254,7 @@ export const useGitStore = () => {
     }
 
     setGitState(result.state);
-    logCommand(result.command);
+    logCommand(result.command, gitState, result.state);
   };
 
   const doResetHard = (targetId: string) => {
@@ -249,10 +265,11 @@ export const useGitStore = () => {
       ]);
     }
 
+    const stateBefore = gitState;
     const result = resetHard(gitState, targetId);
     if (!result) return;
     setGitState(result.state);
-    logCommand(result.command);
+    logCommand(result.command, stateBefore, result.state);
 
     if (mode === 'module7') {
       setModuleAttempts(n => n + 1);
@@ -262,18 +279,20 @@ export const useGitStore = () => {
 
   const doStash = () => {
     if (!wip) return;
+    const stateBefore = gitState;
     setStashStack(s => [{ message: wip, fromBranch: gitState.HEAD }, ...s]);
     setWip(null);
-    logCommand('git stash');
+    logCommand('git stash', stateBefore, stateBefore);
   };
 
   const doStashPop = () => {
     if (stashStack.length === 0) return;
     const [top, ...rest] = stashStack;
     if (!top) return;
+    const stateBefore = gitState;
     setWip(top.message);
     setStashStack(rest);
-    logCommand('git stash pop');
+    logCommand('git stash pop', stateBefore, stateBefore);
 
     if (mode === 'module8') {
       setModuleAttempts(n => n + 1);
@@ -282,10 +301,11 @@ export const useGitStore = () => {
   };
 
   const doSquash = (branchName: string, count: number, message: string) => {
+    const stateBefore = gitState;
     const result = squashCommits(gitState, branchName, count, message);
     if (!result) return;
     setGitState(result.state);
-    logCommand(result.command);
+    logCommand(result.command, stateBefore, result.state);
 
     if (mode === 'module9') {
       setModuleAttempts(n => n + 1);
@@ -307,18 +327,20 @@ export const useGitStore = () => {
     };
     walk(hash);
 
+    const stateBefore = gitState;
     setGitState(prev => ({
       ...prev,
       commits: reachableCommits,
       branches: { ...prev.branches, main: hash },
     }));
-    logCommand(`git reset --hard ${hash}`);
 
     const newState = {
       ...gitState,
       commits: reachableCommits,
       branches: { ...gitState.branches, main: hash },
     };
+
+    logCommand(`git reset --hard ${hash}`, stateBefore, newState);
 
     if (mode === 'module11') {
       setModuleAttempts(n => n + 1);
@@ -327,10 +349,11 @@ export const useGitStore = () => {
   };
 
   const doCreateBranch = (commitId: string) => {
+    const stateBefore = gitState;
     const branchName = getNextBranchName(Object.keys(gitState.branches));
     const result = createBranch(gitState, commitId, branchName);
     setGitState(result.state);
-    logCommand(result.command);
+    logCommand(result.command, stateBefore, result.state);
 
     if (mode === "module2") setModuleAttempts(n => n + 1);
   };
