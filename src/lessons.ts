@@ -23,6 +23,86 @@ export const LESSON_BRANCH: LessonGoal = {
     }),
 };
 
+export const LESSON_REBASE: LessonGoal = {
+  id: 'rebase',
+  title: 'Level 04 — Rebase',
+  description: "Move the entire feature branch on top of main's tip — rewriting its history so it looks like it was always based there.",
+  hint: "Drag the feature branch label onto main's tip. Watch the commit IDs change — that's history being rewritten.",
+  chips: ['onto: main', 'branch: feature'],
+  validate: (state) => {
+    const mainTip = state.branches['main'];
+    const featureTip = state.branches['feature'];
+    if (!mainTip || !featureTip || featureTip === mainTip) return false;
+    // After rebase, walking back from featureTip must reach mainTip
+    const visited = new Set<string>();
+    const walk = (id: string): boolean => {
+      if (id === mainTip) return true;
+      if (visited.has(id)) return false;
+      visited.add(id);
+      return (state.commits[id]?.parentIds ?? []).some(walk);
+    };
+    return walk(featureTip);
+  },
+};
+
+export const LESSON_MERGE: LessonGoal = {
+  id: 'merge',
+  title: 'Level 05 — Merge',
+  description: "Merge the feature branch into main — creating a merge commit that ties both histories together without rewriting any commit IDs.",
+  hint: "Drag the feature branch label onto main's branch label badge. Watch the merge commit appear with two parent edges.",
+  chips: ['target: main', 'branch: feature', 'result: merge commit'],
+  validate: (state) => {
+    const mainTip = state.branches['main'];
+    if (!mainTip) return false;
+    return (state.commits[mainTip]?.parentIds.length ?? 0) >= 2;
+  },
+};
+
+export const LESSON_RESET: LessonGoal = {
+  id: 'reset',
+  title: 'Level 07 — git reset',
+  description: "Two broken WIP commits slipped onto main. Roll main back to c3 — erasing the broken commits from history.",
+  hint: "Hover over c3 and click the ↺ reset button. The broken commits disappear entirely (--hard mode).",
+  chips: ['mode: --hard', 'target: c3', 'lost: c4, c5'],
+  validate: (state) => {
+    const mainTip = state.branches['main'];
+    if (!mainTip) return false;
+    const reachable = new Set<string>();
+    const walk = (id: string) => {
+      if (reachable.has(id)) return;
+      reachable.add(id);
+      state.commits[id]?.parentIds.forEach(walk);
+    };
+    walk(mainTip);
+    return reachable.size <= 3;
+  },
+};
+
+export const LESSON_STASH: LessonGoal = {
+  id: 'stash',
+  title: 'Level 08 — git stash',
+  description: "You have uncommitted work on feature, but main needs an urgent fix. Stash your WIP, fix main, then pop the stash back on feature.",
+  hint: "Click ⬇ Stash to save WIP. Switch to main, add a commit, switch back to feature, then pop the stash.",
+  chips: ['stash WIP', 'fix main', 'pop stash'],
+  validate: (state) => {
+    const mainTip = state.branches['main'];
+    return !!mainTip && mainTip !== 'c3';
+  },
+};
+
+export const LESSON_CONFLICT: LessonGoal = {
+  id: 'conflict',
+  title: 'Level 06 — Merge Conflicts',
+  description: "Both branches edited the same file. Merge feature into main — then resolve the conflict by choosing which version to keep.",
+  hint: "Drag the feature branch label onto main's label. An orange flash means conflict detected. Pick a resolution in the modal.",
+  chips: ['conflict: greeting.txt', 'resolve: choose version'],
+  validate: (state) => {
+    const mainTip = state.branches['main'];
+    if (!mainTip) return false;
+    return (state.commits[mainTip]?.parentIds.length ?? 0) >= 2;
+  },
+};
+
 export const LESSON_CHERRY_PICK: LessonGoal = {
   id: 'cherry-pick',
   title: 'Level 03 — Cherry-pick',

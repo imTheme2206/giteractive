@@ -24,6 +24,78 @@ export const makeModule3State = (): GitState => ({
   nextCommitNum: 4,
 });
 
+// Modules 4 and 5 start from the same diverged graph as module 3
+export const makeModule4State = makeModule3State;
+export const makeModule5State = makeModule3State;
+
+// Module 6: same topology but both branches touch "greeting" — signals a conflict
+export const makeModule6State = (): GitState => ({
+  commits: {
+    c1: { id: 'c1', parentIds: [], message: 'init: initial commit', branch: 'main' },
+    c2: { id: 'c2', parentIds: ['c1'], message: 'feat: add readme', branch: 'main' },
+    c3: { id: 'c3', parentIds: ['c2'], message: 'fix: update greeting text', branch: 'main' },
+    f1: { id: 'f1', parentIds: ['c2'], message: 'feat: add login page', branch: 'feature' },
+    f2: { id: 'f2', parentIds: ['f1'], message: 'feat: update greeting for devs', branch: 'feature' },
+  },
+  branches: { main: 'c3', feature: 'f2' },
+  HEAD: 'main',
+  nextCommitNum: 4,
+});
+
+export const makeModule7State = (): GitState => ({
+  commits: {
+    c1: { id: 'c1', parentIds: [], message: 'init: initial commit', branch: 'main' },
+    c2: { id: 'c2', parentIds: ['c1'], message: 'feat: add readme', branch: 'main' },
+    c3: { id: 'c3', parentIds: ['c2'], message: 'feat: setup project', branch: 'main' },
+    c4: { id: 'c4', parentIds: ['c3'], message: 'wip: broken experiment', branch: 'main' },
+    c5: { id: 'c5', parentIds: ['c4'], message: 'wip: still broken', branch: 'main' },
+  },
+  branches: { main: 'c5' },
+  HEAD: 'main',
+  nextCommitNum: 6,
+});
+
+export const makeModule8State = (): GitState => ({
+  commits: {
+    c1: { id: 'c1', parentIds: [], message: 'init: initial commit', branch: 'main' },
+    c2: { id: 'c2', parentIds: ['c1'], message: 'feat: add readme', branch: 'main' },
+    c3: { id: 'c3', parentIds: ['c2'], message: 'feat: setup project', branch: 'main' },
+    f1: { id: 'f1', parentIds: ['c2'], message: 'feat: start feature', branch: 'feature' },
+    f2: { id: 'f2', parentIds: ['f1'], message: 'feat: implement ui', branch: 'feature' },
+  },
+  branches: { main: 'c3', feature: 'f2' },
+  HEAD: 'feature',
+  nextCommitNum: 4,
+});
+
+export const resetHard = (
+  state: GitState,
+  targetId: CommitHash
+): { state: GitState; command: string } | null => {
+  const branch = state.HEAD;
+  if (!state.branches[branch]) return null;
+
+  const newBranches = { ...state.branches, [branch]: targetId };
+
+  const reachable = new Set<string>();
+  const walk = (id: string) => {
+    if (reachable.has(id)) return;
+    reachable.add(id);
+    state.commits[id]?.parentIds.forEach(walk);
+  };
+  Object.values(newBranches).forEach(tip => walk(tip));
+
+  const newCommits: typeof state.commits = {};
+  for (const [id, commit] of Object.entries(state.commits)) {
+    if (reachable.has(id)) newCommits[id] = commit;
+  }
+
+  return {
+    state: { ...state, commits: newCommits, branches: newBranches },
+    command: `git reset --hard ${targetId}`,
+  };
+};
+
 export const makeSandboxState = (): GitState => {
   const base = makeModuleState();
   return {
@@ -115,6 +187,34 @@ export const cherryPick = (
       branches: { ...state.branches, [targetBranch]: newId },
     },
     command: `git cherry-pick ${sourceId}`,
+  };
+};
+
+export const merge = (
+  state: GitState,
+  sourceBranch: string,
+  targetBranch: string
+): { state: GitState; command: string } | null => {
+  if (sourceBranch === targetBranch) return null;
+  const sourceTip = state.branches[sourceBranch];
+  const targetTip = state.branches[targetBranch];
+  if (!sourceTip || !targetTip) return null;
+  const newId = Math.random().toString(36).slice(2, 9);
+  return {
+    state: {
+      ...state,
+      commits: {
+        ...state.commits,
+        [newId]: {
+          id: newId,
+          parentIds: [targetTip, sourceTip],
+          message: `Merge branch '${sourceBranch}' into ${targetBranch}`,
+          branch: targetBranch,
+        },
+      },
+      branches: { ...state.branches, [targetBranch]: newId },
+    },
+    command: `git merge ${sourceBranch}`,
   };
 };
 

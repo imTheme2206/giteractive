@@ -173,6 +173,51 @@ export const Sidebar = ({ history, mode, moduleProgress, onEnter }: SidebarProps
         onClick={() => onEnter('module3')}
       />
 
+      <ModuleCard
+        id="module4"
+        number="4"
+        title="Module 4"
+        subtitle="Rebase"
+        status={getCardStatus('module4', mode, moduleProgress)}
+        onClick={() => onEnter('module4')}
+      />
+
+      <ModuleCard
+        id="module5"
+        number="5"
+        title="Module 5"
+        subtitle="Merge"
+        status={getCardStatus('module5', mode, moduleProgress)}
+        onClick={() => onEnter('module5')}
+      />
+
+      <ModuleCard
+        id="module6"
+        number="6"
+        title="Module 6"
+        subtitle="Merge Conflicts"
+        status={getCardStatus('module6', mode, moduleProgress)}
+        onClick={() => onEnter('module6')}
+      />
+
+      <ModuleCard
+        id="module7"
+        number="7"
+        title="Module 7"
+        subtitle="git reset"
+        status={getCardStatus('module7', mode, moduleProgress)}
+        onClick={() => onEnter('module7')}
+      />
+
+      <ModuleCard
+        id="module8"
+        number="8"
+        title="Module 8"
+        subtitle="git stash"
+        status={getCardStatus('module8', mode, moduleProgress)}
+        onClick={() => onEnter('module8')}
+      />
+
       <div className="mt-1">
         <ModuleCard
           id="sandbox"
@@ -209,7 +254,7 @@ export const Sidebar = ({ history, mode, moduleProgress, onEnter }: SidebarProps
         Docs
       </span>
       <div>
-        {(['git commit', 'git checkout -b', 'git cherry-pick', 'git rebase'] as const).map((doc) => (
+        {(['git commit', 'git checkout -b', 'git cherry-pick', 'git rebase', 'git merge', 'git reset', 'git stash'] as const).map((doc) => (
           <span
             key={doc}
             className="inline-flex items-center px-2 py-0.5 border border-[var(--hair)] font-mono text-[10px] text-[var(--soft)] mr-1 mb-1 bg-[var(--panel)]"

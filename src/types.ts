@@ -25,9 +25,14 @@ export type LessonGoal = {
   validate: (state: GitState) => boolean;
 };
 
-export type Mode = 'module1' | 'module2' | 'module3' | 'sandbox';
+export type Mode = 'module1' | 'module2' | 'module3' | 'module4' | 'module5' | 'module6' | 'module7' | 'module8' | 'sandbox';
 
-export type ModuleId = 'module1' | 'module2' | 'module3' | 'sandbox';
+export type ModuleId = 'module1' | 'module2' | 'module3' | 'module4' | 'module5' | 'module6' | 'module7' | 'module8' | 'sandbox';
+
+export type ConflictState = {
+  sourceBranch: string;
+  targetBranch: string;
+};
 export type ModuleStatus = 'locked' | 'available' | 'in_progress' | 'complete';
 
 export type ModuleProgress = {

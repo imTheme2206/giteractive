@@ -22,9 +22,12 @@ type GitCanvasProps = {
   doAddCommit: () => void;
   doCherryPick: (sourceId: string, targetBranch: string) => void;
   doRebase: (branchToRebase: string, ontoBranch: string) => void;
+  doMerge: (sourceBranch: string, targetBranch: string) => void;
   doCreateBranch: (commitId: string) => void;
   doCheckout: (target: string) => void;
+  doResetHard: (commitId: string) => void;
   setGhostCommand: (cmd: string) => void;
+  wip?: string | null;
 };
 
 const nodeTypes: NodeTypes = {
@@ -57,22 +60,22 @@ const computeLayout = (gitState: GitState): Map<string, LayoutNode> => {
     }
   }
 
-  const roots = allIds.filter(id => {
-    const commit = commits[id];
-    return commit && commit.parentIds.length === 0;
-  });
-
-  const visited = new Set<string>();
-  const queue: string[] = [...roots];
+  // Kahn's algorithm: ensures all parents are processed before children (handles merge commits)
+  const inDegree = new Map<string, number>();
+  for (const id of allIds) {
+    inDegree.set(id, commits[id]?.parentIds.length ?? 0);
+  }
+  const queue: string[] = allIds.filter(id => (inDegree.get(id) ?? 0) === 0);
   const topoOrder: string[] = [];
 
   while (queue.length > 0) {
-    const id = queue.shift();
-    if (!id || visited.has(id)) continue;
-    visited.add(id);
+    const id = queue.shift()!;
     topoOrder.push(id);
-    const kids = children.get(id) ?? [];
-    queue.push(...kids);
+    for (const childId of (children.get(id) ?? [])) {
+      const newDeg = (inDegree.get(childId) ?? 1) - 1;
+      inDegree.set(childId, newDeg);
+      if (newDeg === 0) queue.push(childId);
+    }
   }
 
   const depth = new Map<string, number>();
@@ -122,9 +125,12 @@ export const GitCanvas = ({
   doAddCommit,
   doCherryPick,
   doRebase,
+  doMerge,
   doCreateBranch,
   doCheckout,
+  doResetHard,
   setGhostCommand,
+  wip,
 }: GitCanvasProps) => {
   const layout = useMemo(() => computeLayout(gitState), [gitState]);
 
@@ -136,8 +142,22 @@ export const GitCanvas = ({
   const headLayout = layout.get(headCommitId);
 
   const canBranch = mode !== 'module1';
-  const canCheckout = mode === 'sandbox';
+  const canCheckout = mode === 'sandbox' || mode === 'module8';
+  const canDrag = mode === 'sandbox' || mode === 'module3' || mode === 'module4' || mode === 'module5' || mode === 'module6';
+  const canReset = mode === 'sandbox' || mode === 'module7';
   const isDetachedHead = gitState.branches[gitState.HEAD] === undefined;
+
+  const headAncestors = useMemo(() => {
+    if (!canReset) return new Set<string>();
+    const ancestors = new Set<string>();
+    const walk = (id: string) => {
+      if (ancestors.has(id)) return;
+      ancestors.add(id);
+      gitState.commits[id]?.parentIds.forEach(walk);
+    };
+    gitState.commits[headCommitId]?.parentIds.forEach(walk);
+    return ancestors;
+  }, [canReset, headCommitId, gitState.commits]);
 
   const nodes: Node[] = useMemo(() => {
     const result: Node[] = [];
@@ -145,18 +165,21 @@ export const GitCanvas = ({
     for (const [id, pos] of layout.entries()) {
       const commit = gitState.commits[id];
       if (!commit) continue;
+      const isMerge = commit.parentIds.length > 1;
       result.push({
         id,
         type: 'commit',
         position: { x: pos.x, y: pos.y },
         data: {
-          label: id.slice(0, 4),
+          label: isMerge ? '⊕' : id.slice(0, 4),
           branch: pos.branch,
           isHead: id === headCommitId,
+          isMerge,
           showBranchBadge: canBranch && id === headCommitId,
-          showCheckout: canCheckout && id !== headCommitId,
+          showCheckout: canCheckout && id !== headCommitId && !headAncestors.has(id),
+          showReset: canReset && headAncestors.has(id),
         },
-        draggable: mode === 'sandbox' || mode === 'module3',
+        draggable: canDrag,
       });
     }
 
@@ -167,8 +190,8 @@ export const GitCanvas = ({
         id: `branch-${branchName}`,
         type: 'branchLabel',
         position: { x: pos.x + 50, y: pos.y - 44 },
-        data: { label: branchName, branch: branchName, showCheckout: canCheckout },
-        draggable: mode === 'sandbox' || mode === 'module3',
+        data: { label: branchName, branch: branchName, showCheckout: canCheckout, canDrag },
+        draggable: canDrag,
       });
     }
 
@@ -177,7 +200,7 @@ export const GitCanvas = ({
         id: 'label-HEAD',
         type: 'branchLabel',
         position: { x: headLayout.x + 50, y: headLayout.y + 44 },
-        data: { label: 'HEAD', branch: 'HEAD', isDetached: isDetachedHead },
+        data: { label: 'HEAD', branch: 'HEAD', isDetached: isDetachedHead, canDrag: false },
         draggable: false,
       });
     }
@@ -194,40 +217,69 @@ export const GitCanvas = ({
       });
     }
 
+    if (wip && headLayout) {
+      result.push({
+        id: 'ghost-wip',
+        type: 'commit',
+        position: { x: headLayout.x + 130, y: headLayout.y },
+        data: {
+          label: 'WIP',
+          branch: gitState.commits[headCommitId]?.branch ?? 'main',
+          isGhost: true,
+          isHead: false,
+        },
+        draggable: false,
+      });
+    }
+
     return result;
-  }, [layout, gitState.commits, gitState.branches, headCommitId, headLayout, mode, canBranch, canCheckout, isDetachedHead]);
+  }, [layout, gitState.commits, gitState.branches, headCommitId, headLayout, mode, canBranch, canCheckout, canReset, headAncestors, isDetachedHead, wip]);
+
+  const branchColor = (branch: string) =>
+    branch === 'main' ? 'var(--main)' : branch === 'feature' ? 'var(--feat)' : 'var(--ink)';
 
   const edges: Edge[] = useMemo(() => {
     const result: Edge[] = [];
     for (const [id, commit] of Object.entries(gitState.commits)) {
-      for (const parentId of commit.parentIds) {
-        const pos = layout.get(id);
-        const branch = pos?.branch ?? 'main';
-        const edgeColor =
-          branch === 'main'
-            ? 'var(--main)'
-            : branch === 'feature'
-              ? 'var(--feat)'
-              : 'var(--ink)';
+      const isMerge = commit.parentIds.length > 1;
+      commit.parentIds.forEach((parentId, idx) => {
+        // For merge commits, secondary parent edge inherits the parent's branch color
+        const edgeColor = isMerge && idx > 0
+          ? branchColor(layout.get(parentId)?.branch ?? 'main')
+          : branchColor(layout.get(id)?.branch ?? 'main');
         result.push({
           id: `e-${parentId}-${id}`,
           source: parentId,
           target: id,
           type: 'smoothstep',
-          style: { stroke: edgeColor, strokeWidth: 2.2 },
+          style: {
+            stroke: isMerge ? 'var(--ok)' : edgeColor,
+            strokeWidth: isMerge ? 2.2 : 2.2,
+            strokeDasharray: isMerge ? '5 3' : undefined,
+          },
         });
-      }
+      });
     }
-    return result;
-  }, [gitState.commits, layout]);
+    if (wip && headCommitId) {
+      result.push({
+        id: 'e-wip',
+        source: headCommitId,
+        target: 'ghost-wip',
+        type: 'smoothstep',
+        style: { stroke: 'var(--ghost)', strokeWidth: 2, strokeDasharray: '4 3' },
+      });
+    }
 
-  const canDrag = mode === 'sandbox' || mode === 'module3';
+    return result;
+  }, [gitState.commits, layout, wip, headCommitId]);
 
   type DragTarget =
     | { type: 'cherry-pick'; sourceId: string; targetBranch: string }
-    | { type: 'rebase'; branchToRebase: string; ontoBranch: string };
+    | { type: 'rebase'; branchToRebase: string; ontoBranch: string }
+    | { type: 'merge'; sourceBranch: string; targetBranch: string };
 
   const SNAP_DISTANCE_PX = 80;
+  const MERGE_SNAP_PX = 60;
 
   const findDragTarget = useCallback(
     (node: { id: string; type?: string; position: { x: number; y: number } }): DragTarget | null => {
@@ -248,12 +300,30 @@ export const GitCanvas = ({
         }
       }
 
-      if (node.type === 'branchLabel' && mode === 'sandbox') {
+      if (node.type === 'branchLabel' && (mode === 'sandbox' || mode === 'module5' || mode === 'module6')) {
         const branchName = node.id.replace(/^branch-/, '');
         for (const [otherBranch, tipId] of Object.entries(gitState.branches)) {
           if (otherBranch === branchName) continue;
           const tipPos = layout.get(tipId);
           if (!tipPos) continue;
+          // Merge: snap to the OTHER branch's label position (offset from commit)
+          const labelX = tipPos.x + 50;
+          const labelY = tipPos.y - 44;
+          const dx = dragX - labelX;
+          const dy = dragY - labelY;
+          if (Math.sqrt(dx * dx + dy * dy) < MERGE_SNAP_PX) {
+            return { type: 'merge', sourceBranch: branchName, targetBranch: otherBranch };
+          }
+        }
+      }
+
+      if (node.type === 'branchLabel' && (mode === 'sandbox' || mode === 'module4')) {
+        const branchName = node.id.replace(/^branch-/, '');
+        for (const [otherBranch, tipId] of Object.entries(gitState.branches)) {
+          if (otherBranch === branchName) continue;
+          const tipPos = layout.get(tipId);
+          if (!tipPos) continue;
+          // Rebase: snap to the OTHER branch's commit node position
           const dx = dragX - tipPos.x;
           const dy = dragY - tipPos.y;
           if (Math.sqrt(dx * dx + dy * dy) < SNAP_DISTANCE_PX) {
@@ -275,10 +345,12 @@ export const GitCanvas = ({
         doCherryPick(target.sourceId, target.targetBranch);
       } else if (target?.type === 'rebase') {
         doRebase(target.branchToRebase, target.ontoBranch);
+      } else if (target?.type === 'merge') {
+        doMerge(target.sourceBranch, target.targetBranch);
       }
       setGhostCommand('');
     },
-    [canDrag, findDragTarget, doCherryPick, doRebase, setGhostCommand]
+    [canDrag, findDragTarget, doCherryPick, doRebase, doMerge, setGhostCommand]
   );
 
   const onNodeDrag: OnNodeDrag = useCallback(
@@ -289,6 +361,8 @@ export const GitCanvas = ({
         setGhostCommand(`git cherry-pick ${target.sourceId}`);
       } else if (target?.type === 'rebase') {
         setGhostCommand(`git rebase ${target.ontoBranch}`);
+      } else if (target?.type === 'merge') {
+        setGhostCommand(`git merge ${target.sourceBranch}`);
       } else {
         setGhostCommand('');
       }
@@ -310,6 +384,13 @@ export const GitCanvas = ({
         return;
       }
 
+      if (canReset && node.type === 'commit' && headAncestors.has(node.id)) {
+        if (target.closest('[data-reset-commit]')) {
+          doResetHard(node.id);
+        }
+        return;
+      }
+
       if (canCheckout && node.type === 'commit' && node.id !== headCommitId) {
         if (target.closest('[data-checkout-commit]')) {
           const branchAtCommit = Object.entries(gitState.branches)
@@ -324,7 +405,7 @@ export const GitCanvas = ({
         doCheckout(branchName);
       }
     },
-    [canBranch, canCheckout, headCommitId, doAddCommit, doCreateBranch, doCheckout]
+    [canBranch, canCheckout, canReset, headCommitId, headAncestors, doAddCommit, doCreateBranch, doCheckout, doResetHard]
   );
 
   return (
@@ -333,7 +414,7 @@ export const GitCanvas = ({
         nodes={nodes}
         edges={edges}
         nodeTypes={nodeTypes}
-        nodesDraggable={mode === 'sandbox' || mode === 'module3'}
+        nodesDraggable={canDrag}
         nodesConnectable={false}
         elementsSelectable={true}
         onNodeClick={onNodeClick}

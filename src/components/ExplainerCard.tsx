@@ -40,6 +40,30 @@ const getExplanation = (command: string): { title: string; body: string; color: 
       color: 'var(--head)',
     };
   }
+  if (command.startsWith('git merge')) {
+    const branch = command.split(' ')[2] ?? '';
+    return {
+      title: 'Merge commit created',
+      body: `Git created a new merge commit with two parents — one from the current branch and one from ${branch}. Both histories are preserved; the original commit IDs don't change.`,
+      color: 'var(--ok)',
+    };
+  }
+  if (command.startsWith('git reset --hard')) {
+    const target = command.split(' ')[3] ?? '';
+    return {
+      title: 'Hard reset',
+      body: `Git moved the branch pointer back to ${target} and deleted every commit after it. Those commits are gone — --hard means no trace left in the working tree either.`,
+      color: 'var(--head)',
+    };
+  }
+  if (command.startsWith('git stash')) {
+    const isPop = command.includes('pop');
+    return {
+      title: isPop ? 'Stash popped' : 'Work stashed',
+      body: isPop ? 'Git restored the stashed snapshot onto your working tree. The stash entry is now gone.' : 'Git saved your uncommitted changes to a temporary stack and cleaned your working tree — leaving you free to switch branches.',
+      color: 'var(--feat)',
+    };
+  }
   return null;
 };
 
