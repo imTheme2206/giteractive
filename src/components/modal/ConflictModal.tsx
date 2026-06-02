@@ -1,14 +1,12 @@
 import { useTranslation } from 'react-i18next';
 import type { ConflictState } from '../../types';
 import { ModalBackdrop } from './ModalBackdrop';
+import { cardRadius } from '../common/radii';
 
 type ConflictModalProps = {
   conflict: ConflictState;
   onResolve: (resolution: 'ours' | 'theirs' | 'both') => void;
 };
-
-const pillRadius = '60px 10px 60px 10px/10px 60px 10px 60px';
-const cardRadius = '255px 14px 225px 16px/16px 225px 14px 255px';
 
 type HunkOption = {
   id: 'ours' | 'theirs' | 'both';
@@ -58,10 +56,7 @@ export const ConflictModal = ({ conflict, onResolve }: ConflictModalProps) => {
       >
         <div className="flex items-center gap-2 mb-1">
           <span style={{ color: 'var(--conflict)', fontSize: 18 }}>⚡</span>
-          <span
-            className="font-bold text-base text-[var(--ink)]"
-            style={{ fontFamily: 'var(--hand)' }}
-          >
+          <span className="font-bold text-base text-[var(--ink)] font-hand">
             {t('conflict.title')}
           </span>
         </div>
@@ -98,10 +93,7 @@ export const ConflictModal = ({ conflict, onResolve }: ConflictModalProps) => {
                 background: opt.bg,
               }}
             >
-              <div
-                className="font-bold text-[12px] mb-1"
-                style={{ fontFamily: 'var(--hand)', color: opt.color }}
-              >
+              <div className="font-bold text-[12px] mb-1 font-hand" style={{ color: opt.color }}>
                 {t(opt.labelKey)}
               </div>
               {opt.lines.map((line, i) => (

@@ -227,7 +227,71 @@ const th = {
     rebase: "นำ commit ของคุณมาเรียงใหม่บน branch เป้าหมายทีละตัว",
     merge: "เชื่อมประวัติทั้งสองฝั่งด้วย merge commit ใหม่",
   },
+  explainer: {
+    branchCreated: {
+      title: "สร้าง Branch แล้ว",
 
+      body: 'Git ได้สร้าง Pointer ใหม่ชื่อ "{{branch}}" ขึ้นมา โดยไม่มีการคัดลอกไฟล์ใด ๆ Branch เป็นเพียงป้ายที่ใช้ชี้ไปยัง Commit เท่านั้น ตอนนี้ HEAD จะติดตาม {{branch}} และเลื่อนไปข้างหน้าตามทุก Commit ใหม่ที่คุณสร้าง',
+    },
+
+    newCommit: {
+      title: "สร้าง Commit ใหม่แล้ว",
+
+      body: "Git ได้บันทึก Snapshot ของการเปลี่ยนแปลงที่อยู่ใน Staging Area และเพิ่มมันเป็น Node ใหม่ในกราฟประวัติ แต่ละ Commit จะมี Hash ที่ไม่ซ้ำกัน จึงทำให้ ID ดูเหมือนเป็นชุดตัวอักษรแบบสุ่ม",
+    },
+
+    cherryPick: {
+      title: "Cherry-pick — เกิดอะไรขึ้นเมื่อกี้",
+
+      steps: [
+        "Git ดึง Diff ระหว่าง {{hash}} กับ Commit ก่อนหน้าของมันออกมา ซึ่งก็คือการเปลี่ยนแปลงที่ Commit นี้สร้างขึ้น",
+        "การเปลี่ยนแปลงเหล่านั้นถูกนำไปใช้ซ้ำบนปลาย Branch ปัจจุบันของคุณ",
+        "Git สร้าง Commit ใหม่ที่มี Diff เหมือนเดิม แต่ได้ Hash ใหม่ — การเปลี่ยนแปลงเหมือนเดิม แต่เป็น Commit คนละตัว",
+      ],
+    },
+
+    rebase: {
+      title: "Rebase — เกิดอะไรขึ้นเมื่อกี้",
+
+      steps: [
+        "Git หา Common Ancestor ของทั้งสอง Branch ซึ่งเป็นจุดล่าสุดที่ประวัติของทั้งคู่ยังเหมือนกัน",
+        "Commit ของคุณถูกยกออกจากฐานเดิมทีละตัว",
+        "แต่ละ Commit ถูกนำกลับไปวางใหม่บน {{onto}} และได้รับ Hash ใหม่ เพราะ Parent ของมันเปลี่ยนไปแล้ว",
+      ],
+    },
+
+    mergeCommit: {
+      title: "Merge Commit — เกิดอะไรขึ้นเมื่อกี้",
+
+      steps: [
+        "Git หา Common Ancestor ของทั้งสอง Branch",
+        "การเปลี่ยนแปลงจากทั้งสองฝั่งถูกนำมารวมกัน โดยไม่มี Branch ใดถูกเขียนประวัติใหม่",
+        "Git สร้าง Merge Commit ใหม่ที่มี Parent สองตัว และเก็บประวัติเดิมของทั้งสอง Branch ไว้ครบถ้วน",
+      ],
+    },
+
+    hardReset: {
+      title: "Hard Reset — เกิดอะไรขึ้นเมื่อกี้",
+
+      steps: [
+        "Git ย้าย Pointer ของ Branch กลับไปยัง {{target}}",
+        "Commit ทุกตัวหลังจาก {{target}} ถูกลบออกจากประวัติ",
+        "Working Tree ถูกปรับให้ตรงกับสถานะของ {{target}} ทำให้ไม่เหลือร่องรอยของ Commit ที่ถูกลบ",
+      ],
+    },
+
+    workStashed: {
+      title: "เก็บงานลง Stash แล้ว",
+
+      body: "Git ได้บันทึกการเปลี่ยนแปลงที่ยังไม่ได้ Commit ลงใน Stack ชั่วคราว และล้าง Working Tree ให้สะอาด เพื่อให้คุณสามารถสลับ Branch ไปทำงานอื่นได้ทันที",
+    },
+
+    stashPopped: {
+      title: "ดึงงานจาก Stash กลับมาแล้ว",
+
+      body: "Git ได้นำ Snapshot ที่เก็บไว้ใน Stash กลับคืนสู่ Working Tree ของคุณ และลบรายการนั้นออกจาก Stash เรียบร้อยแล้ว",
+    },
+  },
   conflict: {
     title: "ตรวจพบ Merge Conflict",
     chooseResolution: "เลือกวิธีแก้",

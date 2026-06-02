@@ -1,13 +1,13 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { Badge } from './common/Badge';
+import { Button } from './common/Button';
+import { cardRadius } from './common/radii';
 
 type ExplainerCardProps = {
   command: string;
   onDismiss: () => void;
 };
-
-const cardRadius = '255px 14px 225px 16px/16px 225px 14px 255px';
-const pillRadius = '60px 10px 60px 10px/10px 60px 10px 60px';
 
 type ExplainerKey = {
   titleKey: string;
@@ -86,12 +86,11 @@ export const ExplainerCard = ({ command, onDismiss }: ExplainerCardProps) => {
 
   return (
     <div
+      className="absolute z-20"
       style={{
-        position: 'absolute',
         bottom: 72,
         right: 24,
         width: 316,
-        zIndex: 20,
         transition: 'opacity 0.3s, transform 0.3s',
         opacity: visible ? 1 : 0,
         transform: visible ? 'translateY(0)' : 'translateY(12px)',
@@ -107,27 +106,20 @@ export const ExplainerCard = ({ command, onDismiss }: ExplainerCardProps) => {
         <div className="flex items-start justify-between gap-2 mb-2">
           <div className="flex items-center gap-2">
             <span className="text-base">💡</span>
-            <span
-              className="font-bold text-sm text-[var(--ink)]"
-              style={{ fontFamily: 'var(--hand)' }}
-            >
+            <span className="font-bold text-sm text-[var(--ink)] font-hand">
               {t(keys.titleKey)}
             </span>
           </div>
-          <button
+          <Button
+            variant="icon"
             onClick={() => { setVisible(false); setTimeout(onDismiss, 300); }}
-            className="text-[var(--muted)] text-lg leading-none cursor-pointer bg-transparent border-0 flex-shrink-0"
-            style={{ fontFamily: 'var(--hand)' }}
           >
             ×
-          </button>
+          </Button>
         </div>
 
         {keys.bodyKey && (
-          <p
-            className="text-sm text-[var(--soft)] leading-snug m-0 mb-3"
-            style={{ fontFamily: 'var(--hand)' }}
-          >
+          <p className="text-sm text-[var(--soft)] leading-snug m-0 mb-3 font-hand">
             {t(keys.bodyKey, keys.vars)}
           </p>
         )}
@@ -150,10 +142,7 @@ export const ExplainerCard = ({ command, onDismiss }: ExplainerCardProps) => {
                 >
                   {i + 1}.
                 </span>
-                <span
-                  className="text-[13px] text-[var(--soft)] leading-snug"
-                  style={{ fontFamily: 'var(--hand)' }}
-                >
+                <span className="text-[13px] text-[var(--soft)] leading-snug font-hand">
                   {step}
                 </span>
               </li>
@@ -161,12 +150,9 @@ export const ExplainerCard = ({ command, onDismiss }: ExplainerCardProps) => {
           </ol>
         )}
 
-        <span
-          className="font-mono text-[11px] text-[var(--muted)] border border-[var(--hair)] px-2 py-0.5 bg-[var(--panel2)]"
-          style={{ borderRadius: pillRadius }}
-        >
+        <Badge className="text-[11px] text-[var(--muted)] border border-[var(--hair)] px-2 py-0.5 bg-[var(--panel2)]">
           $ {command}
-        </span>
+        </Badge>
       </div>
     </div>
   );

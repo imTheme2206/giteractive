@@ -1,6 +1,9 @@
 import { useTranslation } from 'react-i18next';
 import type { Mode, ModuleId, ModuleProgress, TickerEntry } from '../../types';
-import { ModuleCard, getCardStatus, levelCardRadius, pillRadius } from './ModuleCard';
+import { ModuleCard, getCardStatus } from './ModuleCard';
+import { Badge } from '../common/Badge';
+import { SectionLabel } from '../common/SectionLabel';
+import { cardRadius } from '../common/radii';
 
 type SidebarProps = {
   history: TickerEntry[];
@@ -23,16 +26,11 @@ export const Sidebar = ({ history, mode, moduleProgress, onEnter }: SidebarProps
 
   return (
     <div className="w-56 flex-shrink-0 flex flex-col bg-[var(--panel2)] border-r-2 border-dashed border-[var(--hair)] p-3 h-full overflow-hidden">
-      <div
-        className="font-bold text-lg text-[var(--ink)] mb-1 flex-shrink-0"
-        style={{ fontFamily: 'var(--hand)' }}
-      >
+      <div className="font-bold text-lg text-[var(--ink)] mb-1 flex-shrink-0 font-hand">
         Giteractive
       </div>
 
-      <span className="font-mono text-[10px] uppercase tracking-widest text-[var(--muted)] mt-3 mb-1 block flex-shrink-0">
-        {t('sidebar.levels')}
-      </span>
+      <SectionLabel>{t('sidebar.levels')}</SectionLabel>
       <div className="flex-1 min-h-0 overflow-y-auto">
         {MODULE_IDS.map(id => (
           <ModuleCard
@@ -47,12 +45,10 @@ export const Sidebar = ({ history, mode, moduleProgress, onEnter }: SidebarProps
         ))}
       </div>
 
-      <span className="font-mono text-[10px] uppercase tracking-widest text-[var(--muted)] mt-3 mb-1 block flex-shrink-0">
-        {t('sidebar.session')}
-      </span>
+      <SectionLabel>{t('sidebar.session')}</SectionLabel>
       <div className="flex-shrink-0 overflow-y-auto flex flex-col gap-1" style={{ maxHeight: 128 }}>
         {history.length === 0 ? (
-          <div className="text-[var(--muted)] text-xs py-1" style={{ fontFamily: 'var(--hand)' }}>
+          <div className="text-[var(--muted)] text-xs py-1 font-hand">
             {t('sidebar.noCommands')}
           </div>
         ) : (
@@ -60,7 +56,7 @@ export const Sidebar = ({ history, mode, moduleProgress, onEnter }: SidebarProps
             <div
               key={entry.id}
               className="p-1.5 border border-[var(--hair)] bg-[var(--panel)] flex-shrink-0"
-              style={{ borderRadius: levelCardRadius }}
+              style={{ borderRadius: cardRadius }}
             >
               <div className="font-mono text-[11px] text-[var(--ink)]">{entry.command}</div>
               <div className="font-mono text-[9px] text-[var(--muted)] mt-px">{timeAgo(entry.timestamp)}</div>
@@ -69,18 +65,15 @@ export const Sidebar = ({ history, mode, moduleProgress, onEnter }: SidebarProps
         )}
       </div>
 
-      <span className="font-mono text-[10px] uppercase tracking-widest text-[var(--muted)] mt-3 mb-1 block flex-shrink-0">
-        {t('sidebar.docs')}
-      </span>
-      <div className="flex-shrink-0">
+      <SectionLabel>{t('sidebar.docs')}</SectionLabel>
+      <div className="flex-shrink-0 flex flex-wrap gap-1">
         {(['git commit', 'git checkout -b', 'git cherry-pick', 'git rebase', 'git merge', 'git reset', 'git stash'] as const).map((doc) => (
-          <span
+          <Badge
             key={doc}
-            className="inline-flex items-center px-2 py-0.5 border border-[var(--hair)] font-mono text-[10px] text-[var(--soft)] mr-1 mb-1 bg-[var(--panel)]"
-            style={{ borderRadius: pillRadius }}
+            className="px-2 py-0.5 border border-[var(--hair)] text-[var(--soft)] bg-[var(--panel)]"
           >
             {doc}
-          </span>
+          </Badge>
         ))}
       </div>
     </div>

@@ -1,8 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import type { Mode, ModuleId, ModuleProgress } from '../../types';
-
-export const levelCardRadius = '255px 14px 225px 16px/16px 225px 14px 255px';
-export const pillRadius = '60px 10px 60px 10px/10px 60px 10px 60px';
+import { Badge } from '../common/Badge';
+import { cardRadius, pillRadius } from '../common/radii';
 
 type CardDisplayStatus = 'active' | 'locked' | 'available' | 'in_progress' | 'complete';
 
@@ -64,7 +63,7 @@ export const ModuleCard = ({ id, number, title, subtitle, status, onClick }: Mod
       className="p-2 mb-1.5 border text-sm flex-shrink-0"
       onClick={isLocked ? undefined : onClick}
       style={{
-        borderRadius: levelCardRadius,
+        borderRadius: cardRadius,
         border: `1.4px solid ${borderColor}`,
         background: bg,
         cursor: isLocked ? 'default' : 'pointer',
@@ -88,8 +87,8 @@ export const ModuleCard = ({ id, number, title, subtitle, status, onClick }: Mod
           </span>
         )}
         <div
-          className="text-[var(--ink)] text-[13px]"
-          style={{ fontFamily: 'var(--hand)', fontWeight: isActive ? 700 : 400 }}
+          className="text-[var(--ink)] text-[13px] font-hand"
+          style={{ fontWeight: isActive ? 700 : 400 }}
         >
           {title}
         </div>
@@ -98,16 +97,12 @@ export const ModuleCard = ({ id, number, title, subtitle, status, onClick }: Mod
         {subtitle}
       </div>
       <div className={`mt-1 ${marginLeft}`}>
-        <span
-          className="font-mono text-[10px] px-1.5 py-px"
-          style={{
-            borderRadius: pillRadius,
-            color: statusColor,
-            border: `1px solid ${statusColor}`,
-          }}
+        <Badge
+          className="px-1.5 py-px"
+          style={{ color: statusColor, border: `1px solid ${statusColor}` }}
         >
           {statusLabel}
-        </span>
+        </Badge>
       </div>
     </div>
   );
@@ -119,3 +114,4 @@ export const getCardStatus = (id: ModuleId, mode: Mode, moduleProgress: ModulePr
   if (!p) return 'available';
   return p.status as CardDisplayStatus;
 };
+

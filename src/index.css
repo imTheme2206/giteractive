@@ -1,5 +1,9 @@
 @import "tailwindcss";
 
+@theme {
+  --font-hand: 'Kalam', cursive;
+}
+
 :root {
   --bg: #f4f3ec;
   --ink: #2c2b26;
