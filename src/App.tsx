@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useGitStore } from './useGitStore';
 import { GitCanvas } from './components/GitCanvas';
-import { Sidebar } from './components/Sidebar';
+import { Sidebar } from './components/sidebar/Sidebar';
 import { CommandTicker } from './components/CommandTicker';
 import { ModuleCompleteModal } from './components/ModuleCompleteModal';
 import { GoalCard } from './components/GoalCard';
@@ -49,6 +49,7 @@ const getCommandType = (command: string): string | null => {
 export const App = () => {
   const store = useGitStore();
   const [explainerCommand, setExplainerCommand] = useState<string | null>(null);
+  const [highlightNodeIds, setHighlightNodeIds] = useState<string[]>([]);
   const explainerKeyRef = useRef(0);
   const seenCommandTypesRef = useRef(new Set<string>());
 
@@ -171,6 +172,7 @@ export const App = () => {
             doResetHard={store.doResetHard}
             setGhostCommand={cmd => store.setTicker({ command: cmd, state: cmd ? 'ghost' : 'idle' })}
             wip={store.wip}
+            highlightNodeIds={highlightNodeIds}
           />
 
           {/* Module goal card */}
@@ -357,7 +359,12 @@ export const App = () => {
         </div>
 
         {/* Ticker */}
-        <CommandTicker ticker={store.ticker} history={store.history} />
+        <CommandTicker
+          ticker={store.ticker}
+          history={store.history}
+          gitState={store.gitState}
+          onTokenHover={setHighlightNodeIds}
+        />
       </div>
     </div>
   );

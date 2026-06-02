@@ -29,6 +29,7 @@ type GitCanvasProps = {
   doResetHard: (commitId: string) => void;
   setGhostCommand: (cmd: string) => void;
   wip?: string | null;
+  highlightNodeIds?: string[];
 };
 
 const nodeTypes: NodeTypes = {
@@ -133,6 +134,7 @@ export const GitCanvas = ({
   doResetHard,
   setGhostCommand,
   wip,
+  highlightNodeIds,
 }: GitCanvasProps) => {
   const layout = useMemo(() => computeLayout(gitState), [gitState]);
 
@@ -182,6 +184,7 @@ export const GitCanvas = ({
           showBranchBadge: canBranch && id === headCommitId,
           showCheckout: canCheckout && id !== headCommitId && !headAncestors.has(id),
           showReset: canReset && headAncestors.has(id),
+          highlighted: highlightNodeIds?.includes(id) ?? false,
         },
         draggable: canDrag,
       });
@@ -194,7 +197,7 @@ export const GitCanvas = ({
         id: `branch-${branchName}`,
         type: 'branchLabel',
         position: { x: pos.x + 50, y: pos.y - 44 },
-        data: { label: branchName, branch: branchName, showCheckout: canCheckout, canDrag },
+        data: { label: branchName, branch: branchName, showCheckout: canCheckout, canDrag, highlighted: highlightNodeIds?.includes(`branch-${branchName}`) ?? false },
         draggable: canDrag,
       });
     }
@@ -204,7 +207,7 @@ export const GitCanvas = ({
         id: 'label-HEAD',
         type: 'branchLabel',
         position: { x: headLayout.x + 50, y: headLayout.y + 44 },
-        data: { label: 'HEAD', branch: 'HEAD', isDetached: isDetachedHead, canDrag: false },
+        data: { label: 'HEAD', branch: 'HEAD', isDetached: isDetachedHead, canDrag: false, highlighted: highlightNodeIds?.includes('label-HEAD') ?? false },
         draggable: false,
       });
     }
@@ -249,7 +252,7 @@ export const GitCanvas = ({
     }
 
     return result;
-  }, [layout, gitState.commits, gitState.branches, headCommitId, headLayout, mode, canBranch, canCheckout, canReset, headAncestors, isDetachedHead, wip]);
+  }, [layout, gitState.commits, gitState.branches, headCommitId, headLayout, mode, canBranch, canCheckout, canReset, headAncestors, isDetachedHead, wip, highlightNodeIds]);
 
   const branchColor = (branch: string) =>
     branch === 'main' ? 'var(--main)' : branch === 'feature' ? 'var(--feat)' : 'var(--ink)';

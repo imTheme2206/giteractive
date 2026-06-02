@@ -48,6 +48,34 @@ body {
   min-height: 100vh;
 }
 
+/* Custom scrollbar */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--hair) transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: var(--hair);
+  border-radius: 99px;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: var(--muted);
+}
+
+*::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
 @keyframes pulse {
   0%, 100% { opacity: .5; }
   50% { opacity: 1; }

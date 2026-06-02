@@ -6,6 +6,7 @@ type BranchLabelData = {
   showCheckout?: boolean;
   isDetached?: boolean;
   canDrag?: boolean;
+  highlighted?: boolean;
   [key: string]: unknown;
 };
 
@@ -37,6 +38,8 @@ export const BranchLabelNode = ({ data }: { data: BranchLabelData }) => {
         border: `2px ${borderStyle} ${color}`,
         color,
         cursor: data.showCheckout ? 'pointer' : data.canDrag && !isHead ? 'grab' : 'default',
+        boxShadow: data.highlighted ? `0 0 0 4px color-mix(in srgb, ${color} 40%, transparent)` : undefined,
+        transition: 'box-shadow 0.2s',
       }}
     >
       <Handle type="target" position={Position.Left} style={{ opacity: 0 }} />

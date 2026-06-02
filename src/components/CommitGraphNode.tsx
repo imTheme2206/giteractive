@@ -14,6 +14,7 @@ type CommitNodeData = {
   showBranchBadge?: boolean;
   showCheckout?: boolean;
   showReset?: boolean;
+  highlighted?: boolean;
   [key: string]: unknown;
 };
 
@@ -47,7 +48,10 @@ export const CommitGraphNode = ({ data }: { data: CommitNodeData }) => {
         background: bg,
         fontSize: data.isMerge ? 18 : 12,
         color: branchColor,
-        boxShadow: data.isHead ? `0 0 0 3px var(--head)` : undefined,
+        boxShadow: [
+          data.isHead ? '0 0 0 3px var(--head)' : null,
+          data.highlighted ? `0 0 0 ${data.isHead ? 6 : 4}px color-mix(in srgb, ${branchColor} 45%, transparent)` : null,
+        ].filter(Boolean).join(', ') || undefined,
         opacity: data.isGhost ? (hovered && data.isWip ? 0.85 : 0.5) : 1,
         cursor:
           data.showCheckout || data.showReset || data.isWip
