@@ -28,6 +28,7 @@ type GitCanvasProps = {
   doCreateBranch: (commitId: string) => void;
   doCheckout: (target: string) => void;
   doResetHard: (commitId: string) => void;
+  doSquash: (branchName: string, count: number, message: string) => void;
   setGhostCommand: (cmd: string, subtitle?: string) => void;
   wip?: string | null;
   highlightNodeIds?: string[];
@@ -133,6 +134,7 @@ export const GitCanvas = ({
   doCreateBranch,
   doCheckout,
   doResetHard,
+  doSquash,
   setGhostCommand,
   wip,
   highlightNodeIds,
@@ -148,9 +150,10 @@ export const GitCanvas = ({
   const headLayout = layout.get(headCommitId);
 
   const canBranch = mode !== 'module1';
-  const canCheckout = mode === 'sandbox' || mode === 'module8';
+  const canCheckout = mode === 'sandbox' || mode === 'module8' || mode === 'module10';
   const canDrag = mode === 'sandbox' || mode === 'module3' || mode === 'module4' || mode === 'module5' || mode === 'module6';
-  const canReset = mode === 'sandbox' || mode === 'module7';
+  const canReset = mode === 'sandbox' || mode === 'module7' || mode === 'module11';
+  const canSquash = mode === 'module9';
   const isDetachedHead = gitState.branches[gitState.HEAD] === undefined;
 
   const headAncestors = useMemo(() => {
@@ -172,6 +175,7 @@ export const GitCanvas = ({
       const commit = gitState.commits[id];
       if (!commit) continue;
       const isMerge = commit.parentIds.length > 1;
+      const isFeatureTip = canSquash && gitState.branches['feature'] === id;
       result.push({
         id,
         type: 'commit',
@@ -186,6 +190,7 @@ export const GitCanvas = ({
           showBranchBadge: canBranch && id === headCommitId,
           showCheckout: canCheckout && id !== headCommitId && !headAncestors.has(id),
           showReset: canReset && headAncestors.has(id),
+          showSquash: isFeatureTip,
           highlighted: highlightNodeIds?.includes(id) ?? false,
         },
         draggable: canDrag,
@@ -426,12 +431,19 @@ export const GitCanvas = ({
         return;
       }
 
+      if (canSquash && node.type === 'commit' && gitState.branches['feature'] === node.id) {
+        if (target.closest('[data-squash-commit]')) {
+          doSquash('feature', 3, 'feat: login page (squash)');
+        }
+        return;
+      }
+
       if (canCheckout && node.type === 'branchLabel' && node.id !== 'label-HEAD') {
         const branchName = node.id.replace(/^branch-/, '');
         doCheckout(branchName);
       }
     },
-    [canBranch, canCheckout, canReset, headCommitId, headAncestors, doAddCommit, doCreateBranch, doCheckout, doResetHard]
+    [canBranch, canCheckout, canReset, canSquash, headCommitId, headAncestors, gitState.branches, doAddCommit, doCreateBranch, doCheckout, doResetHard, doSquash]
   );
 
   return (

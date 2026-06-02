@@ -1,4 +1,4 @@
-import type { GitState, CommitHash } from './types';
+import type { GitState, CommitHash, CommitNode } from './types';
 
 export const makeModuleState = (): GitState => ({
   commits: {
@@ -66,6 +66,40 @@ export const makeModule8State = (): GitState => ({
   branches: { main: 'c3', feature: 'f2' },
   HEAD: 'feature',
   nextCommitNum: 4,
+});
+
+export const makeModule9State = (): GitState => ({
+  commits: {
+    c1: { id: 'c1', parentIds: [], message: 'init: initial commit', branch: 'main' },
+    c2: { id: 'c2', parentIds: ['c1'], message: 'feat: add readme', branch: 'main' },
+    c3: { id: 'c3', parentIds: ['c2'], message: 'feat: setup project', branch: 'main' },
+    f1: { id: 'f1', parentIds: ['c3'], message: 'wip: start login', branch: 'feature' },
+    f2: { id: 'f2', parentIds: ['f1'], message: 'wip: fix typo', branch: 'feature' },
+    f3: { id: 'f3', parentIds: ['f2'], message: 'wip: cleanup', branch: 'feature' },
+  },
+  branches: { main: 'c3', feature: 'f3' },
+  HEAD: 'feature',
+  nextCommitNum: 4,
+});
+
+// All 5 commits exist in the reflog/shadow; the visible state starts after an accidental reset to c3
+export const makeModule11ShadowCommits = () => ({
+  c1: { id: 'c1', parentIds: [] as string[], message: 'init: initial commit', branch: 'main' },
+  c2: { id: 'c2', parentIds: ['c1'], message: 'feat: add readme', branch: 'main' },
+  c3: { id: 'c3', parentIds: ['c2'], message: 'feat: setup project', branch: 'main' },
+  c4: { id: 'c4', parentIds: ['c3'], message: 'feat: add login', branch: 'main' },
+  c5: { id: 'c5', parentIds: ['c4'], message: 'feat: add dashboard', branch: 'main' },
+});
+
+export const makeModule11State = (): GitState => ({
+  commits: {
+    c1: { id: 'c1', parentIds: [], message: 'init: initial commit', branch: 'main' },
+    c2: { id: 'c2', parentIds: ['c1'], message: 'feat: add readme', branch: 'main' },
+    c3: { id: 'c3', parentIds: ['c2'], message: 'feat: setup project', branch: 'main' },
+  },
+  branches: { main: 'c3' },
+  HEAD: 'main',
+  nextCommitNum: 6,
 });
 
 export const resetHard = (
@@ -277,5 +311,83 @@ export const rebase = (
       HEAD: state.HEAD === branchToRebase ? branchToRebase : state.HEAD,
     },
     command: `git rebase ${ontoBranch}`,
+  };
+};
+
+export const squashCommits = (
+  state: GitState,
+  branchName: string,
+  count: number,
+  newMessage: string
+): { state: GitState; command: string } | null => {
+  const branchTip = state.branches[branchName];
+  if (!branchTip || count < 2) return null;
+
+  const commitsToSquash: string[] = [];
+  let currentId: string | undefined = branchTip;
+
+  for (let i = 0; i < count; i++) {
+    if (!currentId) return null;
+    const commit: CommitNode | undefined = state.commits[currentId];
+    if (!commit) return null;
+    commitsToSquash.unshift(currentId);
+    currentId = commit.parentIds[0];
+  }
+
+  const baseParentId = currentId;
+  if (!baseParentId) return null;
+
+  const newId = Math.random().toString(36).slice(2, 9);
+  const newCommit = {
+    id: newId,
+    parentIds: [baseParentId],
+    message: newMessage,
+    branch: branchName,
+  };
+
+  const newBranches = { ...state.branches, [branchName]: newId };
+
+  const reachable = new Set<string>();
+  const walk = (id: string) => {
+    if (reachable.has(id)) return;
+    reachable.add(id);
+    state.commits[id]?.parentIds.forEach(walk);
+  };
+  Object.values(newBranches).forEach(tip => walk(tip));
+
+  const newCommits: typeof state.commits = {};
+  for (const [id, commit] of Object.entries(state.commits)) {
+    if (reachable.has(id)) newCommits[id] = commit;
+  }
+
+  newCommits[newId] = newCommit;
+
+  return {
+    state: { ...state, commits: newCommits, branches: newBranches },
+    command: `git rebase -i HEAD~${count}`,
+  };
+};
+
+export const makeModule10State = (): GitState => ({
+  commits: {
+    c1: { id: 'c1', parentIds: [], message: 'init: initial commit', branch: 'main' },
+    c2: { id: 'c2', parentIds: ['c1'], message: 'feat: add readme', branch: 'main' },
+    c3: { id: 'c3', parentIds: ['c2'], message: 'feat: setup project', branch: 'main' },
+    c4: { id: 'c4', parentIds: ['c3'], message: 'feat: add login', branch: 'main' },
+  },
+  branches: { main: 'c4' },
+  HEAD: 'main',
+  nextCommitNum: 5,
+});
+
+export const reattachHead = (
+  state: GitState,
+  branchName: string
+): { state: GitState; command: string } | null => {
+  if (!state.branches[branchName]) return null;
+  if (state.HEAD === branchName) return null;
+  return {
+    state: { ...state, HEAD: branchName },
+    command: `git checkout ${branchName}`,
   };
 };

@@ -11,14 +11,19 @@ import {
   makeModule6State,
   makeModule7State,
   makeModule8State,
+  makeModule9State,
+  makeModule10State,
+  makeModule11State,
+  makeModule11ShadowCommits,
   makeModuleState,
   makeSandboxState,
   merge,
   rebase,
   resetHard,
+  squashCommits,
 } from "./gitState";
-import { LESSON_BRANCH, LESSON_CHERRY_PICK, LESSON_CONFLICT, LESSON_LINEAR, LESSON_MERGE, LESSON_REBASE, LESSON_RESET, LESSON_STASH } from "./lessons";
-import type { ConflictState, GitState, Mode, ModuleId, ModuleProgress, ModuleStatus, TickerEntry } from "./types";
+import { LESSON_BRANCH, LESSON_CHERRY_PICK, LESSON_CONFLICT, LESSON_DETACHED_HEAD, LESSON_LINEAR, LESSON_MERGE, LESSON_REBASE, LESSON_REFLOG, LESSON_RESET, LESSON_SQUASH, LESSON_STASH } from "./lessons";
+import type { CommitNode, ConflictState, GitState, Mode, ModuleId, ModuleProgress, ModuleStatus, ReflogEntry, TickerEntry } from "./types";
 
 const INITIAL_PROGRESS: ModuleProgress[] = [
   { id: 'module1', status: 'available' },
@@ -29,6 +34,9 @@ const INITIAL_PROGRESS: ModuleProgress[] = [
   { id: 'module6', status: 'locked' },
   { id: 'module7', status: 'locked' },
   { id: 'module8', status: 'locked' },
+  { id: 'module9', status: 'locked' },
+  { id: 'module10', status: 'locked' },
+  { id: 'module11', status: 'locked' },
   { id: 'sandbox', status: 'available' },
 ];
 
@@ -72,6 +80,9 @@ export const useGitStore = () => {
   const [wip, setWip] = useState<string | null>(null);
   const [stashStack, setStashStack] = useState<Array<{ message: string; fromBranch: string }>>([]);
   const [devMode, setDevMode] = useState(false);
+  const [hasDetached, setHasDetached] = useState(false);
+  const [reflog, setReflog] = useState<ReflogEntry[]>([]);
+  const [shadowCommits, setShadowCommits] = useState<Record<string, CommitNode>>({});
 
   const unlockAll = () => {
     setModuleProgress(prev => prev.map(p => p.status === 'locked' ? { ...p, status: 'available' } : p));
@@ -208,11 +219,36 @@ export const useGitStore = () => {
     }
     const result = checkout(gitState, target);
     if (!result) return;
+
+    if (mode === 'module10') {
+      const isDetaching = !gitState.branches[target];
+      if (isDetaching) {
+        setHasDetached(true);
+      }
+
+      if (hasDetached && target === 'main') {
+        setGitState(result.state);
+        logCommand(result.command);
+        setModuleAttempts(n => n + 1);
+        if (LESSON_DETACHED_HEAD.validate(result.state)) {
+          completeModule('module10', 'module11');
+        }
+        return;
+      }
+    }
+
     setGitState(result.state);
     logCommand(result.command);
   };
 
   const doResetHard = (targetId: string) => {
+    if (mode === 'module11') {
+      setReflog(prev => [
+        { hash: targetId, message: `reset: moving to ${targetId}`, headRef: 'main' },
+        ...prev,
+      ]);
+    }
+
     const result = resetHard(gitState, targetId);
     if (!result) return;
     setGitState(result.state);
@@ -241,7 +277,52 @@ export const useGitStore = () => {
 
     if (mode === 'module8') {
       setModuleAttempts(n => n + 1);
-      if (gitState.branches['main'] !== 'c3') completeModule('module8');
+      if (gitState.branches['main'] !== 'c3') completeModule('module8', 'module9');
+    }
+  };
+
+  const doSquash = (branchName: string, count: number, message: string) => {
+    const result = squashCommits(gitState, branchName, count, message);
+    if (!result) return;
+    setGitState(result.state);
+    logCommand(result.command);
+
+    if (mode === 'module9') {
+      setModuleAttempts(n => n + 1);
+      if (LESSON_SQUASH.validate(result.state)) completeModule('module9', 'module10');
+    }
+  };
+
+  const doReflogRecover = (hash: string) => {
+    const targetCommit = shadowCommits[hash];
+    if (!targetCommit) return;
+
+    const reachableCommits: Record<string, CommitNode> = {};
+    const walk = (id: string) => {
+      if (reachableCommits[id]) return;
+      const commit = shadowCommits[id];
+      if (!commit) return;
+      reachableCommits[id] = commit;
+      commit.parentIds.forEach(walk);
+    };
+    walk(hash);
+
+    setGitState(prev => ({
+      ...prev,
+      commits: reachableCommits,
+      branches: { ...prev.branches, main: hash },
+    }));
+    logCommand(`git reset --hard ${hash}`);
+
+    const newState = {
+      ...gitState,
+      commits: reachableCommits,
+      branches: { ...gitState.branches, main: hash },
+    };
+
+    if (mode === 'module11') {
+      setModuleAttempts(n => n + 1);
+      if (LESSON_REFLOG.validate(newState)) completeModule('module11');
     }
   };
 
@@ -263,6 +344,9 @@ export const useGitStore = () => {
       module6: makeModule6State,
       module7: makeModule7State,
       module8: makeModule8State,
+      module9: makeModule9State,
+      module10: makeModule10State,
+      module11: makeModule11State,
     };
     setGitState((stateMap[mode] ?? makeModuleState)());
 
@@ -275,6 +359,9 @@ export const useGitStore = () => {
       module6: 'module6',
       module7: 'module7',
       module8: 'module8',
+      module9: 'module9',
+      module10: 'module10',
+      module11: 'module11',
     };
     const modId = statusMap[mode];
     if (modId) setModuleStatus(modId, 'in_progress');
@@ -288,10 +375,23 @@ export const useGitStore = () => {
     setConflictFlash(false);
     setWip(mode === 'module8' ? 'fix: urgent hotfix for prod' : null);
     setStashStack([]);
+    setHasDetached(false);
+
+    if (mode === 'module11') {
+      setShadowCommits(makeModule11ShadowCommits());
+      setReflog([
+        { hash: 'c5', message: 'commit: feat: add dashboard', headRef: 'main' },
+        { hash: 'c4', message: 'commit: feat: add login', headRef: 'main' },
+        { hash: 'c3', message: 'commit: feat: setup project', headRef: 'main' },
+      ]);
+    } else {
+      setReflog([]);
+      setShadowCommits({});
+    }
   };
 
   const enterModule = (
-    id: 'module1' | 'module2' | 'module3' | 'module4' | 'module5' | 'module6' | 'module7' | 'module8',
+    id: 'module1' | 'module2' | 'module3' | 'module4' | 'module5' | 'module6' | 'module7' | 'module8' | 'module9' | 'module10',
     makeState: () => GitState
   ) => {
     setMode(id);
@@ -306,6 +406,7 @@ export const useGitStore = () => {
     setConflictFlash(false);
     setWip(id === 'module8' ? 'fix: urgent hotfix for prod' : null);
     setStashStack([]);
+    setHasDetached(false);
     setModuleProgress(prev =>
       prev.map(p => (p.id === id && p.status === 'available' ? { ...p, status: 'in_progress' } : p))
     );
@@ -319,6 +420,34 @@ export const useGitStore = () => {
   const enterModule6 = () => enterModule('module6', makeModule6State);
   const enterModule7 = () => enterModule('module7', makeModule7State);
   const enterModule8 = () => enterModule('module8', makeModule8State);
+  const enterModule9 = () => enterModule('module9', makeModule9State);
+  const enterModule10 = () => enterModule('module10', makeModule10State);
+
+  const enterModule11 = () => {
+    const initialState = makeModule11State();
+    setMode('module11');
+    setGitState(initialState);
+    setHistory([]);
+    setTicker({ command: "", state: "idle" });
+    setShowCompletionOverlay(false);
+    setModuleAttempts(0);
+    setModuleGuided(true);
+    setConflictState(null);
+    setPendingConflictMerge(null);
+    setConflictFlash(false);
+    setWip(null);
+    setStashStack([]);
+    setHasDetached(false);
+    setShadowCommits(makeModule11ShadowCommits());
+    setReflog([
+      { hash: 'c5', message: 'commit: feat: add dashboard', headRef: 'main' },
+      { hash: 'c4', message: 'commit: feat: add login', headRef: 'main' },
+      { hash: 'c3', message: 'commit: feat: setup project', headRef: 'main' },
+    ]);
+    setModuleProgress(prev =>
+      prev.map(p => (p.id === 'module11' && p.status === 'available' ? { ...p, status: 'in_progress' } : p))
+    );
+  };
 
   const unlockSandbox = () => {
     setShowCompletionOverlay(false);
@@ -373,6 +502,9 @@ export const useGitStore = () => {
     enterModule6,
     enterModule7,
     enterModule8,
+    enterModule9,
+    enterModule10,
+    enterModule11,
     unlockSandbox,
     conflictState,
     conflictFlash,
@@ -383,7 +515,11 @@ export const useGitStore = () => {
     doResetHard,
     doStash,
     doStashPop,
+    doSquash,
     devMode,
     unlockAll,
+    reflog,
+    shadowCommits,
+    doReflogRecover,
   };
 };

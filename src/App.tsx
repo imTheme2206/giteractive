@@ -5,6 +5,7 @@ import { Button } from "./components/common/Button";
 import { ExplainerCard } from "./components/ExplainerCard";
 import { GitCanvas } from "./components/GitCanvas";
 import { GoalCard } from "./components/GoalCard";
+import { ReflogPanel } from "./components/ReflogPanel";
 import { ConflictModal } from "./components/modal/ConflictModal";
 import { IntroModal } from "./components/modal/IntroModal";
 import { ModuleCompleteModal } from "./components/modal/ModuleCompleteModal";
@@ -14,10 +15,13 @@ import {
   LESSON_BRANCH,
   LESSON_CHERRY_PICK,
   LESSON_CONFLICT,
+  LESSON_DETACHED_HEAD,
   LESSON_LINEAR,
   LESSON_MERGE,
   LESSON_REBASE,
+  LESSON_REFLOG,
   LESSON_RESET,
+  LESSON_SQUASH,
   LESSON_STASH,
 } from "./lessons";
 import type { LessonGoal, ModuleId } from "./types";
@@ -32,12 +36,17 @@ const MODULE_LESSONS: Partial<Record<string, LessonGoal>> = {
   module6: LESSON_CONFLICT,
   module7: LESSON_RESET,
   module8: LESSON_STASH,
+  module9: LESSON_SQUASH,
+  module10: LESSON_DETACHED_HEAD,
+  module11: LESSON_REFLOG,
 };
 
 const getCommandType = (command: string): string | null => {
   if (command.startsWith("git checkout -b")) return "checkout-b";
+  if (command.startsWith("git checkout") && !command.includes("-b")) return "checkout";
   if (command.startsWith("git commit")) return "commit";
   if (command.startsWith("git cherry-pick")) return "cherry-pick";
+  if (command.startsWith("git rebase -i")) return "squash";
   if (command.startsWith("git rebase")) return "rebase";
   if (command.startsWith("git merge")) return "merge";
   if (command.startsWith("git reset")) return "reset";
@@ -65,6 +74,9 @@ export const App = () => {
     else if (id === "module6") store.enterModule6();
     else if (id === "module7") store.enterModule7();
     else if (id === "module8") store.enterModule8();
+    else if (id === "module9") store.enterModule9();
+    else if (id === "module10") store.enterModule10();
+    else if (id === "module11") store.enterModule11();
     else store.unlockSandbox();
   };
 
@@ -193,6 +205,7 @@ export const App = () => {
             doCreateBranch={store.doCreateBranch}
             doCheckout={store.doCheckout}
             doResetHard={store.doResetHard}
+            doSquash={store.doSquash}
             setGhostCommand={(cmd, subtitle) =>
               store.setTicker({
                 command: cmd,
@@ -375,6 +388,81 @@ export const App = () => {
                 </>
               }
               buttonLabel={t("completion.module8.button")}
+              onAction={store.enterModule9}
+            />
+          )}
+          {store.showCompletionOverlay && store.mode === "module9" && (
+            <ModuleCompleteModal
+              icon="⊕"
+              title={t("completion.module9.title")}
+              accentColor="var(--feat)"
+              body={
+                <>
+                  <p className="text-sm text-[var(--soft)] leading-relaxed m-0 mb-1 font-hand">
+                    {t("completion.module9.body")}
+                  </p>
+                  <p
+                    className="text-sm text-[var(--muted)] leading-relaxed m-0 font-mono"
+                    style={{ fontSize: 11 }}
+                  >
+                    {t("completion.attempts", { count: store.moduleAttempts })}
+                  </p>
+                </>
+              }
+              buttonLabel={t("completion.module9.button")}
+              onAction={store.enterModule10}
+            />
+          )}
+
+          {/* Reflog panel for module11 */}
+          <ReflogPanel
+            visible={store.mode === "module11"}
+            reflog={store.reflog}
+            onRecover={store.doReflogRecover}
+            currentCommits={new Set(Object.keys(store.gitState.commits))}
+          />
+
+          {store.showCompletionOverlay && store.mode === "module10" && (
+            <ModuleCompleteModal
+              icon="↩"
+              title={t("completion.module10.title")}
+              accentColor="var(--head)"
+              body={
+                <>
+                  <p className="text-sm text-[var(--soft)] leading-relaxed m-0 mb-1 font-hand">
+                    {t("completion.module10.body")}
+                  </p>
+                  <p
+                    className="text-sm text-[var(--muted)] leading-relaxed m-0 font-mono"
+                    style={{ fontSize: 11 }}
+                  >
+                    {t("completion.attempts", { count: store.moduleAttempts })}
+                  </p>
+                </>
+              }
+              buttonLabel={t("completion.module10.button")}
+              onAction={store.enterModule11}
+            />
+          )}
+          {store.showCompletionOverlay && store.mode === "module11" && (
+            <ModuleCompleteModal
+              icon="⏎"
+              title={t("completion.module11.title")}
+              accentColor="var(--ok)"
+              body={
+                <>
+                  <p className="text-sm text-[var(--soft)] leading-relaxed m-0 mb-1 font-hand">
+                    {t("completion.module11.body")}
+                  </p>
+                  <p
+                    className="text-sm text-[var(--muted)] leading-relaxed m-0 font-mono"
+                    style={{ fontSize: 11 }}
+                  >
+                    {t("completion.attempts", { count: store.moduleAttempts })}
+                  </p>
+                </>
+              }
+              buttonLabel={t("completion.module11.button")}
               onAction={store.unlockSandbox}
             />
           )}

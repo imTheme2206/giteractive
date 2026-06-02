@@ -14,6 +14,7 @@ type CommitNodeData = {
   showBranchBadge?: boolean;
   showCheckout?: boolean;
   showReset?: boolean;
+  showSquash?: boolean;
   highlighted?: boolean;
   [key: string]: unknown;
 };
@@ -178,6 +179,25 @@ export const CommitGraphNode = ({ data }: { data: CommitNodeData }) => {
           }}
         >
           ↺
+        </div>
+      )}
+      {data.showSquash && (
+        <div
+          data-squash-commit="true"
+          title="Squash commits (git rebase -i)"
+          className="absolute -bottom-1 -right-1 text-[8px] leading-none font-bold rounded-full grid place-items-center nodrag"
+          style={{
+            width: 14,
+            height: 14,
+            background: hovered
+              ? "var(--feat)"
+              : "color-mix(in srgb, var(--feat) 50%, transparent)",
+            color: "var(--panel)",
+            cursor: "pointer",
+            transition: "background 0.15s",
+          }}
+        >
+          ⊕
         </div>
       )}
     </div>

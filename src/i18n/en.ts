@@ -15,6 +15,9 @@ const en = {
     module6: 'Module 6 · Merge Conflicts',
     module7: 'Module 7 · git reset',
     module8: 'Module 8 · git stash',
+    module9: 'Module 9 · Interactive Squash',
+    module10: 'Module 10 · Detached HEAD',
+    module11: 'Module 11 · Reflog Recovery',
     sandbox: 'Sandbox Mode',
   },
   sidebar: {
@@ -34,6 +37,9 @@ const en = {
       module6: { title: 'Module 6', subtitle: 'Merge Conflicts' },
       module7: { title: 'Module 7', subtitle: 'git reset' },
       module8: { title: 'Module 8', subtitle: 'git stash' },
+      module9: { title: 'Module 9', subtitle: 'Interactive Squash' },
+      module10: { title: 'Module 10', subtitle: 'Detached HEAD' },
+      module11: { title: 'Module 11', subtitle: 'Reflog Recovery' },
       sandbox: { title: 'Sandbox Mode', subtitle: 'Free canvas · all ops' },
     },
   },
@@ -93,6 +99,24 @@ const en = {
       hint: 'Click ⬇ Stash to save WIP. Switch to main, add a commit, switch back to feature, then pop the stash.',
       chips: ['stash WIP', 'fix main', 'pop stash'],
     },
+    squash: {
+      title: 'Level 09 — Interactive Squash',
+      description: 'Three messy WIP commits are on feature. Squash them into one clean commit before merging.',
+      hint: 'Click the ⊕ squash button on the feature branch tip. Watch 3 commits collapse into 1.',
+      chips: ['mode: -i squash', 'target: feature', 'before: 3 commits', 'after: 1 commit'],
+    },
+    'detached-head': {
+      title: 'Level 10 — Detached HEAD',
+      description: 'Checkout commit c2 directly to explore the past — then reattach HEAD to main to get back to safety.',
+      hint: "Click on commit c2 to check it out (HEAD detaches). Then click main's branch label to reattach HEAD.",
+      chips: ['step 1: checkout c2', 'step 2: reattach to main'],
+    },
+    reflog: {
+      title: 'Level 11 — Reflog Recovery',
+      description: 'You accidentally reset --hard to c3, losing c4 and c5. Use the reflog to find and restore the lost commits.',
+      hint: 'Click the Recover button next to c5 in the reflog panel. The lost commits come back!',
+      chips: ['lost: c4, c5', 'tool: git reflog', 'action: reset --hard <hash>'],
+    },
   },
   intro: {
     module1: {
@@ -142,6 +166,24 @@ const en = {
       scenario: 'You\'re halfway through a feature when an urgent bug report arrives. You need to switch branches, but your uncommitted changes can\'t come along — and you can\'t commit half-finished work.',
       concept: '`git stash` saves your uncommitted changes to a temporary stack and restores a clean working tree. You switch branches, fix the bug, come back, and pop the stash to resume exactly where you left off.',
       keyInsight: 'The stash is a stack — you can push multiple times. `git stash pop` always restores the most recent entry first. Stashes persist even if you switch branches or restart your terminal.',
+    },
+    module9: {
+      title: 'Module 9 — Interactive Squash',
+      scenario: 'You made three messy WIP commits on a feature branch. Before merging to main, you want to collapse them into one clean, descriptive commit — as if the work was done perfectly the first time.',
+      concept: '`git rebase -i HEAD~3` opens an interactive editor where you can mark commits to squash. Git combines them into one, keeps the earliest commit\'s timestamp, and lets you rewrite the message.',
+      keyInsight: 'Squashing is rewriting history — never do it on commits others have pulled. Keep it local. A clean, atomic commit log is easier to review, bisect, and revert than a trail of "wip", "fix typo", "fix again".',
+    },
+    module10: {
+      title: 'Module 10 — Detached HEAD',
+      scenario: "You want to inspect an old commit without creating a branch. You run `git checkout <hash>` and suddenly git warns you: 'HEAD is now in detached state'. What does that mean?",
+      concept: "HEAD normally points to a branch, which points to a commit. When you checkout a commit hash directly, HEAD points to the commit itself — 'detached' from any branch. Any commits you make here are orphaned when you leave.",
+      keyInsight: "Detached HEAD is useful for exploration or testing. If you want to keep work done in detached state, create a branch immediately: `git checkout -b new-branch`. Otherwise, reattach to a named branch to get back to safety.",
+    },
+    module11: {
+      title: 'Module 11 — Reflog Recovery',
+      scenario: "You ran `git reset --hard` and your commits disappeared. Panic. But wait — git reset only moves the branch pointer. The actual commit objects are still in the repository for about 30 days.",
+      concept: "`git reflog` shows every place HEAD has been — a time-stamped log of branch checkouts, commits, resets, and merges. Find the commit you lost, copy its hash, then `git reset --hard <hash>` to restore it.",
+      keyInsight: "The reflog is your safety net. It's local-only (not pushed), so it won't help your teammate recover their lost commits — but it will save you. Git's garbage collector eventually prunes orphaned commits, so act fast.",
     },
   },
   tickerSubtitles: {
@@ -254,6 +296,21 @@ const en = {
     module8: {
       title: 'Stash Mastered!',
       body: 'You saved uncommitted work to the stash, switched contexts to fix main, then popped it back. The stash is a stack — you can push multiple times.',
+      button: 'Unlock Module 9',
+    },
+    module9: {
+      title: 'Squash Complete!',
+      body: 'Three WIP commits collapsed into one clean commit. In real git rebase -i, you pick which commits to squash and rewrite the message. The history is now atomic and reviewable.',
+      button: 'Unlock Module 10',
+    },
+    module10: {
+      title: 'Detached HEAD Mastered!',
+      body: "You checked out a commit directly — HEAD pointed at a hash, not a branch. Commits made in this state are orphaned when you leave. Always reattach to a branch to keep your work.",
+      button: 'Unlock Module 11',
+    },
+    module11: {
+      title: 'Reflog Recovery!',
+      body: "Lost commits are never truly gone — until garbage collection runs. The reflog tracks every position HEAD has been in, letting you recover from even the most destructive resets.",
       button: 'Go to Sandbox',
     },
     attempts_one: '{{count}} attempt',

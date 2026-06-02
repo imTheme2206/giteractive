@@ -16,6 +16,9 @@ const th = {
     module6: "โมดูล 6 · Merge Conflict",
     module7: "โมดูล 7 · git reset",
     module8: "โมดูล 8 · git stash",
+    module9: "โมดูล 9 · Interactive Squash",
+    module10: "โมดูล 10 · Detached HEAD",
+    module11: "โมดูล 11 · Reflog Recovery",
     sandbox: "โหมด Sandbox",
   },
 
@@ -37,6 +40,9 @@ const th = {
       module6: { title: "โมดูล 6", subtitle: "Merge Conflict" },
       module7: { title: "โมดูล 7", subtitle: "git reset" },
       module8: { title: "โมดูล 8", subtitle: "git stash" },
+      module9: { title: "โมดูล 9", subtitle: "Interactive Squash" },
+      module10: { title: "โมดูล 10", subtitle: "Detached HEAD" },
+      module11: { title: "โมดูล 11", subtitle: "Reflog Recovery" },
       sandbox: {
         title: "โหมด Sandbox",
         subtitle: "พื้นที่อิสระ · ใช้งานได้ทุกคำสั่ง",
@@ -115,6 +121,24 @@ const th = {
         "คุณมีงานค้างอยู่บน feature แต่ main ต้องการ hotfix ด่วน เก็บงานไว้ก่อน แก้ main แล้วค่อยดึงงานกลับมา",
       hint: "กด ⬇ Stash เพื่อเก็บงาน สลับไป main สร้าง commit แล้วกลับมา feature และกด Pop",
       chips: ["เก็บงาน", "แก้ main", "ดึงงานกลับ"],
+    },
+    squash: {
+      title: "ด่าน 09 — Interactive Squash",
+      description: "มี commit WIP สามตัวอยู่บน feature รวมมันเป็น commit เดียวก่อน merge",
+      hint: "กดปุ่ม ⊕ squash ที่ปลาย feature ดู commit 3 ตัวรวมเป็น 1",
+      chips: ["โหมด: -i squash", "เป้าหมาย: feature", "ก่อน: 3 commits", "หลัง: 1 commit"],
+    },
+    'detached-head': {
+      title: "ด่าน 10 — Detached HEAD",
+      description: "Checkout commit c2 โดยตรงเพื่อสำรวจอดีต — แล้ว reattach HEAD กลับไปที่ main",
+      hint: "คลิก commit c2 เพื่อ checkout (HEAD จะหลุดออกจาก branch) จากนั้นคลิก label ของ main เพื่อ reattach",
+      chips: ["ขั้นที่ 1: checkout c2", "ขั้นที่ 2: reattach ไปที่ main"],
+    },
+    reflog: {
+      title: "ด่าน 11 — Reflog Recovery",
+      description: "คุณ reset --hard ไปที่ c3 โดยไม่ตั้งใจ ทำให้ c4 และ c5 หายไป ใช้ reflog เพื่อกู้คืน commit ที่หายไป",
+      hint: "กดปุ่ม Recover ถัดจาก c5 ใน reflog panel แล้ว commit ที่หายไปจะกลับมา",
+      chips: ["หายไป: c4, c5", "เครื่องมือ: git reflog", "action: reset --hard <hash>"],
     },
   },
   intro: {
@@ -220,6 +244,42 @@ const th = {
 
       keyInsight:
         "Stash ทำงานในลักษณะ Stack คุณสามารถ Stash ได้หลายครั้ง และ `git stash pop` จะดึงรายการล่าสุดกลับมาก่อนเสมอ ข้อมูลใน Stash จะยังอยู่แม้คุณจะสลับ Branch หรือปิด Terminal ไปแล้วก็ตาม",
+    },
+    module9: {
+      title: "โมดูล 9 — Interactive Squash",
+
+      scenario:
+        "คุณทำ commit WIP ที่ยุ่งเหยิงสามตัวบน feature branch ก่อน merge เข้า main คุณต้องการรวมมันเป็น commit เดียวที่สะอาด ราวกับทำถูกตั้งแต่แรก",
+
+      concept:
+        "`git rebase -i HEAD~3` จะเปิด Editor แบบโต้ตอบให้คุณทำเครื่องหมาย commit ที่จะรวม Git จะรวมมันเป็นตัวเดียว ใช้ Timestamp ของ commit แรก และให้คุณเขียน Message ใหม่",
+
+      keyInsight:
+        "Squashing คือการเขียนประวัติใหม่ ห้ามทำกับ commit ที่คนอื่นดึงไปใช้แล้ว เก็บไว้ในเครื่องตัวเอง Commit log ที่สะอาดและมีความหมายจะ Review, Bisect และ Revert ได้ง่ายกว่าประวัติที่เต็มไปด้วย 'wip', 'fix typo', 'fix again'",
+    },
+    module10: {
+      title: "โมดูล 10 — Detached HEAD",
+
+      scenario:
+        "คุณต้องการตรวจสอบ commit เก่าโดยไม่สร้าง branch ใหม่ คุณรัน `git checkout <hash>` แล้ว git เตือนว่า 'HEAD is now in detached state' — มันหมายความว่าอะไร?",
+
+      concept:
+        "HEAD ปกติชี้ไปที่ branch ซึ่งชี้ไปที่ commit เมื่อคุณ checkout commit hash โดยตรง HEAD จะชี้ที่ commit นั้นโดยตรง — 'หลุด' จาก branch ใดๆ commit ที่ทำในสถานะนี้จะกลายเป็น orphan เมื่อออกไป",
+
+      keyInsight:
+        "Detached HEAD มีประโยชน์สำหรับการสำรวจหรือทดสอบ ถ้าต้องการเก็บงานที่ทำในสถานะนี้ ให้สร้าง branch ทันที: `git checkout -b new-branch` ไม่เช่นนั้น reattach กับ branch ที่มีชื่อเพื่อกลับสู่ความปลอดภัย",
+    },
+    module11: {
+      title: "โมดูล 11 — Reflog Recovery",
+
+      scenario:
+        "คุณรัน `git reset --hard` แล้ว commit หายไป ตื่นตกใจ แต่รอก่อน — git reset แค่ย้าย branch pointer เท่านั้น commit object จริงๆ ยังอยู่ใน repository ประมาณ 30 วัน",
+
+      concept:
+        "`git reflog` แสดงทุกที่ที่ HEAD เคยอยู่ — บันทึกเวลาของ branch checkout, commit, reset และ merge ค้นหา commit ที่หายไป คัดลอก hash แล้วรัน `git reset --hard <hash>` เพื่อกู้คืน",
+
+      keyInsight:
+        "Reflog คือตาข่ายนิรภัยของคุณ มันอยู่เฉพาะในเครื่อง (ไม่ถูก push) ดังนั้นจะช่วยได้แค่ตัวคุณเอง ไม่ใช่เพื่อนร่วมทีม garbage collector ของ Git จะลบ commit ที่ถูกทิ้งในที่สุด ดังนั้นรีบดำเนินการ",
     },
   },
   tickerSubtitles: {
@@ -356,6 +416,21 @@ const th = {
     module8: {
       title: "เชี่ยวชาญ git stash แล้ว!",
       body: "คุณเก็บงานค้างไว้ สลับไปแก้ปัญหา แล้วดึงงานกลับมาได้สำเร็จ จำไว้ว่า stash ทำงานเป็นแบบ Stack",
+      button: "ปลดล็อกโมดูล 9",
+    },
+    module9: {
+      title: "Squash สำเร็จ!",
+      body: "สาม commit WIP รวมเป็น commit เดียวที่สะอาดแล้ว ใน git rebase -i จริง คุณเลือกได้ว่าจะ squash commit ไหน และเขียน message ใหม่ ประวัติตอนนี้เป็น atomic และ review ได้ง่าย",
+      button: "ปลดล็อกโมดูล 10",
+    },
+    module10: {
+      title: "เชี่ยวชาญ Detached HEAD แล้ว!",
+      body: "คุณ checkout commit โดยตรงและ HEAD แยกออกจาก branch แล้ว commit ที่ทำในสถานะนี้จะกลายเป็น orphan เมื่อออก ให้ reattach กับ branch เสมอเพื่อรักษางาน",
+      button: "ปลดล็อกโมดูล 11",
+    },
+    module11: {
+      title: "กู้คืน Reflog สำเร็จ!",
+      body: "commit ที่หายไปไม่ได้หายถาวร — reflog บันทึกทุกตำแหน่งที่ HEAD เคยอยู่ ช่วยให้กู้คืนได้แม้หลัง reset --hard",
       button: "ไปยัง Sandbox",
     },
 

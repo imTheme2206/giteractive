@@ -115,3 +115,42 @@ export const LESSON_CHERRY_PICK: LessonGoal = {
       c => c.branch === 'main' && c.message.includes('cherry-pick')
     ),
 };
+
+export const LESSON_SQUASH: LessonGoal = {
+  id: 'squash',
+  title: 'Level 09 — Interactive Squash',
+  description: 'Three messy WIP commits are on feature. Squash them into one clean commit before merging.',
+  hint: 'Click the ⊕ squash button on the feature branch tip. Watch 3 commits collapse into 1.',
+  chips: ['mode: -i squash', 'target: feature', 'before: 3 commits', 'after: 1 commit'],
+  validate: (state) => {
+    const featureTip = state.branches['feature'];
+    if (!featureTip) return false;
+    const tip = state.commits[featureTip];
+    if (!tip) return false;
+    const parent = state.commits[tip.parentIds[0] ?? ''];
+    return parent?.id === 'c3' && tip.message.includes('squash');
+  },
+};
+
+export const LESSON_DETACHED_HEAD: LessonGoal = {
+  id: 'detached-head',
+  title: 'Level 10 — Detached HEAD',
+  description: "Checkout commit c2 directly to explore the past — then reattach HEAD to main to get back to safety.",
+  hint: "Click on commit c2 to check it out (HEAD detaches). Then click main's branch label to reattach HEAD.",
+  chips: ['step 1: checkout c2', 'step 2: reattach to main'],
+  validate: (state) => {
+    return state.HEAD === 'main';
+  },
+};
+
+export const LESSON_REFLOG: LessonGoal = {
+  id: 'reflog',
+  title: 'Level 11 — Reflog Recovery',
+  description: "You accidentally reset --hard to c3, losing c4 and c5. Use the reflog to find and restore the lost commits.",
+  hint: "Click the reflog entry for c5 to run git reset --hard c5. The lost commits come back!",
+  chips: ['lost: c4, c5', 'tool: git reflog', 'action: reset --hard <hash>'],
+  validate: (state) => {
+    const mainTip = state.branches['main'];
+    return mainTip === 'c5';
+  },
+};
