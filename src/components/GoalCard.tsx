@@ -3,7 +3,7 @@ import type { LessonGoal } from '../types';
 import { Badge } from './common/Badge';
 import { Button } from './common/Button';
 import { ButtonGroup } from './common/ButtonGroup';
-import { cardRadius } from './common/radii';
+import { Card, CardBody, CardTitle } from './common/Card';
 
 type GoalCardProps = {
   lesson: LessonGoal;
@@ -19,17 +19,9 @@ export const GoalCard = ({ lesson, attempts, guided, onToggleGuided }: GoalCardP
 
   return (
     <div className="absolute bottom-4 left-4 z-10" style={{ width: 288 }}>
-      <div
-        className="bg-[var(--panel)] shadow-lg"
-        style={{
-          border: '2px solid var(--feat)',
-          borderRadius: cardRadius,
-        }}
-      >
+      <Card borderColor="var(--feat)">
         <div className="flex items-center justify-between px-4 pt-4 pb-2 gap-2">
-          <h3 className="font-bold text-sm text-[var(--ink)] m-0 font-hand">
-            {t(`lessons.${lesson.id}.title`)}
-          </h3>
+          <CardTitle>{t(`lessons.${lesson.id}.title`)}</CardTitle>
           <ButtonGroup>
             <Button
               variant="sharp"
@@ -56,10 +48,10 @@ export const GoalCard = ({ lesson, attempts, guided, onToggleGuided }: GoalCardP
 
         {guided && (
           <>
-            <p className="text-sm text-[var(--soft)] mx-4 mb-3 mt-0 leading-snug font-hand">
+            <CardBody className="mx-4 mb-3 mt-0">
               <b className="text-[var(--ink)]">{t('goalCard.goal')}</b>{' '}
               {t(`lessons.${lesson.id}.description`)}
-            </p>
+            </CardBody>
 
             <div className="flex flex-wrap gap-1.5 px-4 mb-3">
               {chips.map(chip => (
@@ -95,7 +87,7 @@ export const GoalCard = ({ lesson, attempts, guided, onToggleGuided }: GoalCardP
             </div>
           </>
         )}
-      </div>
+      </Card>
     </div>
   );
 };

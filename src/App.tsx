@@ -1,9 +1,7 @@
-import { useEffect, useRef, useState } from "react";
-import { Trans, useTranslation } from "react-i18next";
+import { useState } from "react";
 import { CommandHistoryTab } from "./components/command-history/CommandHistoryTab";
 import { CommandPanel } from "./components/command-panel/CommandPanel";
 import { CommandTicker } from "./components/CommandTicker";
-import { Button } from "./components/common/Button";
 import { Toast } from "./components/common/Toast";
 import { DocsPanel } from "./components/docs/DocsPanel";
 import { ExplainerCard } from "./components/ExplainerCard";
@@ -13,143 +11,35 @@ import { ConflictModal } from "./components/modal/ConflictModal";
 import { IntroModal } from "./components/modal/IntroModal";
 import { ReflogPanel } from "./components/ReflogPanel";
 import { Sidebar } from "./components/sidebar/Sidebar";
-import i18n from "./i18n";
-import {
-  LESSON_BRANCH,
-  LESSON_CHERRY_PICK,
-  LESSON_CONFLICT,
-  LESSON_DETACHED_HEAD,
-  LESSON_INIT,
-  LESSON_LINEAR,
-  LESSON_MERGE,
-  LESSON_REBASE,
-  LESSON_REFLOG,
-  LESSON_RESET,
-  LESSON_SQUASH,
-  LESSON_STASH,
-} from "./lessons";
-import type { LessonGoal, ModuleId } from "./types";
+import { Toolbar } from "./components/toolbar/Toolbar";
+import { WelcomeOverlay } from "./components/WelcomeOverlay";
+import { useDocsPanelResize } from "./hooks/useDocsPanelResize";
+import { useExplainerCommand } from "./hooks/useExplainerCommand";
+import { useModuleCompletion } from "./hooks/useModuleCompletion";
+import { MODULE_ACCENT, MODULE_LESSONS } from "./moduleConfig";
+import type { ModuleId } from "./types";
 import { useGitStore } from "./useGitStore";
 import { deriveCommands } from "./utils/deriveCommands";
 
-const MODULE_IDS: ModuleId[] = [
-  "module0",
-  "module1",
-  "module2",
-  "module3",
-  "module4",
-  "module5",
-  "module6",
-  "module7",
-  "module8",
-  "module9",
-  "module10",
-  "module11",
-  "sandbox",
-];
-
-const MODULE_ACCENT: Record<ModuleId, string> = {
-  module0: "var(--ok)",
-  module1: "var(--ok)",
-  module2: "var(--feat)",
-  module3: "var(--ok)",
-  module4: "var(--head)",
-  module5: "var(--ok)",
-  module6: "var(--conflict)",
-  module7: "var(--head)",
-  module8: "var(--feat)",
-  module9: "var(--feat)",
-  module10: "var(--head)",
-  module11: "var(--ok)",
-  sandbox: "var(--feat)",
-};
-
-const MODULE_LESSONS: Partial<Record<string, LessonGoal>> = {
-  module0: LESSON_INIT,
-  module1: LESSON_LINEAR,
-  module2: LESSON_BRANCH,
-  module3: LESSON_CHERRY_PICK,
-  module4: LESSON_REBASE,
-  module5: LESSON_MERGE,
-  module6: LESSON_CONFLICT,
-  module7: LESSON_RESET,
-  module8: LESSON_STASH,
-  module9: LESSON_SQUASH,
-  module10: LESSON_DETACHED_HEAD,
-  module11: LESSON_REFLOG,
-};
-
-const getCommandType = (command: string): string | null => {
-  if (command.startsWith("git add")) return null;
-  if (command.startsWith("git push")) return null;
-  if (command.startsWith("git pull")) return null;
-  if (command.startsWith("git checkout -b")) return "checkout-b";
-  if (command.startsWith("git checkout") && !command.includes("-b"))
-    return "checkout";
-  if (command.startsWith("git commit")) return "commit";
-  if (command.startsWith("git cherry-pick")) return "cherry-pick";
-  if (command.startsWith("git rebase -i")) return "squash";
-  if (command.startsWith("git rebase")) return "rebase";
-  if (command.startsWith("git merge")) return "merge";
-  if (command.startsWith("git reset")) return "reset";
-  if (command.startsWith("git stash"))
-    return command.includes("pop") ? "stash-pop" : "stash";
-  return null;
-};
-
-type WelcomeSectionProps = { title: string; children: React.ReactNode };
-const WelcomeSection = ({ title, children }: WelcomeSectionProps) => (
-  <div
-    className="px-4 py-3 flex flex-col gap-1"
-    style={{
-      borderRadius: "12px",
-      background: "var(--panel2)",
-      border: "1px solid var(--hair)",
-    }}
-  >
-    <span
-      className="font-mono text-xs uppercase tracking-widest font-bold"
-      style={{ color: "var(--ok)" }}
-    >
-      {title}
-    </span>
-    <p className="font-hand text-sm text-[var(--soft)] leading-relaxed m-0">
-      {children}
-    </p>
-  </div>
-);
-
 export const App = () => {
-  const { t } = useTranslation();
   const store = useGitStore();
-  const [explainerCommand, setExplainerCommand] = useState<string | null>(null);
   const [highlightNodeIds, setHighlightNodeIds] = useState<string[]>([]);
-  const explainerKeyRef = useRef(0);
-  const seenCommandTypesRef = useRef(new Set<string>());
   const [pendingModule, setPendingModule] = useState<ModuleId | null>(null);
   const [activeTab, setActiveTab] = useState<"graph" | "history">("graph");
-  const [docsOpen, setDocsOpen] = useState(
-    () => localStorage.getItem("docsOpen") === "true",
-  );
-  const [docsPanelWidth, setDocsPanelWidth] = useState(() => {
-    const saved = parseInt(localStorage.getItem("docsPanelWidth") ?? "", 10);
-    return isNaN(saved) ? 360 : Math.max(240, Math.min(600, saved));
-  });
-  const isResizingRef = useRef(false);
-  const resizeStartXRef = useRef(0);
-  const resizeStartWidthRef = useRef(0);
 
-  const [toastModuleId, setToastModuleId] = useState<ModuleId | null>(null);
-  const [justUnlockedId, setJustUnlockedId] = useState<ModuleId | null>(null);
-  const pulseTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const [showWelcome, setShowWelcome] = useState(
-    () => !localStorage.getItem("giteractive_welcomed"),
+  const { docsOpen, docsPanelWidth, toggleDocs, onResizeMouseDown } =
+    useDocsPanelResize();
+  const { explainerCommand, explainerKey, dismissExplainer } =
+    useExplainerCommand(store.ticker);
+  const { toastModuleId, justUnlockedId, dismissToast } = useModuleCompletion(
+    store.showCompletionOverlay,
+    store.mode,
   );
 
-  const dismissWelcome = () => {
-    // localStorage.setItem('giteractive_welcomed', '1');
-    setShowWelcome(false);
-  };
+  const currentLesson = MODULE_LESSONS[store.mode];
+  const currentComplete =
+    store.moduleProgress.find((p) => p.id === store.mode)?.status ===
+    "complete";
 
   const enterModule = (id: ModuleId) => {
     setPendingModule(null);
@@ -167,35 +57,6 @@ export const App = () => {
     else if (id === "module11") store.enterModule11();
     else store.unlockSandbox();
   };
-
-  useEffect(() => {
-    if (store.showCompletionOverlay) {
-      setToastModuleId(store.mode as ModuleId);
-      const currentIndex = MODULE_IDS.indexOf(store.mode as ModuleId);
-      const nextId =
-        currentIndex >= 0 && currentIndex < MODULE_IDS.length - 1
-          ? MODULE_IDS[currentIndex + 1]
-          : null;
-      if (nextId) {
-        setJustUnlockedId(nextId);
-        if (pulseTimerRef.current) clearTimeout(pulseTimerRef.current);
-        pulseTimerRef.current = setTimeout(() => setJustUnlockedId(null), 3500);
-      }
-    }
-  }, [store.showCompletionOverlay, store.mode]);
-
-  useEffect(
-    () => () => {
-      if (pulseTimerRef.current) clearTimeout(pulseTimerRef.current);
-    },
-    [],
-  );
-
-  const currentLesson = MODULE_LESSONS[store.mode];
-  const currentModuleProgress = store.moduleProgress.find(
-    (p) => p.id === store.mode,
-  );
-  const currentComplete = currentModuleProgress?.status === "complete";
 
   const executeModuleCommand = (cmd: string) => {
     const { branches, commits, HEAD } = store.gitState;
@@ -257,71 +118,6 @@ export const App = () => {
     }
   };
 
-  const toggleLang = () => {
-    const next = i18n.language === "en" ? "th" : "en";
-    i18n.changeLanguage(next);
-    localStorage.setItem("lang", next);
-  };
-
-  const toggleDocs = () => {
-    setDocsOpen((prev) => {
-      localStorage.setItem("docsOpen", String(!prev));
-      return !prev;
-    });
-  };
-
-  const onResizeMouseDown = (e: React.MouseEvent) => {
-    isResizingRef.current = true;
-    resizeStartXRef.current = e.clientX;
-    resizeStartWidthRef.current = docsPanelWidth;
-    e.preventDefault();
-  };
-
-  useEffect(() => {
-    const onMouseMove = (e: MouseEvent) => {
-      if (!isResizingRef.current) return;
-      const delta = resizeStartXRef.current - e.clientX;
-      const next = Math.max(
-        240,
-        Math.min(600, resizeStartWidthRef.current + delta),
-      );
-      setDocsPanelWidth(next);
-    };
-    const onMouseUp = () => {
-      if (!isResizingRef.current) return;
-      isResizingRef.current = false;
-      setDocsPanelWidth((w) => {
-        localStorage.setItem("docsPanelWidth", String(w));
-        return w;
-      });
-    };
-    window.addEventListener("mousemove", onMouseMove);
-    window.addEventListener("mouseup", onMouseUp);
-    return () => {
-      window.removeEventListener("mousemove", onMouseMove);
-      window.removeEventListener("mouseup", onMouseUp);
-    };
-  }, []);
-
-  useEffect(() => {
-    document.documentElement.setAttribute("data-theme", store.theme);
-  }, [store.theme]);
-
-  useEffect(() => {
-    if (
-      store.ticker.state === "flash" &&
-      store.ticker.command &&
-      !explainerCommand
-    ) {
-      const type = getCommandType(store.ticker.command);
-      if (type && !seenCommandTypesRef.current.has(type)) {
-        seenCommandTypesRef.current.add(type);
-        explainerKeyRef.current += 1;
-        setExplainerCommand(store.ticker.command);
-      }
-    }
-  }, [store.ticker.state, store.ticker.command]);
-
   return (
     <div className="flex h-screen overflow-hidden relative">
       {store.sidebarOpen && (
@@ -347,103 +143,28 @@ export const App = () => {
         />
       )}
       <div className="flex-1 flex flex-col min-w-0">
-        {/* Toolbar */}
-        <div className="flex items-center gap-2 px-4 py-2 border-b border-dashed border-[var(--hair)] flex-shrink-0">
-          <Button
-            onClick={() => store.setSidebarOpen((o) => !o)}
-            title="Toggle sidebar"
-          >
-            {store.sidebarOpen ? "◀" : "▶"}
-          </Button>
-          <span className="font-mono text-xs text-[var(--muted)]">
-            {t(`modules.${store.mode}`, store.mode)}
-          </span>
-          <div className="flex gap-1 flex-1">
-            <Button
-              onClick={() => setActiveTab("graph")}
-              style={{
-                borderColor:
-                  activeTab === "graph" ? "var(--ink)" : "var(--hair)",
-                color: activeTab === "graph" ? "var(--ink)" : "var(--muted)",
-              }}
-            >
-              {t("toolbar.tabGraph")}
-            </Button>
-            <Button
-              onClick={() => setActiveTab("history")}
-              style={{
-                borderColor:
-                  activeTab === "history" ? "var(--ink)" : "var(--hair)",
-                color: activeTab === "history" ? "var(--ink)" : "var(--muted)",
-              }}
-            >
-              {t("toolbar.tabHistory")}
-              {store.history.length > 0 && (
-                <span className="ml-1 text-xs text-[var(--muted)]">
-                  {store.history.length}
-                </span>
-              )}
-            </Button>
-            <Button
-              onClick={toggleDocs}
-              style={{
-                borderColor: docsOpen ? "var(--ink)" : "var(--hair)",
-                color: docsOpen ? "var(--ink)" : "var(--muted)",
-              }}
-            >
-              Docs
-            </Button>
-          </div>
-          {(store.mode === "module8" ||
-            (store.mode === "sandbox" && store.wip)) && (
-            <Button
-              onClick={store.doStash}
-              disabled={!store.wip}
-              title="git stash"
-              style={{
-                color: store.wip ? "var(--feat)" : "var(--muted)",
-                opacity: store.wip ? 1 : 0.5,
-              }}
-            >
-              {t("toolbar.stash")}
-            </Button>
-          )}
-          {store.stashStack.length > 0 && (
-            <Button
-              onClick={store.doStashPop}
-              title="git stash pop"
-              style={{ color: "var(--feat)" }}
-            >
-              {t("toolbar.pop", { count: store.stashStack.length })}
-            </Button>
-          )}
-          <Button onClick={store.doReset} title="Reset canvas">
-            {t("toolbar.reset")}
-          </Button>
-          <Button
-            onClick={() =>
-              store.setTheme((t) => (t === "light" ? "dark" : "light"))
-            }
-          >
-            {store.theme === "light" ? "◑" : "○"} {t("toolbar.theme")}
-          </Button>
-          <Button onClick={toggleLang} className="text-xs">
-            {i18n.language === "en" ? "EN" : "TH"}
-          </Button>
-          <Button
-            onClick={store.unlockAll}
-            title="Unlock all modules (dev mode)"
-            className="text-xs px-2"
-            style={{
-              borderColor: store.devMode ? "var(--feat)" : "var(--hair)",
-              color: store.devMode ? "var(--feat)" : "var(--muted)",
-            }}
-          >
-            {store.devMode ? `⚙ ${t("toolbar.dev")}` : "⚙"}
-          </Button>
-        </div>
+        <Toolbar
+          mode={store.mode}
+          sidebarOpen={store.sidebarOpen}
+          onToggleSidebar={() => store.setSidebarOpen((o) => !o)}
+          activeTab={activeTab}
+          onTabChange={setActiveTab}
+          docsOpen={docsOpen}
+          onToggleDocs={toggleDocs}
+          wip={store.wip}
+          stashStack={store.stashStack}
+          onStash={store.doStash}
+          onStashPop={store.doStashPop}
+          onReset={store.doReset}
+          theme={store.theme}
+          onToggleTheme={() =>
+            store.setTheme((t) => (t === "light" ? "dark" : "light"))
+          }
+          devMode={store.devMode}
+          onUnlockAll={store.unlockAll}
+          historyCount={store.history.length}
+        />
 
-        {/* Canvas / History / Docs tab */}
         <div className="flex-1 relative overflow-hidden flex flex-col">
           {activeTab === "history" && (
             <CommandHistoryTab history={store.history} />
@@ -472,7 +193,6 @@ export const App = () => {
               highlightNodeIds={highlightNodeIds}
             />
 
-            {/* Module goal card */}
             {currentLesson && !currentComplete && (
               <GoalCard
                 lesson={currentLesson}
@@ -482,7 +202,6 @@ export const App = () => {
               />
             )}
 
-            {/* Reflog panel for module11 */}
             <ReflogPanel
               visible={store.mode === "module11"}
               reflog={store.reflog}
@@ -490,7 +209,6 @@ export const App = () => {
               currentCommits={new Set(Object.keys(store.gitState.commits))}
             />
 
-            {/* Orange conflict flash */}
             {store.conflictFlash && (
               <div
                 className="absolute inset-0 pointer-events-none z-40"
@@ -501,7 +219,6 @@ export const App = () => {
               />
             )}
 
-            {/* Conflict resolution modal */}
             {store.conflictState && (
               <ConflictModal
                 conflict={store.conflictState}
@@ -509,16 +226,14 @@ export const App = () => {
               />
             )}
 
-            {/* Contextual explainer */}
             {explainerCommand && (
               <ExplainerCard
-                key={explainerKeyRef.current}
+                key={explainerKey}
                 command={explainerCommand}
-                onDismiss={() => setExplainerCommand(null)}
+                onDismiss={dismissExplainer}
               />
             )}
 
-            {/* Intro modal */}
             {pendingModule && pendingModule !== "sandbox" && (
               <IntroModal
                 moduleId={pendingModule}
@@ -529,17 +244,20 @@ export const App = () => {
           </div>
         </div>
 
-        {/* Command panel */}
         <CommandPanel
           mode={store.mode as ModuleId}
-          commands={deriveCommands(store.mode as ModuleId, store.gitState, store.wip, store.stashStack)}
+          commands={deriveCommands(
+            store.mode as ModuleId,
+            store.gitState,
+            store.wip,
+            store.stashStack,
+          )}
           onPreview={(cmd) =>
             store.setTicker({ command: cmd, state: cmd ? "ghost" : "idle" })
           }
           onExecute={executeModuleCommand}
         />
 
-        {/* Ticker */}
         <CommandTicker
           ticker={store.ticker}
           history={store.history}
@@ -548,13 +266,11 @@ export const App = () => {
         />
       </div>
 
-      {/* Right docs panel */}
       {docsOpen && (
         <div
           className="flex-shrink-0 flex border-l border-dashed border-[var(--hair)] relative"
           style={{ width: docsPanelWidth }}
         >
-          {/* Drag handle */}
           <div
             className="absolute left-0 top-0 bottom-0 w-1 cursor-col-resize z-10 hover:bg-[var(--feat)] opacity-0 hover:opacity-30 transition-opacity"
             onMouseDown={onResizeMouseDown}
@@ -584,66 +300,11 @@ export const App = () => {
         <Toast
           moduleId={toastModuleId}
           accentColor={MODULE_ACCENT[toastModuleId]}
-          onDismiss={() => setToastModuleId(null)}
+          onDismiss={dismissToast}
         />
       )}
 
-      {showWelcome && (
-        <div
-          className="absolute inset-0 flex items-center justify-center z-50"
-          style={{
-            background: "color-mix(in srgb, var(--bg) 85%, transparent)",
-            backdropFilter: "blur(4px)",
-          }}
-        >
-          <div
-            className="max-w-xl w-full mx-4 flex flex-col gap-6 p-8"
-            style={{
-              borderRadius: "20px",
-              border: "1.5px solid var(--hair)",
-              background: "var(--panel)",
-            }}
-          >
-            <div className="flex flex-col gap-1">
-              <span className="font-mono text-xs uppercase tracking-widest text-[var(--muted)]">
-                {t('welcome.subtitle')}
-              </span>
-              <h1 className="font-hand font-bold text-3xl text-[var(--ink)] m-0">
-                Giteractive
-              </h1>
-              <p className="font-hand text-[var(--soft)] text-sm m-0">
-                {t('welcome.tagline')}
-              </p>
-            </div>
-
-            <div className="flex flex-col gap-3">
-              <WelcomeSection title={t('welcome.sections.whatIsGit.title')}>
-                <Trans i18nKey="welcome.sections.whatIsGit.body" components={{ strong: <strong />, em: <em /> }} />
-              </WelcomeSection>
-              <WelcomeSection title={t('welcome.sections.whatDoesGitDo.title')}>
-                <Trans i18nKey="welcome.sections.whatDoesGitDo.body" components={{ strong: <strong />, em: <em /> }} />
-              </WelcomeSection>
-              <WelcomeSection title={t('welcome.sections.gitVsGithub.title')}>
-                <Trans i18nKey="welcome.sections.gitVsGithub.body" components={{ strong: <strong />, em: <em />, br: <br /> }} />
-              </WelcomeSection>
-            </div>
-
-            <button
-              type="button"
-              className="self-end font-hand font-bold text-sm px-5 py-2.5 cursor-pointer transition-colors"
-              style={{
-                borderRadius: "10px",
-                background: "var(--ok)",
-                color: "#fff",
-                border: "none",
-              }}
-              onClick={dismissWelcome}
-            >
-              {t('welcome.getStarted')}
-            </button>
-          </div>
-        </div>
-      )}
+      <WelcomeOverlay />
     </div>
   );
 };

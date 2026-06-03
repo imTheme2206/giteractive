@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import { cardRadius } from '../common/radii';
+import { Card, CardBody } from '../common/Card';
 import type { CommandKey } from './commandInfo';
 import { COMMANDS_WITH_STEPS } from './commandInfo';
 
@@ -17,10 +17,7 @@ export const TipCard = ({ commandKey, onClose }: TipCardProps) => {
 
   return (
     <div className="absolute z-30 bottom-full mb-2 left-4" style={{ width: 320 }}>
-      <div
-        className="bg-[var(--panel)] p-4 shadow-lg border-2"
-        style={{ borderRadius: cardRadius, borderColor: 'var(--ink)' }}
-      >
+      <Card borderColor="var(--ink)" className="p-4">
         <div className="flex items-start justify-between gap-2 mb-2">
           <span className="font-mono text-xs font-bold text-[var(--ink)]">
             {t(`${base}.title`)}
@@ -33,9 +30,7 @@ export const TipCard = ({ commandKey, onClose }: TipCardProps) => {
             ×
           </button>
         </div>
-        <p className="font-hand text-sm text-[var(--soft)] leading-snug m-0 mb-3">
-          {t(`${base}.description`)}
-        </p>
+        <CardBody className="mb-3">{t(`${base}.description`)}</CardBody>
         {steps && (
           <ol className="m-0 pl-0 flex flex-col gap-1.5 list-none">
             {steps.map((step, i) => (
@@ -50,7 +45,7 @@ export const TipCard = ({ commandKey, onClose }: TipCardProps) => {
             ))}
           </ol>
         )}
-      </div>
+      </Card>
     </div>
   );
 };

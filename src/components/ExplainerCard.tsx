@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Badge } from './common/Badge';
 import { Button } from './common/Button';
-import { cardRadius } from './common/radii';
+import { Card, CardBody, CardTitle } from './common/Card';
 
 type ExplainerCardProps = {
   command: string;
@@ -97,19 +97,11 @@ export const ExplainerCard = ({ command, onDismiss }: ExplainerCardProps) => {
         transform: visible ? 'translateY(0)' : 'translateY(12px)',
       }}
     >
-      <div
-        className="bg-[var(--panel)] p-4 shadow-lg"
-        style={{
-          border: `2px solid ${keys.color}`,
-          borderRadius: cardRadius,
-        }}
-      >
+      <Card borderColor={keys.color} className="p-4">
         <div className="flex items-start justify-between gap-2 mb-2">
           <div className="flex items-center gap-2">
             <span className="text-base">💡</span>
-            <span className="font-bold text-sm text-[var(--ink)] font-hand">
-              {t(keys.titleKey)}
-            </span>
+            <CardTitle>{t(keys.titleKey)}</CardTitle>
           </div>
           <Button
             variant="icon"
@@ -120,9 +112,7 @@ export const ExplainerCard = ({ command, onDismiss }: ExplainerCardProps) => {
         </div>
 
         {keys.bodyKey && (
-          <p className="text-sm text-[var(--soft)] leading-snug m-0 mb-3 font-hand">
-            {t(keys.bodyKey, keys.vars)}
-          </p>
+          <CardBody className="mb-3">{t(keys.bodyKey, keys.vars)}</CardBody>
         )}
 
         {steps && (
@@ -154,7 +144,7 @@ export const ExplainerCard = ({ command, onDismiss }: ExplainerCardProps) => {
         <Badge className="text-xs text-[var(--muted)] border border-[var(--hair)] px-2 py-0.5 bg-[var(--panel2)]">
           $ {command}
         </Badge>
-      </div>
+      </Card>
     </div>
   );
 };
