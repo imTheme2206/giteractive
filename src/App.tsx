@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { CommandHistoryTab } from "./components/CommandHistoryTab";
 import { CommandPanel } from "./components/CommandPanel";
+import { DocsTab } from "./components/DocsTab";
 import { CommandTicker } from "./components/CommandTicker";
 import { Button } from "./components/common/Button";
 import { Toast } from "./components/common/Toast";
@@ -104,7 +105,7 @@ export const App = () => {
   const explainerKeyRef = useRef(0);
   const seenCommandTypesRef = useRef(new Set<string>());
   const [pendingModule, setPendingModule] = useState<ModuleId | null>(null);
-  const [activeTab, setActiveTab] = useState<'graph' | 'history'>('graph');
+  const [activeTab, setActiveTab] = useState<'graph' | 'history' | 'docs'>('graph');
 
   const [toastModuleId, setToastModuleId] = useState<ModuleId | null>(null);
   const [justUnlockedId, setJustUnlockedId] = useState<ModuleId | null>(null);
@@ -291,6 +292,15 @@ export const App = () => {
                 </span>
               )}
             </Button>
+            <Button
+              onClick={() => setActiveTab('docs')}
+              style={{
+                borderColor: activeTab === 'docs' ? 'var(--ink)' : 'var(--hair)',
+                color: activeTab === 'docs' ? 'var(--ink)' : 'var(--muted)',
+              }}
+            >
+              Docs
+            </Button>
           </div>
           {(store.mode === "module8" ||
             (store.mode === "sandbox" && store.wip)) && (
@@ -341,10 +351,13 @@ export const App = () => {
           </Button>
         </div>
 
-        {/* Canvas / History tab */}
+        {/* Canvas / History / Docs tab */}
         <div className="flex-1 relative overflow-hidden flex flex-col">
           {activeTab === 'history' && (
             <CommandHistoryTab history={store.history} />
+          )}
+          {activeTab === 'docs' && (
+            <DocsTab />
           )}
           <div className={activeTab === 'graph' ? 'flex-1 relative' : 'hidden'}>
           <GitCanvas
