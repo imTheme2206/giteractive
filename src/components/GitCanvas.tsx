@@ -153,7 +153,7 @@ export const GitCanvas = ({
   const layout = useMemo(() => computeLayout(gitState), [gitState]);
 
   const isEmpty = Object.keys(gitState.commits).length === 0;
-  const EMPTY_POS = { x: 60, y: 60 };
+  const EMPTY_POS = { x: 260, y: 180 };
 
   const headCommitId =
     gitState.branches[gitState.HEAD] !== undefined
@@ -604,6 +604,29 @@ export const GitCanvas = ({
 
   return (
     <div className="absolute inset-0">
+      {isEmpty && (
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
+          <div
+            className="flex flex-col items-center gap-3 px-6 py-5 text-center"
+            style={{
+              borderRadius: '16px',
+              border: '1.5px dashed var(--hair)',
+              background: 'color-mix(in srgb, var(--panel) 80%, transparent)',
+              maxWidth: '320px',
+            }}
+          >
+            <span className="font-mono text-[11px] text-[var(--ok)] uppercase tracking-widest">
+              git init ✓
+            </span>
+            <p className="font-hand text-[13px] text-[var(--soft)] m-0 leading-relaxed">
+              Repository initialized — <code className="font-mono text-[11px] bg-[var(--panel2)] px-1 rounded">main</code> branch created, no commits yet.
+            </p>
+            <p className="font-hand text-[12px] text-[var(--muted)] m-0">
+              Click <strong>+</strong> to stage your changes and make your first commit.
+            </p>
+          </div>
+        </div>
+      )}
       <ReactFlow
         nodes={[...nodes, ...ghostElements.nodes]}
         edges={[...edges, ...ghostElements.edges]}

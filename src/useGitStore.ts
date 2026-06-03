@@ -442,7 +442,11 @@ export const useGitStore = () => {
     );
   };
 
-  const enterModule0 = () => enterModule('module0', makeModule0State);
+  const enterModule0 = () => {
+    enterModule('module0', makeModule0State);
+    setTicker({ command: 'git init', state: 'flash' });
+    setTimeout(() => setTicker({ command: 'git init', state: 'idle' }), 1400);
+  };
   const enterModule1 = () => enterModule('module1', makeModuleState);
   const enterModule2 = () => enterModule('module2', makeModuleState);
   const enterModule3 = () => enterModule('module3', makeModule3State);
