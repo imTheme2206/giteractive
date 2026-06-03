@@ -30,27 +30,7 @@ import {
 } from "./lessons";
 import type { LessonGoal, ModuleId } from "./types";
 import { useGitStore } from "./useGitStore";
-
-const MODULE_COMMANDS: Partial<Record<ModuleId, string[]>> = {
-  module0: ["git init", "git add .", 'git commit -m "init: first commit"'],
-  module1: ['git commit -m "feat: ..."'],
-  module2: ["git checkout -b feature", 'git commit -m "feat: ..."'],
-  module3: ["git cherry-pick <hash>"],
-  module4: ["git rebase main"],
-  module5: ["git merge feature"],
-  module6: ["git merge feature"],
-  module7: ["git reset --hard c3"],
-  module8: ["git stash", "git checkout main", "git stash pop"],
-  module9: ["git rebase -i HEAD~3"],
-  module10: ["git checkout c2", "git checkout main"],
-  module11: ["git reflog", "git reset --hard <hash>"],
-  sandbox: [
-    'git commit -m "feat: ..."',
-    "git checkout -b feature",
-    "git merge feature",
-    "git rebase main",
-  ],
-};
+import { deriveCommands } from "./utils/deriveCommands";
 
 const MODULE_IDS: ModuleId[] = [
   "module0",
@@ -552,7 +532,7 @@ export const App = () => {
         {/* Command panel */}
         <CommandPanel
           mode={store.mode as ModuleId}
-          commands={MODULE_COMMANDS[store.mode as ModuleId] ?? []}
+          commands={deriveCommands(store.mode as ModuleId, store.gitState, store.wip, store.stashStack)}
           onPreview={(cmd) =>
             store.setTicker({ command: cmd, state: cmd ? "ghost" : "idle" })
           }
