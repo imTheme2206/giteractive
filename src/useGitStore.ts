@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import {
   addCommit,
   cherryPick,
@@ -23,103 +23,115 @@ import {
   resetHard,
   squashCommits,
 } from "./gitState";
-import { LESSON_BRANCH, LESSON_CHERRY_PICK, LESSON_CONFLICT, LESSON_DETACHED_HEAD, LESSON_INIT, LESSON_LINEAR, LESSON_MERGE, LESSON_REBASE, LESSON_REFLOG, LESSON_RESET, LESSON_SQUASH, LESSON_STASH } from "./lessons";
-import type { CommitNode, ConflictState, GitState, Mode, ModuleId, ModuleProgress, ModuleStatus, ReflogEntry, TickerEntry } from "./types";
-
-const INITIAL_PROGRESS: ModuleProgress[] = [
-  { id: 'module0', status: 'available' },
-  { id: 'module1', status: 'locked' },
-  { id: 'module2', status: 'locked' },
-  { id: 'module3', status: 'locked' },
-  { id: 'module4', status: 'locked' },
-  { id: 'module5', status: 'locked' },
-  { id: 'module6', status: 'locked' },
-  { id: 'module7', status: 'locked' },
-  { id: 'module8', status: 'locked' },
-  { id: 'module9', status: 'locked' },
-  { id: 'module10', status: 'locked' },
-  { id: 'module11', status: 'locked' },
-  { id: 'sandbox', status: 'available' },
-];
-
-const loadProgress = (): ModuleProgress[] => {
-  try {
-    const saved = localStorage.getItem('giteractive_progress');
-    if (saved) {
-      const savedArr = JSON.parse(saved) as ModuleProgress[];
-      // Merge: keep saved statuses but ensure every module from INITIAL_PROGRESS is present
-      return INITIAL_PROGRESS.map(init => savedArr.find(s => s.id === init.id) ?? init);
-    }
-  } catch {}
-  return INITIAL_PROGRESS;
-};
+import { useModuleProgression } from "./hooks/useModuleProgression";
+import { useUIPreferences } from "./hooks/useUIPreferences";
+import {
+  LESSON_CHERRY_PICK,
+  LESSON_CONFLICT,
+  LESSON_DETACHED_HEAD,
+  LESSON_INIT,
+  LESSON_LINEAR,
+  LESSON_MERGE,
+  LESSON_REBASE,
+  LESSON_REFLOG,
+  LESSON_RESET,
+  LESSON_SQUASH,
+} from "./lessons";
+import type {
+  CommitNode,
+  ConflictState,
+  GitState,
+  Mode,
+  ModuleId,
+  ReflogEntry,
+  TickerEntry,
+} from "./types";
 
 export const useGitStore = () => {
-  const isFirstVisit = !localStorage.getItem('giteractive_welcomed');
-  const [gitState, setGitState] = useState<GitState>(() => isFirstVisit ? makeModule0State() : makeSandboxState());
-  const [mode, setMode] = useState<Mode>(isFirstVisit ? "module0" : "sandbox");
+  const isFirstVisit = !localStorage.getItem("giteractive_welcomed");
+
+  // git graph state
+  const [gitState, setGitState] = useState<GitState>(() =>
+    isFirstVisit ? makeModule0State() : makeSandboxState(),
+  );
+  const [mode, setMode] = useState<Mode>(
+    isFirstVisit ? "module0" : "sandbox",
+  );
   const [history, setHistory] = useState<TickerEntry[]>([]);
-  const [ticker, setTicker] = useState<{ command: string; subtitle?: string; state: "idle" | "ghost" | "flash" }>({
+  const [ticker, setTicker] = useState<{
+    command: string;
+    subtitle?: string;
+    state: "idle" | "ghost" | "flash";
+  }>({
     command: isFirstVisit ? "git init" : "",
     state: isFirstVisit ? "flash" : "idle",
   });
-  const [theme, setThemeState] = useState<"light" | "dark">(
-    () => (localStorage.getItem('theme') as 'light' | 'dark') ?? 'light'
+  const [conflictState, setConflictState] = useState<ConflictState | null>(
+    null,
   );
-  const setTheme = (updater: 'light' | 'dark' | ((t: 'light' | 'dark') => 'light' | 'dark')) => {
-    setThemeState(prev => {
-      const next = typeof updater === 'function' ? updater(prev) : updater;
-      localStorage.setItem('theme', next);
-      return next;
-    });
-  };
-  const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [moduleProgress, setModuleProgress] = useState<ModuleProgress[]>(loadProgress);
-  useEffect(() => {
-    localStorage.setItem('giteractive_progress', JSON.stringify(moduleProgress));
-  }, [moduleProgress]);
-  const [showCompletionOverlay, setShowCompletionOverlay] = useState(false);
-  const [moduleAttempts, setModuleAttempts] = useState(0);
-  const [moduleGuided, setModuleGuided] = useState(true);
-  const [conflictState, setConflictState] = useState<ConflictState | null>(null);
   const [conflictFlash, setConflictFlash] = useState(false);
-  const [pendingConflictMerge, setPendingConflictMerge] = useState<{ sourceBranch: string; targetBranch: string } | null>(null);
+  const [pendingConflictMerge, setPendingConflictMerge] = useState<{
+    sourceBranch: string;
+    targetBranch: string;
+  } | null>(null);
   const [wip, setWip] = useState<string | null>(null);
-  const [stashStack, setStashStack] = useState<Array<{ message: string; fromBranch: string }>>([]);
-  const [devMode, setDevMode] = useState(false);
+  const [stashStack, setStashStack] = useState<
+    Array<{ message: string; fromBranch: string }>
+  >([]);
   const [hasDetached, setHasDetached] = useState(false);
   const [reflog, setReflog] = useState<ReflogEntry[]>([]);
-  const [shadowCommits, setShadowCommits] = useState<Record<string, CommitNode>>({});
+  const [shadowCommits, setShadowCommits] = useState<
+    Record<string, CommitNode>
+  >({});
+
+  // composed slices
+  const {
+    theme,
+    setTheme,
+    sidebarOpen,
+    setSidebarOpen,
+    devMode,
+    setDevMode,
+  } = useUIPreferences();
+  const {
+    moduleProgress,
+    setModuleProgress,
+    showCompletionOverlay,
+    setShowCompletionOverlay,
+    moduleAttempts,
+    setModuleAttempts,
+    moduleGuided,
+    setModuleGuided,
+    completeModule,
+    setModuleStatus,
+  } = useModuleProgression();
 
   const unlockAll = () => {
-    setModuleProgress(prev => prev.map(p => p.status === 'locked' ? { ...p, status: 'available' } : p));
+    setModuleProgress((prev) =>
+      prev.map((p) => (p.status === "locked" ? { ...p, status: "available" } : p)),
+    );
     setDevMode(true);
   };
 
-  const logCommand = (command: string, stateBefore?: GitState, stateAfter?: GitState) => {
+  const logCommand = (
+    command: string,
+    stateBefore?: GitState,
+    stateAfter?: GitState,
+  ) => {
     setTicker({ command, state: "flash" });
     setTimeout(() => {
-      setHistory(h => [
-        { id: Math.random().toString(36).slice(2, 9), command, timestamp: Date.now(), stateBefore, stateAfter },
+      setHistory((h) => [
+        {
+          id: Math.random().toString(36).slice(2, 9),
+          command,
+          timestamp: Date.now(),
+          stateBefore,
+          stateAfter,
+        },
         ...h,
       ]);
-      setTicker(t => ({ ...t, state: "idle" }));
+      setTicker((t) => ({ ...t, state: "idle" }));
     }, 1200);
-  };
-
-  const setModuleStatus = (id: ModuleId, status: ModuleStatus) => {
-    setModuleProgress(prev => prev.map(p => (p.id === id ? { ...p, status } : p)));
-  };
-
-  const completeModule = (id: ModuleId, nextId?: ModuleId) => {
-    setModuleProgress(prev =>
-      prev.map(p => {
-        if (p.id === id) return { ...p, status: 'complete' };
-        if (nextId && p.id === nextId && p.status === 'locked') return { ...p, status: 'available' };
-        return p;
-      })
-    );
-    setShowCompletionOverlay(true);
   };
 
   const doStartWip = () => {
@@ -137,30 +149,49 @@ export const useGitStore = () => {
     setTicker({ command: result.command, state: "flash" });
     setTimeout(() => {
       const now = Date.now();
-      setHistory(h => [
-        { id: Math.random().toString(36).slice(2, 9), command: `git push origin ${branch}`, timestamp: now + 2, stateBefore: stateAfter, stateAfter },
-        { id: Math.random().toString(36).slice(2, 9), command: result.command, timestamp: now + 1, stateBefore, stateAfter },
-        { id: Math.random().toString(36).slice(2, 9), command: 'git add .', timestamp: now, stateBefore, stateAfter: stateBefore },
+      setHistory((h) => [
+        {
+          id: Math.random().toString(36).slice(2, 9),
+          command: `git push origin ${branch}`,
+          timestamp: now + 2,
+          stateBefore: stateAfter,
+          stateAfter,
+        },
+        {
+          id: Math.random().toString(36).slice(2, 9),
+          command: result.command,
+          timestamp: now + 1,
+          stateBefore,
+          stateAfter,
+        },
+        {
+          id: Math.random().toString(36).slice(2, 9),
+          command: "git add .",
+          timestamp: now,
+          stateBefore,
+          stateAfter: stateBefore,
+        },
         ...h,
       ]);
-      setTicker(t => ({ ...t, state: "idle" }));
+      setTicker((t) => ({ ...t, state: "idle" }));
     }, 1200);
 
     if (mode === "module0") {
-      setModuleAttempts(n => n + 1);
-      if (LESSON_INIT.validate(result.state)) completeModule('module0', 'module1');
+      setModuleAttempts((n) => n + 1);
+      if (LESSON_INIT.validate(result.state)) completeModule("module0", "module1");
     }
 
     if (mode === "module1") {
-      setModuleAttempts(n => n + 1);
-      if (LESSON_LINEAR.validate(result.state)) completeModule('module1', 'module2');
+      setModuleAttempts((n) => n + 1);
+      if (LESSON_LINEAR.validate(result.state)) completeModule("module1", "module2");
     }
 
     if (mode === "module2") {
       const { HEAD, branches, commits } = result.state;
       if (HEAD !== "main" && branches[HEAD]) {
         const tip = commits[branches[HEAD]];
-        if (tip?.branch && tip.branch !== "main") completeModule('module2', 'module3');
+        if (tip?.branch && tip.branch !== "main")
+          completeModule("module2", "module3");
       }
     }
   };
@@ -173,8 +204,9 @@ export const useGitStore = () => {
     logCommand(result.command, stateBefore, result.state);
 
     if (mode === "module3") {
-      setModuleAttempts(n => n + 1);
-      if (LESSON_CHERRY_PICK.validate(result.state)) completeModule('module3', 'module4');
+      setModuleAttempts((n) => n + 1);
+      if (LESSON_CHERRY_PICK.validate(result.state))
+        completeModule("module3", "module4");
     }
   };
 
@@ -186,8 +218,8 @@ export const useGitStore = () => {
     logCommand(result.command, stateBefore, result.state);
 
     if (mode === "module4") {
-      setModuleAttempts(n => n + 1);
-      if (LESSON_REBASE.validate(result.state)) completeModule('module4', 'module5');
+      setModuleAttempts((n) => n + 1);
+      if (LESSON_REBASE.validate(result.state)) completeModule("module4", "module5");
     }
   };
 
@@ -209,20 +241,21 @@ export const useGitStore = () => {
     logCommand(result.command, stateBefore, result.state);
 
     if (mode === "module5") {
-      setModuleAttempts(n => n + 1);
-      if (LESSON_MERGE.validate(result.state)) completeModule('module5', 'module6');
+      setModuleAttempts((n) => n + 1);
+      if (LESSON_MERGE.validate(result.state)) completeModule("module5", "module6");
     }
   };
 
-  const resolveConflict = (resolution: 'ours' | 'theirs' | 'both') => {
+  const resolveConflict = (resolution: "ours" | "theirs" | "both") => {
     if (!pendingConflictMerge) return;
     const { sourceBranch, targetBranch } = pendingConflictMerge;
     const result = merge(gitState, sourceBranch, targetBranch);
     if (!result) return;
     const resolvedMsg = `Merge branch '${sourceBranch}' into ${targetBranch} [resolved: ${resolution}]`;
-    const [mergeId, mergeCommit] = Object.entries(result.state.commits).find(
-      ([id]) => !gitState.commits[id]
-    ) ?? [];
+    const [mergeId, mergeCommit] =
+      Object.entries(result.state.commits).find(
+        ([id]) => !gitState.commits[id],
+      ) ?? [];
     if (!mergeId || !mergeCommit) return;
     const finalState = {
       ...result.state,
@@ -232,34 +265,41 @@ export const useGitStore = () => {
       },
     };
     setGitState(finalState);
-    logCommand(`git merge ${sourceBranch} # conflict resolved (${resolution})`, gitState, finalState);
+    logCommand(
+      `git merge ${sourceBranch} # conflict resolved (${resolution})`,
+      gitState,
+      finalState,
+    );
     setConflictState(null);
     setPendingConflictMerge(null);
 
-    setModuleAttempts(n => n + 1);
-    if (LESSON_CONFLICT.validate(finalState)) completeModule('module6', 'module7');
+    setModuleAttempts((n) => n + 1);
+    if (LESSON_CONFLICT.validate(finalState)) completeModule("module6", "module7");
   };
 
   const doCheckout = (target: string) => {
-    if (wip && mode === 'module8') {
-      setTicker({ command: '⚠  Stash your work first: git stash', state: 'flash' });
+    if (wip && mode === "module8") {
+      setTicker({
+        command: "⚠  Stash your work first: git stash",
+        state: "flash",
+      });
       return;
     }
     const result = checkout(gitState, target);
     if (!result) return;
 
-    if (mode === 'module10') {
+    if (mode === "module10") {
       const isDetaching = !gitState.branches[target];
       if (isDetaching) {
         setHasDetached(true);
       }
 
-      if (hasDetached && target === 'main') {
+      if (hasDetached && target === "main") {
         setGitState(result.state);
         logCommand(result.command, gitState, result.state);
-        setModuleAttempts(n => n + 1);
+        setModuleAttempts((n) => n + 1);
         if (LESSON_DETACHED_HEAD.validate(result.state)) {
-          completeModule('module10', 'module11');
+          completeModule("module10", "module11");
         }
         return;
       }
@@ -270,9 +310,13 @@ export const useGitStore = () => {
   };
 
   const doResetHard = (targetId: string) => {
-    if (mode === 'module11') {
-      setReflog(prev => [
-        { hash: targetId, message: `reset: moving to ${targetId}`, headRef: 'main' },
+    if (mode === "module11") {
+      setReflog((prev) => [
+        {
+          hash: targetId,
+          message: `reset: moving to ${targetId}`,
+          headRef: "main",
+        },
         ...prev,
       ]);
     }
@@ -283,18 +327,21 @@ export const useGitStore = () => {
     setGitState(result.state);
     logCommand(result.command, stateBefore, result.state);
 
-    if (mode === 'module7') {
-      setModuleAttempts(n => n + 1);
-      if (LESSON_RESET.validate(result.state)) completeModule('module7', 'module8');
+    if (mode === "module7") {
+      setModuleAttempts((n) => n + 1);
+      if (LESSON_RESET.validate(result.state)) completeModule("module7", "module8");
     }
   };
 
   const doStash = () => {
     if (!wip) return;
     const stateBefore = gitState;
-    setStashStack(s => [{ message: wip, fromBranch: gitState.HEAD }, ...s]);
+    setStashStack((s) => [
+      { message: wip, fromBranch: gitState.HEAD },
+      ...s,
+    ]);
     setWip(null);
-    logCommand('git stash', stateBefore, stateBefore);
+    logCommand("git stash", stateBefore, stateBefore);
   };
 
   const doStashPop = () => {
@@ -304,24 +351,28 @@ export const useGitStore = () => {
     const stateBefore = gitState;
     setWip(top.message);
     setStashStack(rest);
-    logCommand('git stash pop', stateBefore, stateBefore);
+    logCommand("git stash pop", stateBefore, stateBefore);
 
-    if (mode === 'module8') {
-      setModuleAttempts(n => n + 1);
-      if (gitState.branches['main'] !== 'c3') completeModule('module8', 'module9');
+    if (mode === "module8") {
+      setModuleAttempts((n) => n + 1);
+      if (gitState.branches["main"] !== "c3") completeModule("module8", "module9");
     }
   };
 
-  const doSquash = (branchName: string, count: number, message: string) => {
+  const doSquash = (
+    branchName: string,
+    count: number,
+    message: string,
+  ) => {
     const stateBefore = gitState;
     const result = squashCommits(gitState, branchName, count, message);
     if (!result) return;
     setGitState(result.state);
     logCommand(result.command, stateBefore, result.state);
 
-    if (mode === 'module9') {
-      setModuleAttempts(n => n + 1);
-      if (LESSON_SQUASH.validate(result.state)) completeModule('module9', 'module10');
+    if (mode === "module9") {
+      setModuleAttempts((n) => n + 1);
+      if (LESSON_SQUASH.validate(result.state)) completeModule("module9", "module10");
     }
   };
 
@@ -340,7 +391,7 @@ export const useGitStore = () => {
     walk(hash);
 
     const stateBefore = gitState;
-    setGitState(prev => ({
+    setGitState((prev) => ({
       ...prev,
       commits: reachableCommits,
       branches: { ...prev.branches, main: hash },
@@ -354,9 +405,9 @@ export const useGitStore = () => {
 
     logCommand(`git reset --hard ${hash}`, stateBefore, newState);
 
-    if (mode === 'module11') {
-      setModuleAttempts(n => n + 1);
-      if (LESSON_REFLOG.validate(newState)) completeModule('module11');
+    if (mode === "module11") {
+      setModuleAttempts((n) => n + 1);
+      if (LESSON_REFLOG.validate(newState)) completeModule("module11");
     }
   };
 
@@ -367,7 +418,7 @@ export const useGitStore = () => {
     setGitState(result.state);
     logCommand(result.command, stateBefore, result.state);
 
-    if (mode === "module2") setModuleAttempts(n => n + 1);
+    if (mode === "module2") setModuleAttempts((n) => n + 1);
   };
 
   const doReset = () => {
@@ -386,20 +437,20 @@ export const useGitStore = () => {
     setGitState((stateMap[mode] ?? makeModuleState)());
 
     const statusMap: Partial<Record<Mode, ModuleId>> = {
-      module1: 'module1',
-      module2: 'module2',
-      module3: 'module3',
-      module4: 'module4',
-      module5: 'module5',
-      module6: 'module6',
-      module7: 'module7',
-      module8: 'module8',
-      module9: 'module9',
-      module10: 'module10',
-      module11: 'module11',
+      module1: "module1",
+      module2: "module2",
+      module3: "module3",
+      module4: "module4",
+      module5: "module5",
+      module6: "module6",
+      module7: "module7",
+      module8: "module8",
+      module9: "module9",
+      module10: "module10",
+      module11: "module11",
     };
     const modId = statusMap[mode];
-    if (modId) setModuleStatus(modId, 'in_progress');
+    if (modId) setModuleStatus(modId, "in_progress");
 
     setShowCompletionOverlay(false);
     setModuleAttempts(0);
@@ -408,16 +459,24 @@ export const useGitStore = () => {
     setConflictState(null);
     setPendingConflictMerge(null);
     setConflictFlash(false);
-    setWip(mode === 'module8' ? 'fix: urgent hotfix for prod' : null);
+    setWip(mode === "module8" ? "fix: urgent hotfix for prod" : null);
     setStashStack([]);
     setHasDetached(false);
 
-    if (mode === 'module11') {
+    if (mode === "module11") {
       setShadowCommits(makeModule11ShadowCommits());
       setReflog([
-        { hash: 'c5', message: 'commit: feat: add dashboard', headRef: 'main' },
-        { hash: 'c4', message: 'commit: feat: add login', headRef: 'main' },
-        { hash: 'c3', message: 'commit: feat: setup project', headRef: 'main' },
+        {
+          hash: "c5",
+          message: "commit: feat: add dashboard",
+          headRef: "main",
+        },
+        { hash: "c4", message: "commit: feat: add login", headRef: "main" },
+        {
+          hash: "c3",
+          message: "commit: feat: setup project",
+          headRef: "main",
+        },
       ]);
     } else {
       setReflog([]);
@@ -426,8 +485,19 @@ export const useGitStore = () => {
   };
 
   const enterModule = (
-    id: 'module0' | 'module1' | 'module2' | 'module3' | 'module4' | 'module5' | 'module6' | 'module7' | 'module8' | 'module9' | 'module10',
-    makeState: () => GitState
+    id:
+      | "module0"
+      | "module1"
+      | "module2"
+      | "module3"
+      | "module4"
+      | "module5"
+      | "module6"
+      | "module7"
+      | "module8"
+      | "module9"
+      | "module10",
+    makeState: () => GitState,
   ) => {
     setMode(id);
     setGitState(makeState());
@@ -439,33 +509,37 @@ export const useGitStore = () => {
     setConflictState(null);
     setPendingConflictMerge(null);
     setConflictFlash(false);
-    setWip(id === 'module8' ? 'fix: urgent hotfix for prod' : null);
+    setWip(id === "module8" ? "fix: urgent hotfix for prod" : null);
     setStashStack([]);
     setHasDetached(false);
-    setModuleProgress(prev =>
-      prev.map(p => (p.id === id && p.status === 'available' ? { ...p, status: 'in_progress' } : p))
+    setModuleProgress((prev) =>
+      prev.map((p) =>
+        p.id === id && p.status === "available"
+          ? { ...p, status: "in_progress" }
+          : p,
+      ),
     );
   };
 
   const enterModule0 = () => {
-    enterModule('module0', makeModule0State);
-    setTicker({ command: 'git init', state: 'flash' });
-    setTimeout(() => setTicker({ command: 'git init', state: 'idle' }), 1400);
+    enterModule("module0", makeModule0State);
+    setTicker({ command: "git init", state: "flash" });
+    setTimeout(() => setTicker({ command: "git init", state: "idle" }), 1400);
   };
-  const enterModule1 = () => enterModule('module1', makeModuleState);
-  const enterModule2 = () => enterModule('module2', makeModuleState);
-  const enterModule3 = () => enterModule('module3', makeModule3State);
-  const enterModule4 = () => enterModule('module4', makeModule4State);
-  const enterModule5 = () => enterModule('module5', makeModule5State);
-  const enterModule6 = () => enterModule('module6', makeModule6State);
-  const enterModule7 = () => enterModule('module7', makeModule7State);
-  const enterModule8 = () => enterModule('module8', makeModule8State);
-  const enterModule9 = () => enterModule('module9', makeModule9State);
-  const enterModule10 = () => enterModule('module10', makeModule10State);
+  const enterModule1 = () => enterModule("module1", makeModuleState);
+  const enterModule2 = () => enterModule("module2", makeModuleState);
+  const enterModule3 = () => enterModule("module3", makeModule3State);
+  const enterModule4 = () => enterModule("module4", makeModule4State);
+  const enterModule5 = () => enterModule("module5", makeModule5State);
+  const enterModule6 = () => enterModule("module6", makeModule6State);
+  const enterModule7 = () => enterModule("module7", makeModule7State);
+  const enterModule8 = () => enterModule("module8", makeModule8State);
+  const enterModule9 = () => enterModule("module9", makeModule9State);
+  const enterModule10 = () => enterModule("module10", makeModule10State);
 
   const enterModule11 = () => {
     const initialState = makeModule11State();
-    setMode('module11');
+    setMode("module11");
     setGitState(initialState);
     setHistory([]);
     setTicker({ command: "", state: "idle" });
@@ -480,19 +554,23 @@ export const useGitStore = () => {
     setHasDetached(false);
     setShadowCommits(makeModule11ShadowCommits());
     setReflog([
-      { hash: 'c5', message: 'commit: feat: add dashboard', headRef: 'main' },
-      { hash: 'c4', message: 'commit: feat: add login', headRef: 'main' },
-      { hash: 'c3', message: 'commit: feat: setup project', headRef: 'main' },
+      { hash: "c5", message: "commit: feat: add dashboard", headRef: "main" },
+      { hash: "c4", message: "commit: feat: add login", headRef: "main" },
+      { hash: "c3", message: "commit: feat: setup project", headRef: "main" },
     ]);
-    setModuleProgress(prev =>
-      prev.map(p => (p.id === 'module11' && p.status === 'available' ? { ...p, status: 'in_progress' } : p))
+    setModuleProgress((prev) =>
+      prev.map((p) =>
+        p.id === "module11" && p.status === "available"
+          ? { ...p, status: "in_progress" }
+          : p,
+      ),
     );
   };
 
   const unlockSandbox = () => {
     setShowCompletionOverlay(false);
     setMode("sandbox");
-    setGitState(prev => {
+    setGitState((prev) => {
       if (prev.branches["feature"]) return { ...prev, HEAD: "main" };
       return {
         ...prev,
