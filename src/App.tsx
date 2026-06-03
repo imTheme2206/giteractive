@@ -1,17 +1,17 @@
 import { useEffect, useRef, useState } from "react";
-import { useTranslation } from "react-i18next";
+import { Trans, useTranslation } from "react-i18next";
 import { CommandHistoryTab } from "./components/command-history/CommandHistoryTab";
 import { CommandPanel } from "./components/command-panel/CommandPanel";
-import { DocsPanel } from "./components/docs/DocsPanel";
 import { CommandTicker } from "./components/CommandTicker";
 import { Button } from "./components/common/Button";
 import { Toast } from "./components/common/Toast";
+import { DocsPanel } from "./components/docs/DocsPanel";
 import { ExplainerCard } from "./components/ExplainerCard";
 import { GitCanvas } from "./components/GitCanvas";
 import { GoalCard } from "./components/GoalCard";
-import { ReflogPanel } from "./components/ReflogPanel";
 import { ConflictModal } from "./components/modal/ConflictModal";
 import { IntroModal } from "./components/modal/IntroModal";
+import { ReflogPanel } from "./components/ReflogPanel";
 import { Sidebar } from "./components/sidebar/Sidebar";
 import i18n from "./i18n";
 import {
@@ -32,41 +32,56 @@ import type { LessonGoal, ModuleId } from "./types";
 import { useGitStore } from "./useGitStore";
 
 const MODULE_COMMANDS: Partial<Record<ModuleId, string[]>> = {
-  module0: ['git init', 'git add .', 'git commit -m "init: first commit"'],
+  module0: ["git init", "git add .", 'git commit -m "init: first commit"'],
   module1: ['git commit -m "feat: ..."'],
-  module2: ['git checkout -b feature', 'git commit -m "feat: ..."'],
-  module3: ['git cherry-pick <hash>'],
-  module4: ['git rebase main'],
-  module5: ['git merge feature'],
-  module6: ['git merge feature'],
-  module7: ['git reset --hard c3'],
-  module8: ['git stash', 'git checkout main', 'git stash pop'],
-  module9: ['git rebase -i HEAD~3'],
-  module10: ['git checkout c2', 'git checkout main'],
-  module11: ['git reflog', 'git reset --hard <hash>'],
-  sandbox: ['git commit -m "feat: ..."', 'git checkout -b feature', 'git merge feature', 'git rebase main'],
+  module2: ["git checkout -b feature", 'git commit -m "feat: ..."'],
+  module3: ["git cherry-pick <hash>"],
+  module4: ["git rebase main"],
+  module5: ["git merge feature"],
+  module6: ["git merge feature"],
+  module7: ["git reset --hard c3"],
+  module8: ["git stash", "git checkout main", "git stash pop"],
+  module9: ["git rebase -i HEAD~3"],
+  module10: ["git checkout c2", "git checkout main"],
+  module11: ["git reflog", "git reset --hard <hash>"],
+  sandbox: [
+    'git commit -m "feat: ..."',
+    "git checkout -b feature",
+    "git merge feature",
+    "git rebase main",
+  ],
 };
 
 const MODULE_IDS: ModuleId[] = [
-  'module0', 'module1', 'module2', 'module3', 'module4', 'module5',
-  'module6', 'module7', 'module8', 'module9', 'module10',
-  'module11', 'sandbox',
+  "module0",
+  "module1",
+  "module2",
+  "module3",
+  "module4",
+  "module5",
+  "module6",
+  "module7",
+  "module8",
+  "module9",
+  "module10",
+  "module11",
+  "sandbox",
 ];
 
 const MODULE_ACCENT: Record<ModuleId, string> = {
-  module0: 'var(--ok)',
-  module1: 'var(--ok)',
-  module2: 'var(--feat)',
-  module3: 'var(--ok)',
-  module4: 'var(--head)',
-  module5: 'var(--ok)',
-  module6: 'var(--conflict)',
-  module7: 'var(--head)',
-  module8: 'var(--feat)',
-  module9: 'var(--feat)',
-  module10: 'var(--head)',
-  module11: 'var(--ok)',
-  sandbox: 'var(--feat)',
+  module0: "var(--ok)",
+  module1: "var(--ok)",
+  module2: "var(--feat)",
+  module3: "var(--ok)",
+  module4: "var(--head)",
+  module5: "var(--ok)",
+  module6: "var(--conflict)",
+  module7: "var(--head)",
+  module8: "var(--feat)",
+  module9: "var(--feat)",
+  module10: "var(--head)",
+  module11: "var(--ok)",
+  sandbox: "var(--feat)",
 };
 
 const MODULE_LESSONS: Partial<Record<string, LessonGoal>> = {
@@ -89,7 +104,8 @@ const getCommandType = (command: string): string | null => {
   if (command.startsWith("git push")) return null;
   if (command.startsWith("git pull")) return null;
   if (command.startsWith("git checkout -b")) return "checkout-b";
-  if (command.startsWith("git checkout") && !command.includes("-b")) return "checkout";
+  if (command.startsWith("git checkout") && !command.includes("-b"))
+    return "checkout";
   if (command.startsWith("git commit")) return "commit";
   if (command.startsWith("git cherry-pick")) return "cherry-pick";
   if (command.startsWith("git rebase -i")) return "squash";
@@ -105,12 +121,21 @@ type WelcomeSectionProps = { title: string; children: React.ReactNode };
 const WelcomeSection = ({ title, children }: WelcomeSectionProps) => (
   <div
     className="px-4 py-3 flex flex-col gap-1"
-    style={{ borderRadius: '12px', background: 'var(--panel2)', border: '1px solid var(--hair)' }}
+    style={{
+      borderRadius: "12px",
+      background: "var(--panel2)",
+      border: "1px solid var(--hair)",
+    }}
   >
-    <span className="font-mono text-[10px] uppercase tracking-widest font-bold" style={{ color: 'var(--ok)' }}>
+    <span
+      className="font-mono text-[10px] uppercase tracking-widest font-bold"
+      style={{ color: "var(--ok)" }}
+    >
       {title}
     </span>
-    <p className="font-hand text-[13px] text-[var(--soft)] leading-relaxed m-0">{children}</p>
+    <p className="font-hand text-[13px] text-[var(--soft)] leading-relaxed m-0">
+      {children}
+    </p>
   </div>
 );
 
@@ -122,10 +147,12 @@ export const App = () => {
   const explainerKeyRef = useRef(0);
   const seenCommandTypesRef = useRef(new Set<string>());
   const [pendingModule, setPendingModule] = useState<ModuleId | null>(null);
-  const [activeTab, setActiveTab] = useState<'graph' | 'history'>('graph');
-  const [docsOpen, setDocsOpen] = useState(() => localStorage.getItem('docsOpen') === 'true');
+  const [activeTab, setActiveTab] = useState<"graph" | "history">("graph");
+  const [docsOpen, setDocsOpen] = useState(
+    () => localStorage.getItem("docsOpen") === "true",
+  );
   const [docsPanelWidth, setDocsPanelWidth] = useState(() => {
-    const saved = parseInt(localStorage.getItem('docsPanelWidth') ?? '', 10);
+    const saved = parseInt(localStorage.getItem("docsPanelWidth") ?? "", 10);
     return isNaN(saved) ? 360 : Math.max(240, Math.min(600, saved));
   });
   const isResizingRef = useRef(false);
@@ -135,10 +162,12 @@ export const App = () => {
   const [toastModuleId, setToastModuleId] = useState<ModuleId | null>(null);
   const [justUnlockedId, setJustUnlockedId] = useState<ModuleId | null>(null);
   const pulseTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const [showWelcome, setShowWelcome] = useState(() => !localStorage.getItem('giteractive_welcomed'));
+  const [showWelcome, setShowWelcome] = useState(
+    () => !localStorage.getItem("giteractive_welcomed"),
+  );
 
   const dismissWelcome = () => {
-    localStorage.setItem('giteractive_welcomed', '1');
+    // localStorage.setItem('giteractive_welcomed', '1');
     setShowWelcome(false);
   };
 
@@ -163,9 +192,10 @@ export const App = () => {
     if (store.showCompletionOverlay) {
       setToastModuleId(store.mode as ModuleId);
       const currentIndex = MODULE_IDS.indexOf(store.mode as ModuleId);
-      const nextId = currentIndex >= 0 && currentIndex < MODULE_IDS.length - 1
-        ? MODULE_IDS[currentIndex + 1]
-        : null;
+      const nextId =
+        currentIndex >= 0 && currentIndex < MODULE_IDS.length - 1
+          ? MODULE_IDS[currentIndex + 1]
+          : null;
       if (nextId) {
         setJustUnlockedId(nextId);
         if (pulseTimerRef.current) clearTimeout(pulseTimerRef.current);
@@ -174,9 +204,12 @@ export const App = () => {
     }
   }, [store.showCompletionOverlay, store.mode]);
 
-  useEffect(() => () => {
-    if (pulseTimerRef.current) clearTimeout(pulseTimerRef.current);
-  }, []);
+  useEffect(
+    () => () => {
+      if (pulseTimerRef.current) clearTimeout(pulseTimerRef.current);
+    },
+    [],
+  );
 
   const currentLesson = MODULE_LESSONS[store.mode];
   const currentModuleProgress = store.moduleProgress.find(
@@ -187,39 +220,41 @@ export const App = () => {
   const executeModuleCommand = (cmd: string) => {
     const { branches, commits, HEAD } = store.gitState;
 
-    if (cmd.startsWith('git commit')) {
+    if (cmd.startsWith("git commit")) {
       store.doAddCommit();
-    } else if (cmd === 'git checkout -b feature') {
+    } else if (cmd === "git checkout -b feature") {
       const headCommit = branches[HEAD] ?? HEAD;
       store.doCreateBranch(headCommit);
-    } else if (cmd.startsWith('git checkout') && !cmd.includes('-b')) {
-      const target = cmd.split(' ').pop();
+    } else if (cmd.startsWith("git checkout") && !cmd.includes("-b")) {
+      const target = cmd.split(" ").pop();
       if (target) store.doCheckout(target);
-    } else if (cmd.startsWith('git cherry-pick')) {
+    } else if (cmd.startsWith("git cherry-pick")) {
       const otherBranch = Object.keys(branches).find((b) => b !== HEAD);
       if (otherBranch) {
         const sourceCommit = branches[otherBranch];
         if (sourceCommit) store.doCherryPick(sourceCommit, HEAD);
       }
-    } else if (cmd === 'git rebase main') {
-      const featureBranch = Object.keys(branches).find((b) => b !== 'main') ?? HEAD;
-      store.doRebase(featureBranch, 'main');
-    } else if (cmd.startsWith('git merge')) {
-      const sourceBranch = cmd.split(' ')[2];
-      const targetBranch = HEAD !== sourceBranch ? HEAD : 'main';
+    } else if (cmd === "git rebase main") {
+      const featureBranch =
+        Object.keys(branches).find((b) => b !== "main") ?? HEAD;
+      store.doRebase(featureBranch, "main");
+    } else if (cmd.startsWith("git merge")) {
+      const sourceBranch = cmd.split(" ")[2];
+      const targetBranch = HEAD !== sourceBranch ? HEAD : "main";
       if (sourceBranch) store.doMerge(sourceBranch, targetBranch);
-    } else if (cmd.startsWith('git reset --hard') && !cmd.includes('<')) {
-      const target = cmd.split(' ').pop();
+    } else if (cmd.startsWith("git reset --hard") && !cmd.includes("<")) {
+      const target = cmd.split(" ").pop();
       if (target) store.doResetHard(target);
-    } else if (cmd === 'git stash') {
+    } else if (cmd === "git stash") {
       store.doStash();
-    } else if (cmd === 'git stash pop') {
+    } else if (cmd === "git stash pop") {
       store.doStashPop();
-    } else if (cmd.startsWith('git rebase -i')) {
-      const featureBranch = Object.keys(branches).find((b) => b !== 'main') ?? HEAD;
+    } else if (cmd.startsWith("git rebase -i")) {
+      const featureBranch =
+        Object.keys(branches).find((b) => b !== "main") ?? HEAD;
       const featureTip = branches[featureBranch];
       if (!featureTip) return;
-      const mainTip = branches['main'];
+      const mainTip = branches["main"];
       const mainCommits = new Set<string>();
       let cur: string | undefined = mainTip;
       while (cur) {
@@ -232,11 +267,11 @@ export const App = () => {
         count++;
         cur = commits[cur]?.parentIds[0];
       }
-      if (count > 1) store.doSquash(featureBranch, count, 'feat: squashed');
-    } else if (cmd === 'git reflog') {
-      store.setTicker({ command: 'git reflog', state: 'flash' });
-      setTimeout(() => store.setTicker({ command: '', state: 'idle' }), 1200);
-    } else if (cmd.startsWith('git reset --hard') && cmd.includes('<')) {
+      if (count > 1) store.doSquash(featureBranch, count, "feat: squashed");
+    } else if (cmd === "git reflog") {
+      store.setTicker({ command: "git reflog", state: "flash" });
+      setTimeout(() => store.setTicker({ command: "", state: "idle" }), 1200);
+    } else if (cmd.startsWith("git reset --hard") && cmd.includes("<")) {
       const firstEntry = store.reflog[0];
       if (firstEntry) store.doReflogRecover(firstEntry.hash);
     }
@@ -250,7 +285,7 @@ export const App = () => {
 
   const toggleDocs = () => {
     setDocsOpen((prev) => {
-      localStorage.setItem('docsOpen', String(!prev));
+      localStorage.setItem("docsOpen", String(!prev));
       return !prev;
     });
   };
@@ -266,22 +301,25 @@ export const App = () => {
     const onMouseMove = (e: MouseEvent) => {
       if (!isResizingRef.current) return;
       const delta = resizeStartXRef.current - e.clientX;
-      const next = Math.max(240, Math.min(600, resizeStartWidthRef.current + delta));
+      const next = Math.max(
+        240,
+        Math.min(600, resizeStartWidthRef.current + delta),
+      );
       setDocsPanelWidth(next);
     };
     const onMouseUp = () => {
       if (!isResizingRef.current) return;
       isResizingRef.current = false;
       setDocsPanelWidth((w) => {
-        localStorage.setItem('docsPanelWidth', String(w));
+        localStorage.setItem("docsPanelWidth", String(w));
         return w;
       });
     };
-    window.addEventListener('mousemove', onMouseMove);
-    window.addEventListener('mouseup', onMouseUp);
+    window.addEventListener("mousemove", onMouseMove);
+    window.addEventListener("mouseup", onMouseUp);
     return () => {
-      window.removeEventListener('mousemove', onMouseMove);
-      window.removeEventListener('mouseup', onMouseUp);
+      window.removeEventListener("mousemove", onMouseMove);
+      window.removeEventListener("mouseup", onMouseUp);
     };
   }, []);
 
@@ -314,9 +352,12 @@ export const App = () => {
           justUnlockedId={justUnlockedId}
           onEnter={(id) => {
             if (id === store.mode) return;
-            if (id === 'sandbox') { store.unlockSandbox(); return; }
-            const progress = store.moduleProgress.find(p => p.id === id);
-            const isFirstVisit = !progress || progress.status === 'available';
+            if (id === "sandbox") {
+              store.unlockSandbox();
+              return;
+            }
+            const progress = store.moduleProgress.find((p) => p.id === id);
+            const isFirstVisit = !progress || progress.status === "available";
             if (isFirstVisit) {
               setPendingModule(id);
             } else {
@@ -339,22 +380,24 @@ export const App = () => {
           </span>
           <div className="flex gap-1 flex-1">
             <Button
-              onClick={() => setActiveTab('graph')}
+              onClick={() => setActiveTab("graph")}
               style={{
-                borderColor: activeTab === 'graph' ? 'var(--ink)' : 'var(--hair)',
-                color: activeTab === 'graph' ? 'var(--ink)' : 'var(--muted)',
+                borderColor:
+                  activeTab === "graph" ? "var(--ink)" : "var(--hair)",
+                color: activeTab === "graph" ? "var(--ink)" : "var(--muted)",
               }}
             >
-              {t('toolbar.tabGraph')}
+              {t("toolbar.tabGraph")}
             </Button>
             <Button
-              onClick={() => setActiveTab('history')}
+              onClick={() => setActiveTab("history")}
               style={{
-                borderColor: activeTab === 'history' ? 'var(--ink)' : 'var(--hair)',
-                color: activeTab === 'history' ? 'var(--ink)' : 'var(--muted)',
+                borderColor:
+                  activeTab === "history" ? "var(--ink)" : "var(--hair)",
+                color: activeTab === "history" ? "var(--ink)" : "var(--muted)",
               }}
             >
-              {t('toolbar.tabHistory')}
+              {t("toolbar.tabHistory")}
               {store.history.length > 0 && (
                 <span className="ml-1 text-[10px] text-[var(--muted)]">
                   {store.history.length}
@@ -364,8 +407,8 @@ export const App = () => {
             <Button
               onClick={toggleDocs}
               style={{
-                borderColor: docsOpen ? 'var(--ink)' : 'var(--hair)',
-                color: docsOpen ? 'var(--ink)' : 'var(--muted)',
+                borderColor: docsOpen ? "var(--ink)" : "var(--hair)",
+                color: docsOpen ? "var(--ink)" : "var(--muted)",
               }}
             >
               Docs
@@ -422,87 +465,87 @@ export const App = () => {
 
         {/* Canvas / History / Docs tab */}
         <div className="flex-1 relative overflow-hidden flex flex-col">
-          {activeTab === 'history' && (
+          {activeTab === "history" && (
             <CommandHistoryTab history={store.history} />
           )}
-          <div className={activeTab === 'graph' ? 'flex-1 relative' : 'hidden'}>
-          <GitCanvas
-            gitState={store.gitState}
-            mode={store.mode}
-            doAddCommit={store.doAddCommit}
-            doCherryPick={store.doCherryPick}
-            doRebase={store.doRebase}
-            doMerge={store.doMerge}
-            doStartWip={store.doStartWip}
-            doCreateBranch={store.doCreateBranch}
-            doCheckout={store.doCheckout}
-            doResetHard={store.doResetHard}
-            doSquash={store.doSquash}
-            setGhostCommand={(cmd, subtitle) =>
-              store.setTicker({
-                command: cmd,
-                subtitle,
-                state: cmd ? "ghost" : "idle",
-              })
-            }
-            wip={store.wip}
-            highlightNodeIds={highlightNodeIds}
-          />
-
-          {/* Module goal card */}
-          {currentLesson && !currentComplete && (
-            <GoalCard
-              lesson={currentLesson}
-              attempts={store.moduleAttempts}
-              guided={store.moduleGuided}
-              onToggleGuided={store.setModuleGuided}
+          <div className={activeTab === "graph" ? "flex-1 relative" : "hidden"}>
+            <GitCanvas
+              gitState={store.gitState}
+              mode={store.mode}
+              doAddCommit={store.doAddCommit}
+              doCherryPick={store.doCherryPick}
+              doRebase={store.doRebase}
+              doMerge={store.doMerge}
+              doStartWip={store.doStartWip}
+              doCreateBranch={store.doCreateBranch}
+              doCheckout={store.doCheckout}
+              doResetHard={store.doResetHard}
+              doSquash={store.doSquash}
+              setGhostCommand={(cmd, subtitle) =>
+                store.setTicker({
+                  command: cmd,
+                  subtitle,
+                  state: cmd ? "ghost" : "idle",
+                })
+              }
+              wip={store.wip}
+              highlightNodeIds={highlightNodeIds}
             />
-          )}
 
-          {/* Reflog panel for module11 */}
-          <ReflogPanel
-            visible={store.mode === "module11"}
-            reflog={store.reflog}
-            onRecover={store.doReflogRecover}
-            currentCommits={new Set(Object.keys(store.gitState.commits))}
-          />
+            {/* Module goal card */}
+            {currentLesson && !currentComplete && (
+              <GoalCard
+                lesson={currentLesson}
+                attempts={store.moduleAttempts}
+                guided={store.moduleGuided}
+                onToggleGuided={store.setModuleGuided}
+              />
+            )}
 
-{/* Orange conflict flash */}
-          {store.conflictFlash && (
-            <div
-              className="absolute inset-0 pointer-events-none z-40"
-              style={{
-                background:
-                  "color-mix(in srgb, var(--conflict) 35%, transparent)",
-              }}
+            {/* Reflog panel for module11 */}
+            <ReflogPanel
+              visible={store.mode === "module11"}
+              reflog={store.reflog}
+              onRecover={store.doReflogRecover}
+              currentCommits={new Set(Object.keys(store.gitState.commits))}
             />
-          )}
 
-          {/* Conflict resolution modal */}
-          {store.conflictState && (
-            <ConflictModal
-              conflict={store.conflictState}
-              onResolve={store.resolveConflict}
-            />
-          )}
+            {/* Orange conflict flash */}
+            {store.conflictFlash && (
+              <div
+                className="absolute inset-0 pointer-events-none z-40"
+                style={{
+                  background:
+                    "color-mix(in srgb, var(--conflict) 35%, transparent)",
+                }}
+              />
+            )}
 
-          {/* Contextual explainer */}
-          {explainerCommand && (
-            <ExplainerCard
-              key={explainerKeyRef.current}
-              command={explainerCommand}
-              onDismiss={() => setExplainerCommand(null)}
-            />
-          )}
+            {/* Conflict resolution modal */}
+            {store.conflictState && (
+              <ConflictModal
+                conflict={store.conflictState}
+                onResolve={store.resolveConflict}
+              />
+            )}
 
-          {/* Intro modal */}
-          {pendingModule && pendingModule !== "sandbox" && (
-            <IntroModal
-              moduleId={pendingModule}
-              onStart={() => enterModule(pendingModule)}
-              onSkip={() => enterModule(pendingModule)}
-            />
-          )}
+            {/* Contextual explainer */}
+            {explainerCommand && (
+              <ExplainerCard
+                key={explainerKeyRef.current}
+                command={explainerCommand}
+                onDismiss={() => setExplainerCommand(null)}
+              />
+            )}
+
+            {/* Intro modal */}
+            {pendingModule && pendingModule !== "sandbox" && (
+              <IntroModal
+                moduleId={pendingModule}
+                onStart={() => enterModule(pendingModule)}
+                onSkip={() => enterModule(pendingModule)}
+              />
+            )}
           </div>
         </div>
 
@@ -510,7 +553,9 @@ export const App = () => {
         <CommandPanel
           mode={store.mode as ModuleId}
           commands={MODULE_COMMANDS[store.mode as ModuleId] ?? []}
-          onPreview={(cmd) => store.setTicker({ command: cmd, state: cmd ? 'ghost' : 'idle' })}
+          onPreview={(cmd) =>
+            store.setTicker({ command: cmd, state: cmd ? "ghost" : "idle" })
+          }
           onExecute={executeModuleCommand}
         />
 
@@ -537,7 +582,7 @@ export const App = () => {
           <div className="flex-1 overflow-hidden flex flex-col">
             <div
               className="px-3 py-2 border-b border-dashed border-[var(--hair)] flex items-center justify-between flex-shrink-0"
-              style={{ background: 'var(--panel)' }}
+              style={{ background: "var(--panel)" }}
             >
               <span className="font-mono text-[10px] uppercase tracking-widest text-[var(--muted)]">
                 Docs
@@ -566,42 +611,55 @@ export const App = () => {
       {showWelcome && (
         <div
           className="absolute inset-0 flex items-center justify-center z-50"
-          style={{ background: 'color-mix(in srgb, var(--bg) 85%, transparent)', backdropFilter: 'blur(4px)' }}
+          style={{
+            background: "color-mix(in srgb, var(--bg) 85%, transparent)",
+            backdropFilter: "blur(4px)",
+          }}
         >
           <div
             className="max-w-xl w-full mx-4 flex flex-col gap-6 p-8"
             style={{
-              borderRadius: '20px',
-              border: '1.5px solid var(--hair)',
-              background: 'var(--panel)',
+              borderRadius: "20px",
+              border: "1.5px solid var(--hair)",
+              background: "var(--panel)",
             }}
           >
             <div className="flex flex-col gap-1">
-              <span className="font-mono text-[10px] uppercase tracking-widest text-[var(--muted)]">Welcome to</span>
-              <h1 className="font-hand font-bold text-3xl text-[var(--ink)] m-0">Giteractive</h1>
-              <p className="font-hand text-[var(--soft)] text-sm m-0">Learn git by doing — one visual step at a time.</p>
+              <span className="font-mono text-[10px] uppercase tracking-widest text-[var(--muted)]">
+                {t('welcome.subtitle')}
+              </span>
+              <h1 className="font-hand font-bold text-3xl text-[var(--ink)] m-0">
+                Giteractive
+              </h1>
+              <p className="font-hand text-[var(--soft)] text-sm m-0">
+                {t('welcome.tagline')}
+              </p>
             </div>
 
             <div className="flex flex-col gap-3">
-              <WelcomeSection title="What is Git?">
-                Git is a <strong>version control system</strong> — a tool that lives on your computer and tracks every change you make to your code over time. It records snapshots called <em>commits</em>, lets you branch off to try ideas in isolation, and lets you merge or rebase work back together.
+              <WelcomeSection title={t('welcome.sections.whatIsGit.title')}>
+                <Trans i18nKey="welcome.sections.whatIsGit.body" components={{ strong: <strong />, em: <em /> }} />
               </WelcomeSection>
-              <WelcomeSection title="What does Git do?">
-                Every time you commit, Git saves a permanent snapshot of your project. You can go back to any snapshot, run parallel lines of work on separate branches, and combine them later — without ever losing history.
+              <WelcomeSection title={t('welcome.sections.whatDoesGitDo.title')}>
+                <Trans i18nKey="welcome.sections.whatDoesGitDo.body" components={{ strong: <strong />, em: <em /> }} />
               </WelcomeSection>
-              <WelcomeSection title="Git vs GitHub">
-                <strong>Git</strong> is the tool — it runs locally on your machine, no internet needed.<br />
-                <strong>GitHub</strong> (and GitLab, Bitbucket, etc.) are websites that <em>host</em> git repositories online so teams can share and collaborate. GitHub adds pull requests, issues, and CI on top — but the underlying version control is just Git.
+              <WelcomeSection title={t('welcome.sections.gitVsGithub.title')}>
+                <Trans i18nKey="welcome.sections.gitVsGithub.body" components={{ strong: <strong />, em: <em />, br: <br /> }} />
               </WelcomeSection>
             </div>
 
             <button
               type="button"
               className="self-end font-hand font-bold text-sm px-5 py-2.5 cursor-pointer transition-colors"
-              style={{ borderRadius: '10px', background: 'var(--ok)', color: '#fff', border: 'none' }}
+              style={{
+                borderRadius: "10px",
+                background: "var(--ok)",
+                color: "#fff",
+                border: "none",
+              }}
               onClick={dismissWelcome}
             >
-              Get Started →
+              {t('welcome.getStarted')}
             </button>
           </div>
         </div>

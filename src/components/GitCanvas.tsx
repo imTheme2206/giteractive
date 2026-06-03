@@ -605,7 +605,7 @@ export const GitCanvas = ({
   return (
     <div className="absolute inset-0">
       {isEmpty && (
-        <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
+        <div className="absolute inset-0 flex items-start justify-center pointer-events-none z-10 pt-8">
           <div
             className="flex flex-col items-center gap-3 px-6 py-5 text-center"
             style={{

@@ -495,6 +495,25 @@ const en = {
       },
     },
   },
+  welcome: {
+    subtitle: 'Welcome to',
+    tagline: 'Learn git by doing — one visual step at a time.',
+    sections: {
+      whatIsGit: {
+        title: 'What is Git?',
+        body: 'Git is a <strong>version control system</strong> — a tool that lives on your computer and tracks every change you make to your code over time. It records snapshots called <em>commits</em>, lets you branch off to try ideas in isolation, and lets you merge or rebase work back together.',
+      },
+      whatDoesGitDo: {
+        title: 'What does Git do?',
+        body: 'Every time you commit, Git saves a permanent snapshot of your project. You can go back to any snapshot, run parallel lines of work on separate branches, and combine them later — without ever losing history.',
+      },
+      gitVsGithub: {
+        title: 'Git vs GitHub',
+        body: '<strong>Git</strong> is the tool — it runs locally on your machine, no internet needed.<br/><strong>GitHub</strong> (and GitLab, Bitbucket, etc.) are websites that <em>host</em> git repositories online so teams can share and collaborate. GitHub adds pull requests, issues, and CI on top — but the underlying version control is just Git.',
+      },
+    },
+    getStarted: 'Get Started →',
+  },
 } as const;
 
 export default en;
