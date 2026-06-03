@@ -11,6 +11,7 @@ import { ConflictModal } from "./components/modal/ConflictModal";
 import { IntroModal } from "./components/modal/IntroModal";
 import { ReflogPanel } from "./components/ReflogPanel";
 import { Sidebar } from "./components/sidebar/Sidebar";
+import { SidebarPanel } from "./components/sidebar/SidebarPanel";
 import { Toolbar } from "./components/toolbar/Toolbar";
 import { WelcomeOverlay } from "./components/WelcomeOverlay";
 import { useDocsPanelResize } from "./hooks/useDocsPanelResize";
@@ -267,33 +268,17 @@ export const App = () => {
       </div>
 
       {docsOpen && (
-        <div
-          className="flex-shrink-0 flex border-l border-dashed border-[var(--hair)] relative"
-          style={{ width: docsPanelWidth }}
+        <SidebarPanel
+          alignment="right"
+          resizable
+          closeable
+          title="Docs"
+          width={docsPanelWidth}
+          onClose={toggleDocs}
+          onResizeMouseDown={onResizeMouseDown}
         >
-          <div
-            className="absolute left-0 top-0 bottom-0 w-1 cursor-col-resize z-10 hover:bg-[var(--feat)] opacity-0 hover:opacity-30 transition-opacity"
-            onMouseDown={onResizeMouseDown}
-          />
-          <div className="flex-1 overflow-hidden flex flex-col">
-            <div
-              className="px-3 py-2 border-b border-dashed border-[var(--hair)] flex items-center justify-between flex-shrink-0"
-              style={{ background: "var(--panel)" }}
-            >
-              <span className="font-mono text-xs uppercase tracking-widest text-[var(--muted)]">
-                Docs
-              </span>
-              <button
-                type="button"
-                className="font-mono text-xs text-[var(--muted)] hover:text-[var(--ink)] transition-colors"
-                onClick={toggleDocs}
-              >
-                ✕
-              </button>
-            </div>
-            <DocsPanel currentModuleId={store.mode} isOpen={docsOpen} />
-          </div>
-        </div>
+          <DocsPanel currentModuleId={store.mode} isOpen={docsOpen} />
+        </SidebarPanel>
       )}
 
       {toastModuleId && (

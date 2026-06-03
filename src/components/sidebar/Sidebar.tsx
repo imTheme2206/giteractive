@@ -1,8 +1,9 @@
 import { useTranslation } from 'react-i18next';
 import type { Mode, ModuleId, ModuleProgress, TickerEntry } from '../../types';
-import { ModuleCard, getCardStatus } from './ModuleCard';
 import { SectionLabel } from '../common/SectionLabel';
 import { cardRadius } from '../common/radii';
+import { ModuleCard, getCardStatus } from './ModuleCard';
+import { SidebarPanel } from './SidebarPanel';
 
 type SidebarProps = {
   history: TickerEntry[];
@@ -25,7 +26,7 @@ export const Sidebar = ({ history, mode, moduleProgress, justUnlockedId, onEnter
   };
 
   return (
-    <div className="w-56 flex-shrink-0 flex flex-col bg-[var(--panel2)] border-r-2 border-dashed border-[var(--hair)] p-3 h-full overflow-hidden">
+    <SidebarPanel className="bg-[var(--panel2)] p-3 w-56">
       <div className="font-bold text-lg text-[var(--ink)] mb-1 flex-shrink-0 font-hand">
         Giteractive
       </div>
@@ -66,6 +67,6 @@ export const Sidebar = ({ history, mode, moduleProgress, justUnlockedId, onEnter
         )}
       </div>
 
-    </div>
+    </SidebarPanel>
   );
 };
