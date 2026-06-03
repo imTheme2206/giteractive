@@ -51,12 +51,13 @@ const loadProgress = (): ModuleProgress[] => {
 };
 
 export const useGitStore = () => {
-  const [gitState, setGitState] = useState<GitState>(makeSandboxState);
-  const [mode, setMode] = useState<Mode>("sandbox");
+  const isFirstVisit = !localStorage.getItem('giteractive_welcomed');
+  const [gitState, setGitState] = useState<GitState>(() => isFirstVisit ? makeModule0State() : makeSandboxState());
+  const [mode, setMode] = useState<Mode>(isFirstVisit ? "module0" : "sandbox");
   const [history, setHistory] = useState<TickerEntry[]>([]);
   const [ticker, setTicker] = useState<{ command: string; subtitle?: string; state: "idle" | "ghost" | "flash" }>({
-    command: "",
-    state: "idle",
+    command: isFirstVisit ? "git init" : "",
+    state: isFirstVisit ? "flash" : "idle",
   });
   const [theme, setThemeState] = useState<"light" | "dark">(
     () => (localStorage.getItem('theme') as 'light' | 'dark') ?? 'light'

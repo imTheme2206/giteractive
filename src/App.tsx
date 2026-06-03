@@ -140,7 +140,6 @@ export const App = () => {
   const dismissWelcome = () => {
     localStorage.setItem('giteractive_welcomed', '1');
     setShowWelcome(false);
-    store.enterModule0();
   };
 
   const enterModule = (id: ModuleId) => {
@@ -305,59 +304,8 @@ export const App = () => {
     }
   }, [store.ticker.state, store.ticker.command]);
 
-  if (showWelcome) {
-    return (
-      <div
-        className="flex h-screen overflow-hidden items-center justify-center"
-        style={{ background: 'var(--bg)' }}
-      >
-        <div
-          className="max-w-xl w-full mx-4 flex flex-col gap-6 p-8"
-          style={{
-            borderRadius: '20px',
-            border: '1.5px solid var(--hair)',
-            background: 'var(--panel)',
-          }}
-        >
-          <div className="flex flex-col gap-1">
-            <span className="font-mono text-[10px] uppercase tracking-widest text-[var(--muted)]">Welcome to</span>
-            <h1 className="font-hand font-bold text-3xl text-[var(--ink)] m-0">Giteractive</h1>
-            <p className="font-hand text-[var(--soft)] text-sm m-0">Learn git by doing — one visual step at a time.</p>
-          </div>
-
-          <div className="flex flex-col gap-3">
-            <WelcomeSection title="What is Git?">
-              Git is a <strong>version control system</strong> — a tool that lives on your computer and tracks every change you make to your code over time. It records snapshots called <em>commits</em>, lets you branch off to try ideas in isolation, and lets you merge or rebase work back together.
-            </WelcomeSection>
-            <WelcomeSection title="What does Git do?">
-              Every time you commit, Git saves a permanent snapshot of your project. You can go back to any snapshot, run parallel lines of work on separate branches, and combine them later — without ever losing history.
-            </WelcomeSection>
-            <WelcomeSection title="Git vs GitHub">
-              <strong>Git</strong> is the tool — it runs locally on your machine, no internet needed.<br />
-              <strong>GitHub</strong> (and GitLab, Bitbucket, etc.) are websites that <em>host</em> git repositories online so teams can share and collaborate. GitHub adds pull requests, issues, and CI on top — but the underlying version control is just Git.
-            </WelcomeSection>
-          </div>
-
-          <button
-            type="button"
-            className="self-end font-hand font-bold text-sm px-5 py-2.5 cursor-pointer transition-colors"
-            style={{
-              borderRadius: '10px',
-              background: 'var(--ok)',
-              color: '#fff',
-              border: 'none',
-            }}
-            onClick={dismissWelcome}
-          >
-            Get Started →
-          </button>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="flex h-screen overflow-hidden">
+    <div className="flex h-screen overflow-hidden relative">
       {store.sidebarOpen && (
         <Sidebar
           history={store.history}
@@ -613,6 +561,50 @@ export const App = () => {
           accentColor={MODULE_ACCENT[toastModuleId]}
           onDismiss={() => setToastModuleId(null)}
         />
+      )}
+
+      {showWelcome && (
+        <div
+          className="absolute inset-0 flex items-center justify-center z-50"
+          style={{ background: 'color-mix(in srgb, var(--bg) 85%, transparent)', backdropFilter: 'blur(4px)' }}
+        >
+          <div
+            className="max-w-xl w-full mx-4 flex flex-col gap-6 p-8"
+            style={{
+              borderRadius: '20px',
+              border: '1.5px solid var(--hair)',
+              background: 'var(--panel)',
+            }}
+          >
+            <div className="flex flex-col gap-1">
+              <span className="font-mono text-[10px] uppercase tracking-widest text-[var(--muted)]">Welcome to</span>
+              <h1 className="font-hand font-bold text-3xl text-[var(--ink)] m-0">Giteractive</h1>
+              <p className="font-hand text-[var(--soft)] text-sm m-0">Learn git by doing — one visual step at a time.</p>
+            </div>
+
+            <div className="flex flex-col gap-3">
+              <WelcomeSection title="What is Git?">
+                Git is a <strong>version control system</strong> — a tool that lives on your computer and tracks every change you make to your code over time. It records snapshots called <em>commits</em>, lets you branch off to try ideas in isolation, and lets you merge or rebase work back together.
+              </WelcomeSection>
+              <WelcomeSection title="What does Git do?">
+                Every time you commit, Git saves a permanent snapshot of your project. You can go back to any snapshot, run parallel lines of work on separate branches, and combine them later — without ever losing history.
+              </WelcomeSection>
+              <WelcomeSection title="Git vs GitHub">
+                <strong>Git</strong> is the tool — it runs locally on your machine, no internet needed.<br />
+                <strong>GitHub</strong> (and GitLab, Bitbucket, etc.) are websites that <em>host</em> git repositories online so teams can share and collaborate. GitHub adds pull requests, issues, and CI on top — but the underlying version control is just Git.
+              </WelcomeSection>
+            </div>
+
+            <button
+              type="button"
+              className="self-end font-hand font-bold text-sm px-5 py-2.5 cursor-pointer transition-colors"
+              style={{ borderRadius: '10px', background: 'var(--ok)', color: '#fff', border: 'none' }}
+              onClick={dismissWelcome}
+            >
+              Get Started →
+            </button>
+          </div>
+        </div>
       )}
     </div>
   );

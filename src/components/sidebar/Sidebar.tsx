@@ -12,7 +12,7 @@ type SidebarProps = {
   onEnter: (id: ModuleId) => void;
 };
 
-const MODULE_IDS = ['module1', 'module2', 'module3', 'module4', 'module5', 'module6', 'module7', 'module8', 'module9', 'module10', 'module11', 'sandbox'] as const;
+const MODULE_IDS = ['module0', 'module1', 'module2', 'module3', 'module4', 'module5', 'module6', 'module7', 'module8', 'module9', 'module10', 'module11', 'sandbox'] as const;
 
 export const Sidebar = ({ history, mode, moduleProgress, justUnlockedId, onEnter }: SidebarProps) => {
   const { t } = useTranslation();
