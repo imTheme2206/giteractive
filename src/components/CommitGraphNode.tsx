@@ -120,22 +120,22 @@ export const CommitGraphNode = ({ data }: { data: CommitNodeData }) => {
               boxShadow: "0 4px 16px color-mix(in srgb, var(--ink) 12%, transparent)",
             }}
           >
-            <div className="font-mono text-[10px] mb-0.5" style={{ color: "var(--muted)" }}>
+            <div className="font-mono text-xs mb-0.5" style={{ color: "var(--muted)" }}>
               <span style={{ color: branchColor }}>{t('tooltips.commit.hash')}:</span>{" "}
               {data.hash ? (data.hash as string).slice(0, 7) : ""}
             </div>
-            <div className="font-mono text-[10px] mb-0.5" style={{ color: "var(--muted)" }}>
+            <div className="font-mono text-xs mb-0.5" style={{ color: "var(--muted)" }}>
               <span style={{ color: branchColor }}>{t('tooltips.commit.branch')}:</span>{" "}
               {data.branch as string}
             </div>
             {Array.isArray(data.parentIds) && (data.parentIds as string[]).length > 0 && (
-              <div className="font-mono text-[10px] mb-0.5" style={{ color: "var(--muted)" }}>
+              <div className="font-mono text-xs mb-0.5" style={{ color: "var(--muted)" }}>
                 <span style={{ color: branchColor }}>{t('tooltips.commit.parents')}:</span>{" "}
                 {(data.parentIds as string[]).map(p => p.slice(0, 7)).join(', ')}
               </div>
             )}
             <div
-              className="font-mono text-[11px] leading-snug mt-1 pt-1"
+              className="font-mono text-xs leading-snug mt-1 pt-1"
               style={{
                 color: "var(--ink)",
                 wordBreak: "break-word",
@@ -165,7 +165,7 @@ export const CommitGraphNode = ({ data }: { data: CommitNodeData }) => {
       {data.showBranchBadge && (
         <div
           data-branch-badge="true"
-          className="absolute -top-1 -right-1 text-[8px] leading-none font-bold rounded-full grid place-items-center nodrag"
+          className="absolute -top-1 -right-1 text-xs leading-none font-bold rounded-full grid place-items-center nodrag"
           style={{
             width: 14,
             height: 14,
@@ -181,7 +181,7 @@ export const CommitGraphNode = ({ data }: { data: CommitNodeData }) => {
         <div
           data-checkout-commit="true"
           title="Checkout this commit"
-          className="absolute -bottom-1 -right-1 text-[8px] leading-none font-bold rounded-full grid place-items-center nodrag"
+          className="absolute -bottom-1 -right-1 text-xs leading-none font-bold rounded-full grid place-items-center nodrag"
           style={{
             width: 14,
             height: 14,
@@ -200,7 +200,7 @@ export const CommitGraphNode = ({ data }: { data: CommitNodeData }) => {
         <div
           data-reset-commit="true"
           title="git reset --hard to here"
-          className="absolute -bottom-1 -right-1 text-[8px] leading-none font-bold rounded-full grid place-items-center nodrag"
+          className="absolute -bottom-1 -right-1 text-xs leading-none font-bold rounded-full grid place-items-center nodrag"
           style={{
             width: 14,
             height: 14,
@@ -219,7 +219,7 @@ export const CommitGraphNode = ({ data }: { data: CommitNodeData }) => {
         <div
           data-squash-commit="true"
           title="Squash commits (git rebase -i)"
-          className="absolute -bottom-1 -right-1 text-[8px] leading-none font-bold rounded-full grid place-items-center nodrag"
+          className="absolute -bottom-1 -right-1 text-xs leading-none font-bold rounded-full grid place-items-center nodrag"
           style={{
             width: 14,
             height: 14,

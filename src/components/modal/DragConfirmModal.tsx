@@ -79,7 +79,7 @@ export const DragConfirmModal = ({ op, headBranch, onConfirm, onCancel }: DragCo
           <div className="font-bold text-base text-[var(--ink)] font-hand mb-1">
             How do you want to integrate these branches?
           </div>
-          <div className="font-mono text-[11px] text-[var(--muted)]">
+          <div className="font-mono text-xs text-[var(--muted)]">
             {op.type === 'rebase'
               ? `${op.branchToRebase} → ${op.ontoBranch}`
               : `${op.sourceBranch} → ${op.targetBranch}`}
@@ -103,23 +103,23 @@ export const DragConfirmModal = ({ op, headBranch, onConfirm, onCancel }: DragCo
                 }}
               >
                 <div className="flex items-center gap-2 mb-2">
-                  <span className="font-bold text-[13px] font-hand" style={{ color: card.color }}>
+                  <span className="font-bold text-sm font-hand" style={{ color: card.color }}>
                     {card.label}
                   </span>
                   {isDefault && (
                     <span
-                      className="font-mono text-[9px] uppercase tracking-widest px-1.5 py-0.5 rounded"
+                      className="font-mono text-xs uppercase tracking-widest px-1.5 py-0.5 rounded"
                       style={{ background: card.color, color: 'var(--panel)' }}
                     >
                       suggested
                     </span>
                   )}
                 </div>
-                <div className="font-mono text-[11px] text-[var(--soft)] mb-3 leading-relaxed">
+                <div className="font-mono text-xs text-[var(--soft)] mb-3 leading-relaxed">
                   {card.description}
                 </div>
                 <div
-                  className="font-mono text-[10px] px-2 py-1.5 rounded"
+                  className="font-mono text-xs px-2 py-1.5 rounded"
                   style={{
                     background: 'var(--panel2)',
                     color: card.color,
@@ -137,7 +137,7 @@ export const DragConfirmModal = ({ op, headBranch, onConfirm, onCancel }: DragCo
         <div className="flex justify-end gap-2">
           <button
             onClick={onCancel}
-            className="font-mono text-[12px] px-4 py-1.5 border cursor-pointer"
+            className="font-mono text-sm px-4 py-1.5 border cursor-pointer"
             style={{
               borderRadius: '8px',
               borderColor: 'var(--hair)',
@@ -149,7 +149,7 @@ export const DragConfirmModal = ({ op, headBranch, onConfirm, onCancel }: DragCo
           </button>
           <button
             onClick={() => onConfirm(selected)}
-            className="font-mono text-[12px] px-4 py-1.5 border cursor-pointer font-bold"
+            className="font-mono text-sm px-4 py-1.5 border cursor-pointer font-bold"
             style={{
               borderRadius: '8px',
               borderColor: selected === 'rebase' ? 'var(--main)' : 'var(--feat)',

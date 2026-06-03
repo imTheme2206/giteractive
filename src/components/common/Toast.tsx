@@ -48,10 +48,10 @@ export const Toast = ({ moduleId, accentColor, onDismiss }: ToastProps) => {
       <div className="flex items-start gap-3 px-4 pt-3 pb-2">
         <span style={{ color: accentColor, fontSize: 20, lineHeight: 1, flexShrink: 0 }}>✓</span>
         <div className="flex-1 min-w-0">
-          <div className="font-hand font-bold text-[var(--ink)] text-[14px] leading-tight">
+          <div className="font-hand font-bold text-[var(--ink)] text-base leading-tight">
             {t('toast.complete', { n: moduleNum })}
           </div>
-          <div className="font-mono text-[11px] text-[var(--soft)] mt-0.5">
+          <div className="font-mono text-xs text-[var(--soft)] mt-0.5">
             {t('toast.hint')}
           </div>
         </div>

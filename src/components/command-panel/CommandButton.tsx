@@ -29,7 +29,7 @@ export const CommandButton = ({
     >
       <button
         type="button"
-        className="px-2 py-0.5 font-mono text-[10px] text-[var(--soft)] hover:bg-[var(--panel2)] hover:text-[var(--ink)] transition-colors cursor-pointer"
+        className="px-2 py-0.5 font-mono text-xs text-[var(--soft)] hover:bg-[var(--panel2)] hover:text-[var(--ink)] transition-colors cursor-pointer"
         onMouseEnter={onMouseEnter}
         onMouseLeave={onMouseLeave}
         onClick={onClick}
@@ -39,7 +39,7 @@ export const CommandButton = ({
       {commandKey && (
         <button
           type="button"
-          className="px-1.5 border-l border-[var(--hair)] font-mono text-[9px] text-[var(--muted)] hover:text-[var(--ink)] hover:bg-[var(--panel2)] transition-colors cursor-pointer flex-shrink-0"
+          className="px-1.5 border-l border-[var(--hair)] font-mono text-xs text-[var(--muted)] hover:text-[var(--ink)] hover:bg-[var(--panel2)] transition-colors cursor-pointer flex-shrink-0"
           style={{
             color: isActive ? 'var(--ink)' : undefined,
             background: isActive ? 'var(--panel2)' : undefined,

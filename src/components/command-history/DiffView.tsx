@@ -9,7 +9,7 @@ export const DiffView = ({ lines }: DiffViewProps) => (
     {lines.map((line, i) => (
       <div
         key={i}
-        className="font-mono text-[11px] px-2 py-0.5 rounded"
+        className="font-mono text-xs px-2 py-0.5 rounded"
         style={{
           background:
             line.kind === 'added'

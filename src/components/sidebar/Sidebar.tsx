@@ -59,8 +59,8 @@ export const Sidebar = ({ history, mode, moduleProgress, justUnlockedId, onEnter
               className="p-1.5 border border-[var(--hair)] bg-[var(--panel)] flex-shrink-0"
               style={{ borderRadius: cardRadius }}
             >
-              <div className="font-mono text-[11px] text-[var(--ink)]">{entry.command}</div>
-              <div className="font-mono text-[9px] text-[var(--muted)] mt-px">{timeAgo(entry.timestamp)}</div>
+              <div className="font-mono text-xs text-[var(--ink)]">{entry.command}</div>
+              <div className="font-mono text-xs text-[var(--muted)] mt-px">{timeAgo(entry.timestamp)}</div>
             </div>
           ))
         )}

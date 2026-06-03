@@ -60,14 +60,14 @@ export const ConflictModal = ({ conflict, onResolve }: ConflictModalProps) => {
             {t('conflict.title')}
           </span>
         </div>
-        <p className="font-mono text-[11px] text-[var(--muted)] mb-4">
+        <p className="font-mono text-xs text-[var(--muted)] mb-4">
           {conflict.sourceBranch} ↔ {conflict.targetBranch} both modified{' '}
           <span style={{ color: 'var(--conflict)' }}>greeting.txt</span>
         </p>
 
         {/* Conflict diff */}
         <div
-          className="font-mono text-[11px] mb-4 p-3 border"
+          className="font-mono text-xs mb-4 p-3 border"
           style={{ borderRadius: '8px', borderColor: 'var(--hair)', background: 'var(--panel2)' }}
         >
           <div style={{ color: 'var(--muted)' }}># greeting.txt</div>
@@ -78,7 +78,7 @@ export const ConflictModal = ({ conflict, onResolve }: ConflictModalProps) => {
           <div style={{ color: 'var(--conflict)' }}>{`>>>>>>> ${conflict.sourceBranch}`}</div>
         </div>
 
-        <p className="font-mono text-[10px] uppercase tracking-widest text-[var(--muted)] mb-2">
+        <p className="font-mono text-xs uppercase tracking-widest text-[var(--muted)] mb-2">
           {t('conflict.chooseResolution')}
         </p>
         <div className="flex flex-col gap-2 mb-4">
@@ -93,11 +93,11 @@ export const ConflictModal = ({ conflict, onResolve }: ConflictModalProps) => {
                 background: opt.bg,
               }}
             >
-              <div className="font-bold text-[12px] mb-1 font-hand" style={{ color: opt.color }}>
+              <div className="font-bold text-sm mb-1 font-hand" style={{ color: opt.color }}>
                 {t(opt.labelKey)}
               </div>
               {opt.lines.map((line, i) => (
-                <div key={i} className="font-mono text-[11px]" style={{ color: 'var(--ink)' }}>
+                <div key={i} className="font-mono text-xs" style={{ color: 'var(--ink)' }}>
                   {line}
                 </div>
               ))}
@@ -105,7 +105,7 @@ export const ConflictModal = ({ conflict, onResolve }: ConflictModalProps) => {
           ))}
         </div>
 
-        <div className="font-mono text-[10px] text-[var(--muted)] text-center">
+        <div className="font-mono text-xs text-[var(--muted)] text-center">
           {t('conflict.footer')}
         </div>
       </div>

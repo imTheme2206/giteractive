@@ -79,7 +79,7 @@ export const ModuleCard = ({ id, number, title, subtitle, status, isJustUnlocked
       <div className="flex items-center gap-1.5">
         {!isSandbox && number && (
           <span
-            className="font-mono text-[10px] grid place-items-center flex-shrink-0"
+            className="font-mono text-xs grid place-items-center flex-shrink-0"
             style={{
               width: 18,
               height: 18,
@@ -93,13 +93,13 @@ export const ModuleCard = ({ id, number, title, subtitle, status, isJustUnlocked
           </span>
         )}
         <div
-          className="text-[var(--ink)] text-[13px] font-hand"
+          className="text-[var(--ink)] text-sm font-hand"
           style={{ fontWeight: isActive ? 700 : 400 }}
         >
           {title}
         </div>
       </div>
-      <div className={`font-mono text-[10px] text-[var(--soft)] mt-0.5 ${marginLeft}`}>
+      <div className={`font-mono text-xs text-[var(--soft)] mt-0.5 ${marginLeft}`}>
         {subtitle}
       </div>
       <div className={`mt-1 ${marginLeft}`}>

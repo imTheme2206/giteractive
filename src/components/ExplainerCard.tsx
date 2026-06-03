@@ -138,12 +138,12 @@ export const ExplainerCard = ({ command, onDismiss }: ExplainerCardProps) => {
                 }}
               >
                 <span
-                  className="font-mono text-[10px] flex-shrink-0 mt-0.5"
+                  className="font-mono text-xs flex-shrink-0 mt-0.5"
                   style={{ color: keys.color, minWidth: '1.2em' }}
                 >
                   {i + 1}.
                 </span>
-                <span className="text-[13px] text-[var(--soft)] leading-snug font-hand">
+                <span className="text-sm text-[var(--soft)] leading-snug font-hand">
                   {step}
                 </span>
               </li>
@@ -151,7 +151,7 @@ export const ExplainerCard = ({ command, onDismiss }: ExplainerCardProps) => {
           </ol>
         )}
 
-        <Badge className="text-[11px] text-[var(--muted)] border border-[var(--hair)] px-2 py-0.5 bg-[var(--panel2)]">
+        <Badge className="text-xs text-[var(--muted)] border border-[var(--hair)] px-2 py-0.5 bg-[var(--panel2)]">
           $ {command}
         </Badge>
       </div>

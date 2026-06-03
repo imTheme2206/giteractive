@@ -234,7 +234,7 @@ export const CommandTicker = ({ ticker, history, gitState, onTokenHover }: Comma
       </span>
       {hasSubtitle && (
         <span
-          className="text-[11px] text-[var(--muted)] leading-tight"
+          className="text-xs text-[var(--muted)] leading-tight"
           style={{ fontFamily: 'var(--hand)', paddingLeft: '1.1em' }}
         >
           {ticker.subtitle}

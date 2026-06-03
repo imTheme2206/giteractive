@@ -11,7 +11,7 @@ type BadgeProps = {
 
 export const Badge = ({ children, className, style, variant = 'pill' }: BadgeProps) => (
   <span
-    className={cn('font-mono text-[10px]', className)}
+    className={cn('font-mono text-xs', className)}
     style={{ borderRadius: variant === 'chip' ? chipRadius : pillRadius, ...style }}
   >
     {children}

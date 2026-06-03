@@ -108,12 +108,12 @@ const WelcomeSection = ({ title, children }: WelcomeSectionProps) => (
     }}
   >
     <span
-      className="font-mono text-[10px] uppercase tracking-widest font-bold"
+      className="font-mono text-xs uppercase tracking-widest font-bold"
       style={{ color: "var(--ok)" }}
     >
       {title}
     </span>
-    <p className="font-hand text-[13px] text-[var(--soft)] leading-relaxed m-0">
+    <p className="font-hand text-sm text-[var(--soft)] leading-relaxed m-0">
       {children}
     </p>
   </div>
@@ -379,7 +379,7 @@ export const App = () => {
             >
               {t("toolbar.tabHistory")}
               {store.history.length > 0 && (
-                <span className="ml-1 text-[10px] text-[var(--muted)]">
+                <span className="ml-1 text-xs text-[var(--muted)]">
                   {store.history.length}
                 </span>
               )}
@@ -564,12 +564,12 @@ export const App = () => {
               className="px-3 py-2 border-b border-dashed border-[var(--hair)] flex items-center justify-between flex-shrink-0"
               style={{ background: "var(--panel)" }}
             >
-              <span className="font-mono text-[10px] uppercase tracking-widest text-[var(--muted)]">
+              <span className="font-mono text-xs uppercase tracking-widest text-[var(--muted)]">
                 Docs
               </span>
               <button
                 type="button"
-                className="font-mono text-[11px] text-[var(--muted)] hover:text-[var(--ink)] transition-colors"
+                className="font-mono text-xs text-[var(--muted)] hover:text-[var(--ink)] transition-colors"
                 onClick={toggleDocs}
               >
                 ✕
@@ -605,7 +605,7 @@ export const App = () => {
             }}
           >
             <div className="flex flex-col gap-1">
-              <span className="font-mono text-[10px] uppercase tracking-widest text-[var(--muted)]">
+              <span className="font-mono text-xs uppercase tracking-widest text-[var(--muted)]">
                 {t('welcome.subtitle')}
               </span>
               <h1 className="font-hand font-bold text-3xl text-[var(--ink)] m-0">

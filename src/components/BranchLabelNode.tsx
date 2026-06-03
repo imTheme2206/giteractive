@@ -53,27 +53,27 @@ export const BranchLabelNode = ({ data }: { data: BranchLabelData }) => {
   const tooltipContent = isHead ? (
     <div>
       <div
-        className="font-mono font-bold text-[11px] mb-1"
+        className="font-mono font-bold text-xs mb-1"
         style={{ color: 'var(--head)' }}
       >
         {t('tooltips.head.title')}
       </div>
       <div
-        className="font-mono text-[10px] leading-snug mb-1"
+        className="font-mono text-xs leading-snug mb-1"
         style={{ color: 'var(--ink)' }}
       >
         {t('tooltips.head.body')}
       </div>
       {data.isDetached ? (
         <div
-          className="font-mono text-[10px] leading-snug mt-1 pt-1"
+          className="font-mono text-xs leading-snug mt-1 pt-1"
           style={{ color: 'var(--head)', borderTop: '1px solid color-mix(in srgb, var(--head) 30%, transparent)' }}
         >
           {t('tooltips.head.detached')}
         </div>
       ) : (
         <div
-          className="font-mono text-[10px] leading-snug mt-1 pt-1"
+          className="font-mono text-xs leading-snug mt-1 pt-1"
           style={{ color: 'var(--muted)', borderTop: '1px solid color-mix(in srgb, var(--muted) 25%, transparent)' }}
         >
           {t('tooltips.head.attached', { branch: data.attachedBranch ?? '?' })}
@@ -83,14 +83,14 @@ export const BranchLabelNode = ({ data }: { data: BranchLabelData }) => {
   ) : (
     <div>
       <div
-        className="font-mono font-bold text-[11px] mb-1"
+        className="font-mono font-bold text-xs mb-1"
         style={{ color }}
       >
         {t('tooltips.branch.title', { name: data.label })}
       </div>
       {data.tipHash && (
         <div
-          className="font-mono text-[10px] leading-snug"
+          className="font-mono text-xs leading-snug"
           style={{ color: 'var(--muted)' }}
         >
           {t('tooltips.branch.pointer', { hash: data.tipHash.slice(0, 7) })}
@@ -98,7 +98,7 @@ export const BranchLabelNode = ({ data }: { data: BranchLabelData }) => {
       )}
       {data.isCurrentHead && (
         <div
-          className="font-mono text-[10px] leading-snug mt-1 pt-1"
+          className="font-mono text-xs leading-snug mt-1 pt-1"
           style={{ color: 'var(--head)', borderTop: '1px solid color-mix(in srgb, var(--head) 30%, transparent)' }}
         >
           {t('tooltips.branch.headHere')}

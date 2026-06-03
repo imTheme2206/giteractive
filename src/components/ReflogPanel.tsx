@@ -26,7 +26,7 @@ export const ReflogPanel = ({ reflog, onRecover, visible, currentCommits }: Refl
         return (
           <div
             key={`${entry.hash}-${i}`}
-            className="flex items-start gap-2 font-mono text-[10px] leading-tight"
+            className="flex items-start gap-2 font-mono text-xs leading-tight"
           >
             <div className="text-[var(--muted)] flex-shrink-0">HEAD@{`{${i}}`}</div>
             <div className="flex-1 text-[var(--soft)]">
@@ -36,7 +36,7 @@ export const ReflogPanel = ({ reflog, onRecover, visible, currentCommits }: Refl
             {isLost && (
               <button
                 onClick={() => onRecover(entry.hash)}
-                className="flex-shrink-0 px-2 py-0.5 bg-[var(--head)] text-[var(--panel)] rounded text-[9px] font-bold hover:opacity-80 transition-opacity"
+                className="flex-shrink-0 px-2 py-0.5 bg-[var(--head)] text-[var(--panel)] rounded text-xs font-bold hover:opacity-80 transition-opacity"
                 style={{ cursor: 'pointer' }}
               >
                 Recover

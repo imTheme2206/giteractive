@@ -26,7 +26,7 @@ export const CommandPanel = ({ mode: _mode, commands, onPreview, onExecute }: Co
         <TipCard commandKey={tipsCommandKey} onClose={() => setTipsCmd(null)} />
       )}
       <div className="flex items-center gap-2 px-4 py-1.5">
-        <span className="font-mono text-[9px] uppercase tracking-widest text-[var(--muted)] flex-shrink-0">
+        <span className="font-mono text-xs uppercase tracking-widest text-[var(--muted)] flex-shrink-0">
           {t('sidebar.commands')}
         </span>
         <div className="flex flex-wrap gap-1.5">

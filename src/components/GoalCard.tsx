@@ -56,7 +56,7 @@ export const GoalCard = ({ lesson, attempts, guided, onToggleGuided }: GoalCardP
 
         {guided && (
           <>
-            <p className="text-[13px] text-[var(--soft)] mx-4 mb-3 mt-0 leading-snug font-hand">
+            <p className="text-sm text-[var(--soft)] mx-4 mb-3 mt-0 leading-snug font-hand">
               <b className="text-[var(--ink)]">{t('goalCard.goal')}</b>{' '}
               {t(`lessons.${lesson.id}.description`)}
             </p>
@@ -84,7 +84,7 @@ export const GoalCard = ({ lesson, attempts, guided, onToggleGuided }: GoalCardP
             </div>
 
             <div
-              className="mx-4 mb-4 px-3 py-2 text-[12px] text-[var(--soft)] leading-snug font-hand"
+              className="mx-4 mb-4 px-3 py-2 text-sm text-[var(--soft)] leading-snug font-hand"
               style={{
                 border: '1.5px dashed var(--hair)',
                 borderRadius: '8px 2px 8px 2px / 2px 8px 2px 8px',

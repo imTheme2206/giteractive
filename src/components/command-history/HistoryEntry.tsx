@@ -30,12 +30,12 @@ export const HistoryEntry = ({ entry, isExpanded, onToggle }: HistoryEntryProps)
           {entry.command}
         </span>
         {hasChange && (
-          <span className="text-[10px] font-mono" style={{ color: 'var(--muted)' }}>
+          <span className="text-xs font-mono" style={{ color: 'var(--muted)' }}>
             {isExpanded ? '▲' : '▼'}
           </span>
         )}
         {!hasChange && entry.stateBefore && (
-          <span className="text-[10px] font-hand" style={{ color: 'var(--muted)' }}>
+          <span className="text-xs font-hand" style={{ color: 'var(--muted)' }}>
             {t('commandHistory.noGraphChange')}
           </span>
         )}
@@ -43,7 +43,7 @@ export const HistoryEntry = ({ entry, isExpanded, onToggle }: HistoryEntryProps)
 
       {isExpanded && hasChange && (
         <div className="px-3 pb-3 flex flex-col gap-0.5 border-t" style={{ borderColor: 'var(--hair)' }}>
-          <div className="text-[10px] font-hand pt-2 pb-1" style={{ color: 'var(--muted)' }}>
+          <div className="text-xs font-hand pt-2 pb-1" style={{ color: 'var(--muted)' }}>
             {t('commandHistory.graphDiff')}
           </div>
           <DiffView lines={diff} />

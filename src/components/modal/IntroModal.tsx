@@ -31,7 +31,7 @@ export const IntroModal = ({ moduleId, onStart, onSkip }: IntroModalProps) => {
 
         <div className="px-7 pt-3 pb-1 flex flex-col gap-4">
           <div>
-            <span className="font-mono text-[10px] uppercase tracking-widest text-[var(--muted)] block mb-1">
+            <span className="font-mono text-xs uppercase tracking-widest text-[var(--muted)] block mb-1">
               The Problem
             </span>
             <p className="text-sm text-[var(--soft)] leading-relaxed m-0 font-hand">
@@ -40,7 +40,7 @@ export const IntroModal = ({ moduleId, onStart, onSkip }: IntroModalProps) => {
           </div>
 
           <div>
-            <span className="font-mono text-[10px] uppercase tracking-widest text-[var(--muted)] block mb-1">
+            <span className="font-mono text-xs uppercase tracking-widest text-[var(--muted)] block mb-1">
               How Git Works
             </span>
             <p className="text-sm text-[var(--soft)] leading-relaxed m-0 font-hand">

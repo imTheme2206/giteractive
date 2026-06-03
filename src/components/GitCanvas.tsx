@@ -615,13 +615,13 @@ export const GitCanvas = ({
               maxWidth: '320px',
             }}
           >
-            <span className="font-mono text-[11px] text-[var(--ok)] uppercase tracking-widest">
+            <span className="font-mono text-xs text-[var(--ok)] uppercase tracking-widest">
               git init ✓
             </span>
-            <p className="font-hand text-[13px] text-[var(--soft)] m-0 leading-relaxed">
-              Repository initialized — <code className="font-mono text-[11px] bg-[var(--panel2)] px-1 rounded">main</code> branch created, no commits yet.
+            <p className="font-hand text-sm text-[var(--soft)] m-0 leading-relaxed">
+              Repository initialized — <code className="font-mono text-xs bg-[var(--panel2)] px-1 rounded">main</code> branch created, no commits yet.
             </p>
-            <p className="font-hand text-[12px] text-[var(--muted)] m-0">
+            <p className="font-hand text-sm text-[var(--muted)] m-0">
               Click <strong>+</strong> to stage your changes and make your first commit.
             </p>
           </div>

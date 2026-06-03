@@ -1,30 +1,38 @@
-import type { CommandKey } from '../components/command-panel/commandInfo';
-import type { GitState, ModuleId } from '../types';
+import type { CommandKey } from "../components/command-panel/commandInfo";
+import type { GitState, ModuleId } from "../types";
 
 const ALL_KEYS: CommandKey[] = [
-  'gitCommit', 'gitCheckoutB', 'gitCheckout', 'gitCherryPick',
-  'gitRebaseI', 'gitRebase', 'gitMerge', 'gitResetHard',
-  'gitStashPop', 'gitStash', 'gitReflog',
+  "gitCommit",
+  "gitCheckoutB",
+  "gitCheckout",
+  "gitCherryPick",
+  "gitRebaseI",
+  "gitRebase",
+  "gitMerge",
+  "gitResetHard",
+  "gitStashPop",
+  "gitStash",
+  "gitReflog",
 ];
 
 const MODULE_ALLOWED: Record<ModuleId, CommandKey[]> = {
-  module0: ['gitCommit'],
-  module1: ['gitCommit'],
-  module2: ['gitCheckoutB', 'gitCommit'],
-  module3: ['gitCherryPick'],
-  module4: ['gitRebase'],
-  module5: ['gitMerge'],
-  module6: ['gitMerge'],
-  module7: ['gitResetHard'],
-  module8: ['gitStash', 'gitCheckout', 'gitStashPop'],
-  module9: ['gitRebaseI'],
-  module10: ['gitCheckout'],
-  module11: ['gitReflog', 'gitResetHard'],
+  module0: ["gitCommit"],
+  module1: ["gitCommit"],
+  module2: ["gitCheckoutB", "gitCommit"],
+  module3: ["gitCherryPick"],
+  module4: ["gitCheckout", "gitRebase"],
+  module5: ["gitMerge"],
+  module6: ["gitMerge"],
+  module7: ["gitResetHard"],
+  module8: ["gitStash", "gitCheckout", "gitStashPop", "gitCommit"],
+  module9: ["gitRebaseI"],
+  module10: ["gitCheckout"],
+  module11: ["gitReflog", "gitResetHard"],
   sandbox: ALL_KEYS,
 };
 
 const MODULE_STATIC: Partial<Record<ModuleId, string[]>> = {
-  module0: ['git init', 'git add .'],
+  module0: ["git init", "git add ."],
 };
 
 function generateCommand(
@@ -35,20 +43,20 @@ function generateCommand(
   stashStack: Array<{ message: string; fromBranch: string }>,
 ): string[] {
   const { branches, HEAD, commits } = gitState;
-  const otherBranches = Object.keys(branches).filter(b => b !== HEAD);
+  const otherBranches = Object.keys(branches).filter((b) => b !== HEAD);
 
   switch (key) {
-    case 'gitCommit':
+    case "gitCommit":
       if (wip === null) return [];
       return [`git commit -m "${wip}"`];
 
-    case 'gitCheckoutB':
-      return ['git checkout -b feature'];
+    case "gitCheckoutB":
+      return ["git checkout -b feature"];
 
-    case 'gitCheckout':
-      return otherBranches.map(b => `git checkout ${b}`);
+    case "gitCheckout":
+      return otherBranches.map((b) => `git checkout ${b}`);
 
-    case 'gitCherryPick': {
+    case "gitCherryPick": {
       const source = otherBranches[0];
       if (!source) return [];
       const hash = branches[source];
@@ -56,12 +64,13 @@ function generateCommand(
       return [`git cherry-pick ${hash}`];
     }
 
-    case 'gitRebase':
-      return ['git rebase main'];
+    case "gitRebase":
+      if (HEAD === "main") return [];
+      return ["git rebase main"];
 
-    case 'gitRebaseI': {
-      const mainTip = branches['main'];
-      if (!mainTip) return ['git rebase -i HEAD~3'];
+    case "gitRebaseI": {
+      const mainTip = branches["main"];
+      if (!mainTip) return ["git rebase -i HEAD~3"];
       const mainCommits = new Set<string>();
       let cur: string | undefined = mainTip;
       while (cur) {
@@ -80,12 +89,12 @@ function generateCommand(
       return [`git rebase -i HEAD~${count}`];
     }
 
-    case 'gitMerge':
+    case "gitMerge":
       if (otherBranches.length === 0) return [];
-      return otherBranches.map(b => `git merge ${b}`);
+      return otherBranches.map((b) => `git merge ${b}`);
 
-    case 'gitResetHard': {
-      if (mode === 'module11') return ['git reset --hard <hash>'];
+    case "gitResetHard": {
+      if (mode === "module11") return ["git reset --hard <hash>"];
       const tipHash = branches[HEAD];
       if (!tipHash) return [];
       const parent = commits[tipHash]?.parentIds[0];
@@ -93,16 +102,16 @@ function generateCommand(
       return [`git reset --hard ${parent}`];
     }
 
-    case 'gitStash':
+    case "gitStash":
       if (wip === null) return [];
-      return ['git stash'];
+      return ["git stash"];
 
-    case 'gitStashPop':
+    case "gitStashPop":
       if (stashStack.length === 0) return [];
-      return ['git stash pop'];
+      return ["git stash pop"];
 
-    case 'gitReflog':
-      return ['git reflog'];
+    case "gitReflog":
+      return ["git reflog"];
   }
 }
 
@@ -113,8 +122,8 @@ export function deriveCommands(
   stashStack: Array<{ message: string; fromBranch: string }>,
 ): string[] {
   const statics = MODULE_STATIC[mode] ?? [];
-  const dynamic = MODULE_ALLOWED[mode].flatMap(key =>
-    generateCommand(key, mode, gitState, wip, stashStack)
+  const dynamic = MODULE_ALLOWED[mode].flatMap((key) =>
+    generateCommand(key, mode, gitState, wip, stashStack),
   );
   return [...statics, ...dynamic];
 }

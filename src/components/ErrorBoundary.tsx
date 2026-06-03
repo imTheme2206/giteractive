@@ -23,11 +23,11 @@ export class ErrorBoundary extends Component<Props, State> {
           className="max-w-md w-full mx-4 p-6 flex flex-col gap-3"
           style={{ borderRadius: '12px', border: '1.5px solid var(--conflict, #e55)', background: 'var(--panel, #f9f9f9)' }}
         >
-          <span className="font-mono text-[11px] uppercase tracking-widest" style={{ color: 'var(--conflict, #e55)' }}>
+          <span className="font-mono text-xs uppercase tracking-widest" style={{ color: 'var(--conflict, #e55)' }}>
             Something went wrong
           </span>
           <pre
-            className="font-mono text-[11px] text-[var(--soft)] whitespace-pre-wrap break-all m-0"
+            className="font-mono text-xs text-[var(--soft)] whitespace-pre-wrap break-all m-0"
             style={{ background: 'var(--panel2, #f0f0f0)', borderRadius: 6, padding: '8px 10px' }}
           >
             {error.message}

@@ -59,7 +59,7 @@ export const DocsPanel = ({ currentModuleId, isOpen }: Props) => {
                 onClick={() => setOpen(isExpanded ? null : mod.id)}
               >
                 <span
-                  className="font-mono text-[10px] font-bold w-6 h-6 flex items-center justify-center flex-shrink-0"
+                  className="font-mono text-xs font-bold w-6 h-6 flex items-center justify-center flex-shrink-0"
                   style={{
                     borderRadius: '7px',
                     background: `color-mix(in srgb, ${mod.accent} 15%, var(--panel2))`,
@@ -69,7 +69,7 @@ export const DocsPanel = ({ currentModuleId, isOpen }: Props) => {
                 >
                   {mod.num}
                 </span>
-                <span className="font-hand font-bold text-[12.5px] text-[var(--ink)] flex-1 leading-tight">
+                <span className="font-hand font-bold text-sm text-[var(--ink)] flex-1 leading-tight">
                   {t(`intro.${mod.id}.title`)}
                 </span>
                 {isCurrent && !isExpanded && (
@@ -79,7 +79,7 @@ export const DocsPanel = ({ currentModuleId, isOpen }: Props) => {
                   />
                 )}
                 <span
-                  className="font-mono text-[10px] text-[var(--muted)] flex-shrink-0"
+                  className="font-mono text-xs text-[var(--muted)] flex-shrink-0"
                   style={{ transition: 'transform 0.2s', transform: isExpanded ? 'rotate(180deg)' : 'none' }}
                 >
                   ▾
@@ -92,12 +92,12 @@ export const DocsPanel = ({ currentModuleId, isOpen }: Props) => {
 
                   <div className="flex flex-col gap-2">
                     <Section label={t('docs.labels.theProblem')}>
-                      <p className="text-[11.5px] text-[var(--soft)] leading-relaxed m-0 font-hand">
+                      <p className="text-sm text-[var(--soft)] leading-relaxed m-0 font-hand">
                         {t(`intro.${mod.id}.scenario`)}
                       </p>
                     </Section>
                     <Section label={t('docs.labels.howGitWorks')}>
-                      <p className="text-[11.5px] text-[var(--soft)] leading-relaxed m-0 font-hand">
+                      <p className="text-sm text-[var(--soft)] leading-relaxed m-0 font-hand">
                         {t(`intro.${mod.id}.concept`)}
                       </p>
                     </Section>
@@ -111,10 +111,10 @@ export const DocsPanel = ({ currentModuleId, isOpen }: Props) => {
                       background: `color-mix(in srgb, ${mod.accent} 7%, var(--panel))`,
                     }}
                   >
-                    <span className="font-bold text-[10.5px] font-hand" style={{ color: mod.accent }}>
+                    <span className="font-bold text-xs font-hand" style={{ color: mod.accent }}>
                       {t('docs.labels.keyInsight')}{' '}
                     </span>
-                    <span className="text-[11.5px] text-[var(--soft)] font-hand">
+                    <span className="text-sm text-[var(--soft)] font-hand">
                       {t(`intro.${mod.id}.keyInsight`)}
                     </span>
                   </div>
