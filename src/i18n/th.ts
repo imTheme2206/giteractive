@@ -407,6 +407,205 @@ const th = {
     inProgress: "กำลังดำเนินการ",
     clickToEnter: "คลิกเพื่อเข้า",
   },
+  commandPanel: {
+    whatDoesThisDo: 'คำสั่งนี้ทำอะไร?',
+    commands: {
+      gitCommit: {
+        title: 'git commit',
+        description: 'บันทึกการเปลี่ยนแปลงที่ stage ไว้เป็น node ใหม่ในกราฟ HEAD และ branch ปัจจุบันจะเลื่อนไปยัง commit ใหม่',
+      },
+      gitCheckoutB: {
+        title: 'git checkout -b',
+        description: 'สร้าง branch pointer ใหม่และสลับไปยัง branch นั้นทันที ไม่มีการคัดลอกไฟล์ — branch คือแค่ label ที่เคลื่อนที่ได้',
+      },
+      gitCheckout: {
+        title: 'git checkout',
+        description: 'ย้าย HEAD ไปยัง branch หรือ commit hash ถ้าเป็น branch: HEAD จะติดตาม branch นั้น ถ้าเป็น hash: HEAD จะ detach — เข้าสู่โหมดสำรวจโดยไม่มี branch',
+      },
+      gitCherryPick: {
+        title: 'git cherry-pick',
+        description: 'คัดลอก diff ของ commit หนึ่งไปยังปลาย branch ปัจจุบัน สำเนาได้ hash ใหม่แต่มีการเปลี่ยนแปลงเหมือนกัน',
+        steps: [
+          'Git ดึงการเปลี่ยนแปลงที่แน่ชัดจาก commit ต้นทาง',
+          'นำไปใช้ซ้ำบนปลาย branch ปัจจุบัน',
+          'สร้าง commit ใหม่ที่มี diff เหมือนกันแต่ได้ hash ใหม่',
+        ],
+      },
+      gitRebaseI: {
+        title: 'git rebase -i (interactive squash)',
+        description: 'แก้ไข commit หลายตัวแบบ interactive — squash รวม commit ที่ไม่เป็นระเบียบหลายตัวเป็น commit เดียวก่อน merge',
+        steps: [
+          'Git กำหนด commit ที่เลือกให้รวมเป็นหนึ่ง',
+          'รวม diff ทั้งหมดเป็น commit เดียว',
+          'กำหนด hash ใหม่ — ประวัติ local ถูกเขียนใหม่อย่างสะอาด',
+        ],
+      },
+      gitRebase: {
+        title: 'git rebase',
+        description: 'ยก commit ออกจากฐานเดิมและนำไปใช้ซ้ำบน branch เป้าหมาย แต่ละ commit จะได้ hash ใหม่เพราะ parent เปลี่ยนไป',
+        steps: [
+          'Git หา ancestor ร่วมของทั้งสอง branch',
+          'ยก commit ออกจากฐานเดิมทีละตัว',
+          'นำ commit แต่ละตัวไปใช้ซ้ำบนปลายทาง — กำหนด hash ใหม่',
+        ],
+      },
+      gitMerge: {
+        title: 'git merge',
+        description: 'รวมประวัติของสอง branch ด้วย merge commit ใหม่ที่มีสอง parent ไม่มี commit เดิมที่ถูกเขียนใหม่หรือย้าย',
+        steps: [
+          'Git หา ancestor ร่วมของทั้งสอง branch',
+          'รวมการเปลี่ยนแปลงจากทั้งสองฝั่งโดยไม่เขียนใหม่',
+          'สร้าง merge commit ที่มีสอง parent — ประวัติทั้งหมดถูกเก็บรักษาไว้',
+        ],
+      },
+      gitResetHard: {
+        title: 'git reset --hard',
+        description: 'ย้าย branch pointer กลับไปยัง commit ที่ระบุ ทิ้งทุกอย่างหลังจากนั้นอย่างถาวร working tree จะถูก reset ให้ตรงกัน',
+        steps: [
+          'Branch pointer เลื่อนกลับไปยัง commit เป้าหมาย',
+          'ทุก commit หลัง commit เป้าหมายถูกลบออกจากประวัติ',
+          'Working tree ถูกทำความสะอาด — ไม่มีร่องรอยของ commit ที่หายไป',
+        ],
+      },
+      gitStashPop: {
+        title: 'git stash pop',
+        description: 'คืนการเปลี่ยนแปลงที่ stash ไว้ล่าสุดกลับมาที่ working tree และลบ entry นั้นออกจาก stack',
+      },
+      gitStash: {
+        title: 'git stash',
+        description: 'บันทึกการเปลี่ยนแปลงที่ยังไม่ได้ commit ไปที่ stack ชั่วคราวและให้ working tree สะอาด เพื่อให้สลับ branch ได้อย่างปลอดภัย',
+      },
+      gitReflog: {
+        title: 'git reflog',
+        description: 'แสดงทุกที่ที่ HEAD เคยอยู่ — commits, checkouts, resets, merges ตาข่ายนิรภัยสำหรับกู้คืน commit ที่ดูเหมือนหายไปหลัง hard reset',
+      },
+    },
+  },
+  commandHistory: {
+    empty: 'ยังไม่มีคำสั่ง — ลองโต้ตอบกับ canvas เพื่อดูประวัติที่นี่',
+    graphDiff: 'graph diff',
+    noGraphChange: 'ไม่มีการเปลี่ยนแปลงกราฟ',
+  },
+  docs: {
+    labels: {
+      theProblem: 'ปัญหา',
+      howGitWorks: 'Git ทำงานอย่างไร',
+      keyInsight: 'ข้อสังเกตสำคัญ:',
+      commands: 'คำสั่ง',
+    },
+    modules: {
+      module0: {
+        commands: [
+          { description: 'สร้าง repository ใหม่ในไดเรกทอรีปัจจุบันโดยสร้างโฟลเดอร์ .git ที่ซ่อนอยู่ โฟลเดอร์นี้คือ repository ทั้งหมด' },
+          { description: 'Stage การเปลี่ยนแปลงทั้งหมดใน working tree เพื่อรอ commit ถัดไป' },
+          { description: 'สร้าง snapshot แรก เนื่องจากไม่มี parent commit นี่เรียกว่า root commit — จุดยึดของประวัติทั้งหมด' },
+        ],
+      },
+      module1: {
+        commands: [
+          { description: 'Stage การเปลี่ยนแปลงทั้งหมดใน working tree เพื่อรอ commit ถัดไป' },
+          { description: 'บันทึกการเปลี่ยนแปลงที่ stage เป็น node ใหม่ถาวรในกราฟประวัติ HEAD และ branch ปัจจุบันเลื่อนไปยัง commit ใหม่' },
+        ],
+      },
+      module2: {
+        commands: [
+          { description: 'สร้าง branch pointer ใหม่และสลับไปทันที ไม่มีการคัดลอกไฟล์ — branch คือแค่ label ที่เคลื่อนที่ได้ซึ่งชี้ไปยัง commit' },
+          { description: 'บน branch ใหม่ เลื่อนปลาย branch และ HEAD — โดยไม่กระทบ main' },
+        ],
+      },
+      module3: {
+        commands: [
+          {
+            description: 'คัดลอก diff ที่แน่ชัดของ commit หนึ่งไปยังปลาย branch ปัจจุบัน สำเนาได้ hash ใหม่ — การเปลี่ยนแปลงเหมือนกัน แต่เป็น identity ใหม่',
+            steps: [
+              'Git ดึงการเปลี่ยนแปลงที่แน่ชัดที่ commit ต้นทางนำมา',
+              'นำไปใช้ซ้ำบนปลาย branch ปัจจุบัน',
+              'สร้าง commit ใหม่ที่มี diff เหมือนกันแต่ hash ต่างกัน',
+            ],
+          },
+        ],
+      },
+      module4: {
+        commands: [
+          {
+            description: 'ยก commit ออกจากฐานเดิมและนำไปใช้ซ้ำทีละตัวบนเป้าหมาย ประวัติถูกเขียนใหม่ — hash ใหม่เพราะ parent เปลี่ยน',
+            steps: [
+              'Git หา common ancestor ของทั้งสอง branch',
+              'ยก commit ออกจากฐานเดิมทีละตัว',
+              'นำ commit แต่ละตัวไปใช้ซ้ำบนเป้าหมาย — parent ใหม่หมายถึง hash ใหม่',
+            ],
+          },
+        ],
+      },
+      module5: {
+        commands: [
+          {
+            description: 'รวมประวัติของสอง branch ด้วย merge commit ใหม่ที่มีสอง parent ไม่มี commit เดิมถูกเขียนใหม่หรือย้าย',
+            steps: [
+              'Git หา common ancestor ของทั้งสอง branch',
+              'รวมการเปลี่ยนแปลงจากทั้งสองฝั่งโดยไม่แตะ commit ใดๆ',
+              'สร้าง merge commit ที่มีสอง parent — ประวัติทั้งหมดถูกเก็บรักษาไว้',
+            ],
+          },
+        ],
+      },
+      module6: {
+        commands: [
+          {
+            description: 'เมื่อทั้งสอง branch แก้ไขบรรทัดเดียวกัน Git จะหยุดและทำเครื่องหมายการชน คุณเลือกว่าจะเก็บเวอร์ชันใด จากนั้น merge ต่อ',
+            steps: [
+              'Git ตรวจพบการเปลี่ยนแปลงที่ขัดแย้งกันซึ่งแก้ไขอัตโนมัติไม่ได้',
+              'การ merge หยุดชั่วคราว — คุณตรวจสอบ conflict และเลือกวิธีแก้',
+              'หลังแก้ไขแล้ว Git สร้าง merge commit ด้วยเนื้อหาที่คุณเลือก',
+            ],
+          },
+        ],
+      },
+      module7: {
+        commands: [
+          {
+            description: 'ย้าย branch pointer กลับไปยัง commit เป้าหมาย ทิ้งทุกอย่างหลังจากนั้นอย่างถาวร working tree จะถูก reset ให้ตรงกัน',
+            steps: [
+              'Branch pointer เลื่อนกลับไปยัง commit เป้าหมาย',
+              'commit ทั้งหมดหลัง commit เป้าหมายถูกลบออกจากประวัติ',
+              'Working tree ถูกทำความสะอาด — ไม่มีร่องรอยของ commit ที่หายไป',
+            ],
+          },
+        ],
+      },
+      module8: {
+        commands: [
+          { description: 'บันทึกการเปลี่ยนแปลงที่ยังไม่ได้ commit ไปที่ stack ชั่วคราวและให้ working tree สะอาด — ปลอดภัยในการสลับ branch โดยไม่สูญเสียงาน' },
+          { description: 'ย้าย HEAD ไปยัง branch ที่ระบุ อัปเดต working tree ให้ตรงกับปลาย branch นั้น' },
+          { description: 'คืน snapshot ที่ stash ไว้ล่าสุดกลับมาที่ working tree และลบ entry นั้นออกจาก stack' },
+        ],
+      },
+      module9: {
+        commands: [
+          {
+            description: 'เปิด session การเขียนใหม่แบบ interactive Squash รวม commit ที่ไม่เป็นระเบียบ N ตัวให้เป็น commit เดียวที่สะอาดก่อน merge',
+            steps: [
+              'Git รวบรวม commit ในช่วงที่ระบุ',
+              'commit ที่ squash มี diff รวมกันเป็น changeset เดียว',
+              'commit ใหม่หนึ่งตัวแทนที่ทั้งหมด — ประวัติถูกเขียนใหม่อย่างสะอาด',
+            ],
+          },
+        ],
+      },
+      module10: {
+        commands: [
+          { description: 'Checkout commit hash โดยตรง ทำให้ HEAD อยู่ใน detached state — ชี้ไปยัง commit เอง ไม่ใช่ branch commit ที่ทำที่นี่จะเป็น orphan เมื่อออกไป' },
+          { description: 'ต่อ HEAD กลับเข้า branch ที่ระบุ กลับจาก detached state สู่การทำงาน branch ปกติ' },
+        ],
+      },
+      module11: {
+        commands: [
+          { description: 'แสดงทุกตำแหน่งที่ HEAD เคยอยู่ — commits, checkouts, resets, merges ตาข่ายนิรภัยสำหรับหา commit ที่ดูเหมือนหายหลัง hard reset' },
+          { description: 'ใช้ร่วมกับ reflog hash เพื่อคืน branch pointer ไปยัง commit ที่เคยเข้าถึงได้ นำ commit ที่หายกลับมาในประวัติ' },
+        ],
+      },
+    },
+  },
 
 };
 

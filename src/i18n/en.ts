@@ -296,6 +296,205 @@ const en = {
     inProgress: 'in progress',
     clickToEnter: 'click to enter',
   },
+  commandPanel: {
+    whatDoesThisDo: 'What does this do?',
+    commands: {
+      gitCommit: {
+        title: 'git commit',
+        description: 'Snapshots your staged changes into a permanent new node in the graph. HEAD and your current branch advance to the new commit.',
+      },
+      gitCheckoutB: {
+        title: 'git checkout -b',
+        description: 'Creates a new branch pointer and switches to it immediately. No files are copied — a branch is just a movable label.',
+      },
+      gitCheckout: {
+        title: 'git checkout',
+        description: 'Moves HEAD to a branch or commit hash. On a branch: HEAD follows it. On a hash: HEAD detaches — you enter exploration mode with no branch attached.',
+      },
+      gitCherryPick: {
+        title: 'git cherry-pick',
+        description: "Copies one commit's diff onto your current branch tip. The copy gets a new hash but identical changes.",
+        steps: [
+          'Git extracts the exact changes from the source commit',
+          'Re-applies them on top of your current branch tip',
+          'Creates a new commit with the same diff but a fresh hash',
+        ],
+      },
+      gitRebaseI: {
+        title: 'git rebase -i (interactive squash)',
+        description: 'Rewrites a sequence of commits interactively — squash collapses multiple messy commits into one clean commit before merging.',
+        steps: [
+          'Git marks the selected commits to squash into one',
+          'Combines their diffs into a single commit',
+          'New hash assigned — local history rewritten cleanly',
+        ],
+      },
+      gitRebase: {
+        title: 'git rebase',
+        description: 'Lifts your commits off their old base and re-applies them on top of the target branch. Each commit gets a new hash because its parent changed.',
+        steps: [
+          'Git finds the common ancestor of both branches',
+          'Lifts your commits off their old base, one by one',
+          'Re-applies each commit on top of the target — new hashes assigned',
+        ],
+      },
+      gitMerge: {
+        title: 'git merge',
+        description: 'Combines two branch histories with a new merge commit that has two parents. No existing commit is rewritten or moved.',
+        steps: [
+          'Git finds the common ancestor of both branches',
+          'Combines changes from both sides without rewriting either',
+          'Creates a merge commit with two parents — full history preserved',
+        ],
+      },
+      gitResetHard: {
+        title: 'git reset --hard',
+        description: 'Moves the branch pointer back to a specific commit, permanently discarding everything after it. Working tree is reset to match.',
+        steps: [
+          'Branch pointer moves back to the target commit',
+          'Every commit after the target is removed from visible history',
+          'Working tree is cleaned — no trace of the dropped commits remains',
+        ],
+      },
+      gitStashPop: {
+        title: 'git stash pop',
+        description: 'Restores the most recently stashed changes back onto your working tree and removes that entry from the stack.',
+      },
+      gitStash: {
+        title: 'git stash',
+        description: 'Saves your uncommitted changes to a temporary stack and gives you a clean working tree, so you can safely switch branches.',
+      },
+      gitReflog: {
+        title: 'git reflog',
+        description: "Shows every place HEAD has ever been — commits, checkouts, resets, merges. Your safety net for recovering commits that seem lost after a hard reset.",
+      },
+    },
+  },
+  commandHistory: {
+    empty: 'No commands yet — interact with the canvas to see history here.',
+    graphDiff: 'graph diff',
+    noGraphChange: 'no graph change',
+  },
+  docs: {
+    labels: {
+      theProblem: 'The Problem',
+      howGitWorks: 'How Git Works',
+      keyInsight: 'Key insight:',
+      commands: 'Commands',
+    },
+    modules: {
+      module0: {
+        commands: [
+          { description: 'Initializes a new repository in the current directory by creating a hidden .git folder. This folder is the entire repository.' },
+          { description: 'Stages all changes in the working tree, queuing them for the next commit.' },
+          { description: 'Creates the first snapshot. With no parent commits, this is called a root commit — the anchor of your entire history.' },
+        ],
+      },
+      module1: {
+        commands: [
+          { description: 'Stages all changes in the working tree, queuing them for the next commit.' },
+          { description: 'Snapshots staged changes into a permanent new node in the history graph. HEAD and the current branch both advance to the new commit.' },
+        ],
+      },
+      module2: {
+        commands: [
+          { description: 'Creates a new branch pointer and switches to it immediately. No files are copied — a branch is just a movable label pointing at a commit.' },
+          { description: 'On the new branch, advances its tip and HEAD — without affecting main.' },
+        ],
+      },
+      module3: {
+        commands: [
+          {
+            description: "Copies one commit's exact diff onto the tip of your current branch. The copy gets a new hash — same changes, fresh identity.",
+            steps: [
+              'Git extracts the exact changes introduced by the source commit',
+              'Re-applies those changes on top of your current branch tip',
+              'A new commit is created with the same diff but a different hash',
+            ],
+          },
+        ],
+      },
+      module4: {
+        commands: [
+          {
+            description: 'Lifts your commits off their old base and re-applies them one-by-one on top of the target. History is rewritten — new hashes because parents changed.',
+            steps: [
+              'Git identifies the common ancestor of both branches',
+              'Lifts your commits off their old base, one by one',
+              'Re-applies each commit on top of the target — new parent means new hash',
+            ],
+          },
+        ],
+      },
+      module5: {
+        commands: [
+          {
+            description: 'Combines two branch histories with a new merge commit that has two parents. No existing commit is rewritten or moved.',
+            steps: [
+              'Git finds the common ancestor of both branches',
+              'Combines changes from both sides without touching either commit',
+              'A merge commit is created with two parents — full history preserved',
+            ],
+          },
+        ],
+      },
+      module6: {
+        commands: [
+          {
+            description: 'When both branches edited the same lines, Git pauses and marks the collision. You choose which version to keep, then complete the merge.',
+            steps: [
+              'Git detects conflicting changes it cannot auto-resolve',
+              'The merge pauses — you inspect the conflict and pick a resolution',
+              'After resolving, Git creates the merge commit with your chosen content',
+            ],
+          },
+        ],
+      },
+      module7: {
+        commands: [
+          {
+            description: 'Moves the branch pointer back to the target commit, permanently discarding everything after it. Working tree is reset to match.',
+            steps: [
+              'The branch pointer moves back to the target commit',
+              'All commits after the target are removed from visible history',
+              'Working tree is cleaned — no trace of the dropped commits remains',
+            ],
+          },
+        ],
+      },
+      module8: {
+        commands: [
+          { description: 'Saves your uncommitted changes to a temporary stack and gives you a clean working tree — safe to switch branches without losing work.' },
+          { description: "Moves HEAD to the named branch, updating the working tree to match that branch's tip." },
+          { description: 'Restores the most recently stashed snapshot back onto the working tree and removes that entry from the stack.' },
+        ],
+      },
+      module9: {
+        commands: [
+          {
+            description: 'Opens an interactive rewrite session. Squash collapses N messy commits into one clean, descriptive commit before merging.',
+            steps: [
+              'Git collects the commits in the specified range',
+              'Squashed commits have their diffs combined into a single changeset',
+              'One new commit replaces them all — history rewritten cleanly',
+            ],
+          },
+        ],
+      },
+      module10: {
+        commands: [
+          { description: 'Checks out a commit hash directly, putting HEAD in detached state — pointing at the commit itself, not a branch. Commits made here are orphaned when you leave.' },
+          { description: 'Reattaches HEAD to a named branch, returning you from detached state back to normal branch-tracked work.' },
+        ],
+      },
+      module11: {
+        commands: [
+          { description: "Shows every position HEAD has ever occupied — commits, checkouts, resets, merges. Your safety net for finding commits that seem lost after a hard reset." },
+          { description: 'Used with a reflog hash to restore a branch pointer to a previously reachable commit, bringing orphaned commits back into history.' },
+        ],
+      },
+    },
+  },
 } as const;
 
 export default en;

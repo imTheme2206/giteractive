@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { CommandHistoryTab } from "./components/CommandHistoryTab";
-import { CommandPanel } from "./components/CommandPanel";
-import { DocsPanel } from "./components/DocsPanel";
+import { CommandHistoryTab } from "./components/command-history/CommandHistoryTab";
+import { CommandPanel } from "./components/command-panel/CommandPanel";
+import { DocsPanel } from "./components/docs/DocsPanel";
 import { CommandTicker } from "./components/CommandTicker";
 import { Button } from "./components/common/Button";
 import { Toast } from "./components/common/Toast";
