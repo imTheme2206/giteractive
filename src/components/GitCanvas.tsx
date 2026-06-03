@@ -152,12 +152,15 @@ export const GitCanvas = ({
   const { t } = useTranslation();
   const layout = useMemo(() => computeLayout(gitState), [gitState]);
 
+  const isEmpty = Object.keys(gitState.commits).length === 0;
+  const EMPTY_POS = { x: 60, y: 60 };
+
   const headCommitId =
     gitState.branches[gitState.HEAD] !== undefined
       ? (gitState.branches[gitState.HEAD] ?? gitState.HEAD)
       : gitState.HEAD;
 
-  const headLayout = layout.get(headCommitId);
+  const headLayout = isEmpty ? EMPTY_POS : layout.get(headCommitId);
 
   const canBranch = mode !== 'module1';
   const canCheckout = mode === 'sandbox' || mode === 'module8' || mode === 'module10';
@@ -209,7 +212,7 @@ export const GitCanvas = ({
     }
 
     for (const [branchName, tipId] of Object.entries(gitState.branches)) {
-      const pos = layout.get(tipId);
+      const pos = tipId ? layout.get(tipId) : (isEmpty ? EMPTY_POS : undefined);
       if (!pos) continue;
       result.push({
         id: `branch-${branchName}`,

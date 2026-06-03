@@ -9,6 +9,7 @@ const en = {
     tabHistory: 'History',
   },
   modules: {
+    module0: 'Module 0 · Get Started',
     module1: 'Module 1 · The Linear Timeline',
     module2: 'Module 2 · Parallel Universes',
     module3: 'Module 3 · Cherry-pick',
@@ -32,6 +33,7 @@ const en = {
     timeSeconds: '{{count}}s ago',
     timeMinutes: '{{count}}m ago',
     modules: {
+      module0: { title: 'Module 0', subtitle: 'Get Started' },
       module1: { title: 'Module 1', subtitle: 'The Linear Timeline' },
       module2: { title: 'Module 2', subtitle: 'Parallel Universes' },
       module3: { title: 'Module 3', subtitle: 'Cherry-pick' },
@@ -122,6 +124,12 @@ const en = {
     },
   },
   intro: {
+    module0: {
+      title: 'Module 0 — Get Started',
+      scenario: "You have a folder of files and no version history. You're about to make your first commit — the moment a project stops being just a folder and becomes a tracked repository.",
+      concept: '`git init` creates a hidden `.git` directory inside your folder. That directory is the entire repository — it stores every snapshot, branch, and piece of history. Nothing outside it is touched.',
+      keyInsight: 'Git is local-first. Your entire history lives on your machine. GitHub, GitLab, and Bitbucket are just mirrors — they host a copy of your `.git` directory online so others can collaborate.',
+    },
     module1: {
       title: 'Module 1 — The Linear Timeline',
       scenario: 'Every project starts somewhere. Git tracks your work as a chain of snapshots called commits. Each commit is permanent, named, and linked to the one before it — giving you a complete, reversible history of everything that ever changed.',

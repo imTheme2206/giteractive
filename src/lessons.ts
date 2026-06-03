@@ -1,5 +1,14 @@
 import type { LessonGoal } from './types';
 
+export const LESSON_INIT: LessonGoal = {
+  id: 'init',
+  title: 'Level 00 — Your First Commit',
+  description: 'You have an empty repository. Make your first commit to start tracking history.',
+  hint: 'Click the + button to stage your changes, then commit them.',
+  chips: ['action: first commit'],
+  validate: (state) => Object.keys(state.commits).length >= 1,
+};
+
 export const LESSON_LINEAR: LessonGoal = {
   id: 'linear',
   title: 'Level 01 — The Linear Timeline',

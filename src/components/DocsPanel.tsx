@@ -17,6 +17,14 @@ type ModuleEntry = {
 
 const MODULES: ModuleEntry[] = [
   {
+    id: 'module0', num: '00', accent: 'var(--ok)',
+    commands: [
+      { command: 'git init', description: 'Initializes a new repository in the current directory by creating a hidden .git folder. This folder is the entire repository.' },
+      { command: 'git add .', description: 'Stages all changes in the working tree, queuing them for the next commit.' },
+      { command: 'git commit -m "message"', description: 'Creates the first snapshot. With no parent commits, this is called a root commit — the anchor of your entire history.' },
+    ],
+  },
+  {
     id: 'module1', num: '01', accent: 'var(--ok)',
     commands: [
       { command: 'git add .', description: 'Stages all changes in the working tree, queuing them for the next commit.' },

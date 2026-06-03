@@ -5,6 +5,7 @@ import {
   checkout,
   createBranch,
   getNextBranchName,
+  makeModule0State,
   makeModule3State,
   makeModule4State,
   makeModule5State,
@@ -22,11 +23,12 @@ import {
   resetHard,
   squashCommits,
 } from "./gitState";
-import { LESSON_BRANCH, LESSON_CHERRY_PICK, LESSON_CONFLICT, LESSON_DETACHED_HEAD, LESSON_LINEAR, LESSON_MERGE, LESSON_REBASE, LESSON_REFLOG, LESSON_RESET, LESSON_SQUASH, LESSON_STASH } from "./lessons";
+import { LESSON_BRANCH, LESSON_CHERRY_PICK, LESSON_CONFLICT, LESSON_DETACHED_HEAD, LESSON_INIT, LESSON_LINEAR, LESSON_MERGE, LESSON_REBASE, LESSON_REFLOG, LESSON_RESET, LESSON_SQUASH, LESSON_STASH } from "./lessons";
 import type { CommitNode, ConflictState, GitState, Mode, ModuleId, ModuleProgress, ModuleStatus, ReflogEntry, TickerEntry } from "./types";
 
 const INITIAL_PROGRESS: ModuleProgress[] = [
-  { id: 'module1', status: 'available' },
+  { id: 'module0', status: 'available' },
+  { id: 'module1', status: 'locked' },
   { id: 'module2', status: 'locked' },
   { id: 'module3', status: 'locked' },
   { id: 'module4', status: 'locked' },
@@ -138,6 +140,11 @@ export const useGitStore = () => {
       ]);
       setTicker(t => ({ ...t, state: "idle" }));
     }, 1200);
+
+    if (mode === "module0") {
+      setModuleAttempts(n => n + 1);
+      if (LESSON_INIT.validate(result.state)) completeModule('module0', 'module1');
+    }
 
     if (mode === "module1") {
       setModuleAttempts(n => n + 1);
@@ -414,7 +421,7 @@ export const useGitStore = () => {
   };
 
   const enterModule = (
-    id: 'module1' | 'module2' | 'module3' | 'module4' | 'module5' | 'module6' | 'module7' | 'module8' | 'module9' | 'module10',
+    id: 'module0' | 'module1' | 'module2' | 'module3' | 'module4' | 'module5' | 'module6' | 'module7' | 'module8' | 'module9' | 'module10',
     makeState: () => GitState
   ) => {
     setMode(id);
@@ -435,6 +442,7 @@ export const useGitStore = () => {
     );
   };
 
+  const enterModule0 = () => enterModule('module0', makeModule0State);
   const enterModule1 = () => enterModule('module1', makeModuleState);
   const enterModule2 = () => enterModule('module2', makeModuleState);
   const enterModule3 = () => enterModule('module3', makeModule3State);
@@ -517,6 +525,7 @@ export const useGitStore = () => {
     doCheckout,
     doCreateBranch,
     doReset,
+    enterModule0,
     enterModule1,
     enterModule2,
     enterModule3,

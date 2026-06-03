@@ -19,6 +19,7 @@ import {
   LESSON_CHERRY_PICK,
   LESSON_CONFLICT,
   LESSON_DETACHED_HEAD,
+  LESSON_INIT,
   LESSON_LINEAR,
   LESSON_MERGE,
   LESSON_REBASE,
@@ -31,6 +32,7 @@ import type { LessonGoal, ModuleId } from "./types";
 import { useGitStore } from "./useGitStore";
 
 const MODULE_COMMANDS: Partial<Record<ModuleId, string[]>> = {
+  module0: ['git init', 'git add .', 'git commit -m "init: first commit"'],
   module1: ['git commit -m "feat: ..."'],
   module2: ['git checkout -b feature', 'git commit -m "feat: ..."'],
   module3: ['git cherry-pick <hash>'],
@@ -46,12 +48,13 @@ const MODULE_COMMANDS: Partial<Record<ModuleId, string[]>> = {
 };
 
 const MODULE_IDS: ModuleId[] = [
-  'module1', 'module2', 'module3', 'module4', 'module5',
+  'module0', 'module1', 'module2', 'module3', 'module4', 'module5',
   'module6', 'module7', 'module8', 'module9', 'module10',
   'module11', 'sandbox',
 ];
 
 const MODULE_ACCENT: Record<ModuleId, string> = {
+  module0: 'var(--ok)',
   module1: 'var(--ok)',
   module2: 'var(--feat)',
   module3: 'var(--ok)',
@@ -67,6 +70,7 @@ const MODULE_ACCENT: Record<ModuleId, string> = {
 };
 
 const MODULE_LESSONS: Partial<Record<string, LessonGoal>> = {
+  module0: LESSON_INIT,
   module1: LESSON_LINEAR,
   module2: LESSON_BRANCH,
   module3: LESSON_CHERRY_PICK,
@@ -97,6 +101,19 @@ const getCommandType = (command: string): string | null => {
   return null;
 };
 
+type WelcomeSectionProps = { title: string; children: React.ReactNode };
+const WelcomeSection = ({ title, children }: WelcomeSectionProps) => (
+  <div
+    className="px-4 py-3 flex flex-col gap-1"
+    style={{ borderRadius: '12px', background: 'var(--panel2)', border: '1px solid var(--hair)' }}
+  >
+    <span className="font-mono text-[10px] uppercase tracking-widest font-bold" style={{ color: 'var(--ok)' }}>
+      {title}
+    </span>
+    <p className="font-hand text-[13px] text-[var(--soft)] leading-relaxed m-0">{children}</p>
+  </div>
+);
+
 export const App = () => {
   const { t } = useTranslation();
   const store = useGitStore();
@@ -118,10 +135,18 @@ export const App = () => {
   const [toastModuleId, setToastModuleId] = useState<ModuleId | null>(null);
   const [justUnlockedId, setJustUnlockedId] = useState<ModuleId | null>(null);
   const pulseTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [showWelcome, setShowWelcome] = useState(() => !localStorage.getItem('giteractive_welcomed'));
+
+  const dismissWelcome = () => {
+    localStorage.setItem('giteractive_welcomed', '1');
+    setShowWelcome(false);
+    store.enterModule0();
+  };
 
   const enterModule = (id: ModuleId) => {
     setPendingModule(null);
-    if (id === "module1") store.enterModule1();
+    if (id === "module0") store.enterModule0();
+    else if (id === "module1") store.enterModule1();
     else if (id === "module2") store.enterModule2();
     else if (id === "module3") store.enterModule3();
     else if (id === "module4") store.enterModule4();
@@ -279,6 +304,57 @@ export const App = () => {
       }
     }
   }, [store.ticker.state, store.ticker.command]);
+
+  if (showWelcome) {
+    return (
+      <div
+        className="flex h-screen overflow-hidden items-center justify-center"
+        style={{ background: 'var(--bg)' }}
+      >
+        <div
+          className="max-w-xl w-full mx-4 flex flex-col gap-6 p-8"
+          style={{
+            borderRadius: '20px',
+            border: '1.5px solid var(--hair)',
+            background: 'var(--panel)',
+          }}
+        >
+          <div className="flex flex-col gap-1">
+            <span className="font-mono text-[10px] uppercase tracking-widest text-[var(--muted)]">Welcome to</span>
+            <h1 className="font-hand font-bold text-3xl text-[var(--ink)] m-0">Giteractive</h1>
+            <p className="font-hand text-[var(--soft)] text-sm m-0">Learn git by doing — one visual step at a time.</p>
+          </div>
+
+          <div className="flex flex-col gap-3">
+            <WelcomeSection title="What is Git?">
+              Git is a <strong>version control system</strong> — a tool that lives on your computer and tracks every change you make to your code over time. It records snapshots called <em>commits</em>, lets you branch off to try ideas in isolation, and lets you merge or rebase work back together.
+            </WelcomeSection>
+            <WelcomeSection title="What does Git do?">
+              Every time you commit, Git saves a permanent snapshot of your project. You can go back to any snapshot, run parallel lines of work on separate branches, and combine them later — without ever losing history.
+            </WelcomeSection>
+            <WelcomeSection title="Git vs GitHub">
+              <strong>Git</strong> is the tool — it runs locally on your machine, no internet needed.<br />
+              <strong>GitHub</strong> (and GitLab, Bitbucket, etc.) are websites that <em>host</em> git repositories online so teams can share and collaborate. GitHub adds pull requests, issues, and CI on top — but the underlying version control is just Git.
+            </WelcomeSection>
+          </div>
+
+          <button
+            type="button"
+            className="self-end font-hand font-bold text-sm px-5 py-2.5 cursor-pointer transition-colors"
+            style={{
+              borderRadius: '10px',
+              background: 'var(--ok)',
+              color: '#fff',
+              border: 'none',
+            }}
+            onClick={dismissWelcome}
+          >
+            Get Started →
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-screen overflow-hidden">

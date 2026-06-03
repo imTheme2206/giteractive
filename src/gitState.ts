@@ -1,5 +1,12 @@
 import type { GitState, CommitHash, CommitNode } from './types';
 
+export const makeModule0State = (): GitState => ({
+  commits: {},
+  branches: { main: '' },
+  HEAD: 'main',
+  nextCommitNum: 1,
+});
+
 export const makeModuleState = (): GitState => ({
   commits: {
     c1: { id: 'c1', parentIds: [], message: 'init: initial commit', branch: 'main' },
@@ -179,12 +186,11 @@ export const createBranch = (
 export const addCommit = (state: GitState, overrideMessage?: string): { state: GitState; command: string } => {
   const id = Math.random().toString(36).slice(2, 9);
   const msg = overrideMessage ?? `feat: new commit ${state.nextCommitNum}`;
-  const headCommit =
-    state.branches[state.HEAD] !== undefined
-      ? state.branches[state.HEAD] ?? state.HEAD
-      : state.HEAD;
+  const branchTip = state.branches[state.HEAD];
+  const isRoot = branchTip === '' || branchTip === undefined;
+  const headCommit = isRoot ? null : (branchTip ?? state.HEAD);
   const currentBranch = state.branches[state.HEAD] !== undefined ? state.HEAD : null;
-  const newCommit = { id, parentIds: [headCommit], message: msg, branch: currentBranch ?? 'main' };
+  const newCommit = { id, parentIds: headCommit ? [headCommit] : [], message: msg, branch: currentBranch ?? 'main' };
   return {
     state: {
       ...state,
