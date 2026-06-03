@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { CommandHistoryTab } from "./components/CommandHistoryTab";
 import { CommandPanel } from "./components/CommandPanel";
-import { DocsTab } from "./components/DocsTab";
+import { DocsPanel } from "./components/DocsPanel";
 import { CommandTicker } from "./components/CommandTicker";
 import { Button } from "./components/common/Button";
 import { Toast } from "./components/common/Toast";
@@ -105,7 +105,15 @@ export const App = () => {
   const explainerKeyRef = useRef(0);
   const seenCommandTypesRef = useRef(new Set<string>());
   const [pendingModule, setPendingModule] = useState<ModuleId | null>(null);
-  const [activeTab, setActiveTab] = useState<'graph' | 'history' | 'docs'>('graph');
+  const [activeTab, setActiveTab] = useState<'graph' | 'history'>('graph');
+  const [docsOpen, setDocsOpen] = useState(() => localStorage.getItem('docsOpen') === 'true');
+  const [docsPanelWidth, setDocsPanelWidth] = useState(() => {
+    const saved = parseInt(localStorage.getItem('docsPanelWidth') ?? '', 10);
+    return isNaN(saved) ? 360 : Math.max(240, Math.min(600, saved));
+  });
+  const isResizingRef = useRef(false);
+  const resizeStartXRef = useRef(0);
+  const resizeStartWidthRef = useRef(0);
 
   const [toastModuleId, setToastModuleId] = useState<ModuleId | null>(null);
   const [justUnlockedId, setJustUnlockedId] = useState<ModuleId | null>(null);
@@ -216,6 +224,43 @@ export const App = () => {
     localStorage.setItem("lang", next);
   };
 
+  const toggleDocs = () => {
+    setDocsOpen((prev) => {
+      localStorage.setItem('docsOpen', String(!prev));
+      return !prev;
+    });
+  };
+
+  const onResizeMouseDown = (e: React.MouseEvent) => {
+    isResizingRef.current = true;
+    resizeStartXRef.current = e.clientX;
+    resizeStartWidthRef.current = docsPanelWidth;
+    e.preventDefault();
+  };
+
+  useEffect(() => {
+    const onMouseMove = (e: MouseEvent) => {
+      if (!isResizingRef.current) return;
+      const delta = resizeStartXRef.current - e.clientX;
+      const next = Math.max(240, Math.min(600, resizeStartWidthRef.current + delta));
+      setDocsPanelWidth(next);
+    };
+    const onMouseUp = () => {
+      if (!isResizingRef.current) return;
+      isResizingRef.current = false;
+      setDocsPanelWidth((w) => {
+        localStorage.setItem('docsPanelWidth', String(w));
+        return w;
+      });
+    };
+    window.addEventListener('mousemove', onMouseMove);
+    window.addEventListener('mouseup', onMouseUp);
+    return () => {
+      window.removeEventListener('mousemove', onMouseMove);
+      window.removeEventListener('mouseup', onMouseUp);
+    };
+  }, []);
+
   useEffect(() => {
     document.documentElement.setAttribute("data-theme", store.theme);
   }, [store.theme]);
@@ -293,10 +338,10 @@ export const App = () => {
               )}
             </Button>
             <Button
-              onClick={() => setActiveTab('docs')}
+              onClick={toggleDocs}
               style={{
-                borderColor: activeTab === 'docs' ? 'var(--ink)' : 'var(--hair)',
-                color: activeTab === 'docs' ? 'var(--ink)' : 'var(--muted)',
+                borderColor: docsOpen ? 'var(--ink)' : 'var(--hair)',
+                color: docsOpen ? 'var(--ink)' : 'var(--muted)',
               }}
             >
               Docs
@@ -355,9 +400,6 @@ export const App = () => {
         <div className="flex-1 relative overflow-hidden flex flex-col">
           {activeTab === 'history' && (
             <CommandHistoryTab history={store.history} />
-          )}
-          {activeTab === 'docs' && (
-            <DocsTab />
           )}
           <div className={activeTab === 'graph' ? 'flex-1 relative' : 'hidden'}>
           <GitCanvas
@@ -456,6 +498,39 @@ export const App = () => {
           onTokenHover={setHighlightNodeIds}
         />
       </div>
+
+      {/* Right docs panel */}
+      {docsOpen && (
+        <div
+          className="flex-shrink-0 flex border-l border-dashed border-[var(--hair)] relative"
+          style={{ width: docsPanelWidth }}
+        >
+          {/* Drag handle */}
+          <div
+            className="absolute left-0 top-0 bottom-0 w-1 cursor-col-resize z-10 hover:bg-[var(--feat)] opacity-0 hover:opacity-30 transition-opacity"
+            onMouseDown={onResizeMouseDown}
+          />
+          <div className="flex-1 overflow-hidden flex flex-col">
+            <div
+              className="px-3 py-2 border-b border-dashed border-[var(--hair)] flex items-center justify-between flex-shrink-0"
+              style={{ background: 'var(--panel)' }}
+            >
+              <span className="font-mono text-[10px] uppercase tracking-widest text-[var(--muted)]">
+                Docs
+              </span>
+              <button
+                type="button"
+                className="font-mono text-[11px] text-[var(--muted)] hover:text-[var(--ink)] transition-colors"
+                onClick={toggleDocs}
+              >
+                ✕
+              </button>
+            </div>
+            <DocsPanel currentModuleId={store.mode} isOpen={docsOpen} />
+          </div>
+        </div>
+      )}
+
       {toastModuleId && (
         <Toast
           moduleId={toastModuleId}
