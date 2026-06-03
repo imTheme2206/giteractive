@@ -56,6 +56,12 @@ const en = {
     attempts: 'attempts: {{count}}',
   },
   lessons: {
+    init: {
+      title: 'Level 00 — Your First Commit',
+      description: 'You have an empty repository. Make your first commit to start tracking history.',
+      hint: 'Click the + button to stage your changes, then commit them.',
+      chips: ['action: first commit'],
+    },
     linear: {
       title: 'Level 01 — The Linear Timeline',
       description: 'Add 4 more commits to reach 7 total and see how git builds a linear history.',

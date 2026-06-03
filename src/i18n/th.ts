@@ -63,6 +63,12 @@ const th = {
   },
 
   lessons: {
+    init: {
+      title: 'ด่าน 00 — commit แรกของคุณ',
+      description: 'คุณมี repository ที่ว่างเปล่า สร้าง commit แรกเพื่อเริ่มติดตามประวัติ',
+      hint: 'กดปุ่ม + เพื่อ stage การเปลี่ยนแปลง จากนั้น commit',
+      chips: ['การกระทำ: commit แรก'],
+    },
     linear: {
       title: "ด่าน 01 — ไทม์ไลน์เส้นตรง",
       description:

@@ -14,7 +14,8 @@ type GoalCardProps = {
 
 export const GoalCard = ({ lesson, attempts, guided, onToggleGuided }: GoalCardProps) => {
   const { t } = useTranslation();
-  const chips = t(`lessons.${lesson.id}.chips`, { returnObjects: true }) as string[];
+  const rawChips = t(`lessons.${lesson.id}.chips`, { returnObjects: true });
+  const chips: string[] = Array.isArray(rawChips) ? rawChips : lesson.chips;
 
   return (
     <div className="absolute bottom-4 left-4 z-10" style={{ width: 288 }}>

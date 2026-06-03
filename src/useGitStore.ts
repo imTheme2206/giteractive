@@ -45,7 +45,11 @@ const INITIAL_PROGRESS: ModuleProgress[] = [
 const loadProgress = (): ModuleProgress[] => {
   try {
     const saved = localStorage.getItem('giteractive_progress');
-    if (saved) return JSON.parse(saved) as ModuleProgress[];
+    if (saved) {
+      const savedArr = JSON.parse(saved) as ModuleProgress[];
+      // Merge: keep saved statuses but ensure every module from INITIAL_PROGRESS is present
+      return INITIAL_PROGRESS.map(init => savedArr.find(s => s.id === init.id) ?? init);
+    }
   } catch {}
   return INITIAL_PROGRESS;
 };

@@ -628,6 +628,7 @@ export const GitCanvas = ({
         </div>
       )}
       <ReactFlow
+        key={mode}
         nodes={[...nodes, ...ghostElements.nodes]}
         edges={[...edges, ...ghostElements.edges]}
         nodeTypes={nodeTypes}
@@ -638,6 +639,7 @@ export const GitCanvas = ({
         onNodeDrag={onNodeDrag}
         onNodeDragStop={onNodeDragStop}
         fitView
+        fitViewOptions={{ padding: 0.3 }}
         proOptions={{ hideAttribution: true }}
       >
         <Background variant={BackgroundVariant.Dots} gap={22} size={1.4} color="var(--grid)" />
@@ -653,3 +655,4 @@ export const GitCanvas = ({
     </div>
   );
 };
+

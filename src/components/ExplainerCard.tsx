@@ -62,9 +62,10 @@ export const ExplainerCard = ({ command, onDismiss }: ExplainerCardProps) => {
   const [visibleSteps, setVisibleSteps] = useState(0);
 
   const keys = getExplainerKey(command);
-  const steps = keys?.stepsKey
-    ? (t(keys.stepsKey, { returnObjects: true, ...keys.vars }) as string[])
+  const rawSteps = keys?.stepsKey
+    ? t(keys.stepsKey, { returnObjects: true, ...keys.vars })
     : null;
+  const steps: string[] | null = Array.isArray(rawSteps) ? rawSteps : null;
   const totalSteps = steps?.length ?? 0;
 
   useEffect(() => {
