@@ -28,7 +28,7 @@ jobs:
         run: bun install --frozen-lockfile
 
       - name: Build
-        run: bun run build --public-path=./
+        run: bun run build
 
       - uses: actions/upload-pages-artifact@v3
         with:
