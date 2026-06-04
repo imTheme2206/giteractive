@@ -18,7 +18,8 @@ import { useDocsPanelResize } from "./hooks/useDocsPanelResize";
 import { useExplainerCommand } from "./hooks/useExplainerCommand";
 import { useModuleCompletion } from "./hooks/useModuleCompletion";
 import { useUIPreferences } from "./hooks/useUIPreferences";
-import { MODULE_ACCENT, MODULE_LESSONS } from "./moduleConfig";
+import { MODULE_ACCENT } from "./moduleConfig";
+import { MODULE_REGISTRY } from "./moduleRegistry";
 import type { ModuleId } from "./types";
 import { useGitStore } from "./useGitStore";
 import { deriveCommands } from "./utils/deriveCommands";
@@ -39,26 +40,14 @@ export const App = () => {
     store.mode,
   );
 
-  const currentLesson = MODULE_LESSONS[store.mode];
+  const currentLesson = MODULE_REGISTRY[store.mode]?.lesson;
   const currentComplete =
     store.moduleProgress.find((p) => p.id === store.mode)?.status ===
     "complete";
 
   const enterModule = (id: ModuleId) => {
     setPendingModule(null);
-    if (id === "module0") store.enterModule0();
-    else if (id === "module1") store.enterModule1();
-    else if (id === "module2") store.enterModule2();
-    else if (id === "module3") store.enterModule3();
-    else if (id === "module4") store.enterModule4();
-    else if (id === "module5") store.enterModule5();
-    else if (id === "module6") store.enterModule6();
-    else if (id === "module7") store.enterModule7();
-    else if (id === "module8") store.enterModule8();
-    else if (id === "module9") store.enterModule9();
-    else if (id === "module10") store.enterModule10();
-    else if (id === "module11") store.enterModule11();
-    else store.unlockSandbox();
+    store.enterModule(id);
   };
 
   const executeModuleCommand = (cmd: string) => {

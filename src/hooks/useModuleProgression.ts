@@ -1,21 +1,10 @@
 import { useEffect, useState } from "react";
+import { MODULE_REGISTRY } from '../moduleRegistry';
 import type { ModuleId, ModuleProgress, ModuleStatus } from "../types";
 
-const INITIAL_PROGRESS: ModuleProgress[] = [
-  { id: "module0", status: "available" },
-  { id: "module1", status: "locked" },
-  { id: "module2", status: "locked" },
-  { id: "module3", status: "locked" },
-  { id: "module4", status: "locked" },
-  { id: "module5", status: "locked" },
-  { id: "module6", status: "locked" },
-  { id: "module7", status: "locked" },
-  { id: "module8", status: "locked" },
-  { id: "module9", status: "locked" },
-  { id: "module10", status: "locked" },
-  { id: "module11", status: "locked" },
-  { id: "sandbox", status: "available" },
-];
+const INITIAL_PROGRESS: ModuleProgress[] = Object.entries(MODULE_REGISTRY).map(
+  ([id, def]) => ({ id: id as ModuleId, status: def.initialStatus })
+);
 
 const loadProgress = (): ModuleProgress[] => {
   try {
