@@ -17,6 +17,7 @@ import { WelcomeOverlay } from "./components/WelcomeOverlay";
 import { useDocsPanelResize } from "./hooks/useDocsPanelResize";
 import { useExplainerCommand } from "./hooks/useExplainerCommand";
 import { useModuleCompletion } from "./hooks/useModuleCompletion";
+import { useUIPreferences } from "./hooks/useUIPreferences";
 import { MODULE_ACCENT, MODULE_LESSONS } from "./moduleConfig";
 import type { ModuleId } from "./types";
 import { useGitStore } from "./useGitStore";
@@ -24,6 +25,7 @@ import { deriveCommands } from "./utils/deriveCommands";
 
 export const App = () => {
   const store = useGitStore();
+  const { sidebarOpen, setSidebarOpen } = useUIPreferences();
   const [highlightNodeIds, setHighlightNodeIds] = useState<string[]>([]);
   const [pendingModule, setPendingModule] = useState<ModuleId | null>(null);
   const [activeTab, setActiveTab] = useState<"graph" | "history">("graph");
@@ -121,7 +123,7 @@ export const App = () => {
 
   return (
     <div className="flex h-screen overflow-hidden relative">
-      {store.sidebarOpen && (
+      {sidebarOpen && (
         <Sidebar
           history={store.history}
           mode={store.mode}
@@ -146,8 +148,8 @@ export const App = () => {
       <div className="flex-1 flex flex-col min-w-0">
         <Toolbar
           mode={store.mode}
-          sidebarOpen={store.sidebarOpen}
-          onToggleSidebar={() => store.setSidebarOpen((o) => !o)}
+          sidebarOpen={sidebarOpen}
+          onToggleSidebar={() => setSidebarOpen((o) => !o)}
           activeTab={activeTab}
           onTabChange={setActiveTab}
           docsOpen={docsOpen}
@@ -157,12 +159,6 @@ export const App = () => {
           onStash={store.doStash}
           onStashPop={store.doStashPop}
           onReset={store.doReset}
-          theme={store.theme}
-          onToggleTheme={() =>
-            store.setTheme((t) => (t === "light" ? "dark" : "light"))
-          }
-          devMode={store.devMode}
-          onUnlockAll={store.unlockAll}
           historyCount={store.history.length}
         />
 

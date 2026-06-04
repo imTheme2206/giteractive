@@ -24,7 +24,6 @@ import {
   squashCommits,
 } from "./gitState";
 import { useModuleProgression } from "./hooks/useModuleProgression";
-import { useUIPreferences } from "./hooks/useUIPreferences";
 import {
   LESSON_CHERRY_PICK,
   LESSON_CONFLICT,
@@ -84,15 +83,7 @@ export const useGitStore = () => {
     Record<string, CommitNode>
   >({});
 
-  // composed slices
-  const {
-    theme,
-    setTheme,
-    sidebarOpen,
-    setSidebarOpen,
-    devMode,
-    setDevMode,
-  } = useUIPreferences();
+  const [devMode, setDevMode] = useState(false);
   const {
     moduleProgress,
     setModuleProgress,
@@ -596,10 +587,6 @@ export const useGitStore = () => {
     history,
     ticker,
     setTicker,
-    theme,
-    setTheme,
-    sidebarOpen,
-    setSidebarOpen,
     moduleProgress,
     showCompletionOverlay,
     moduleAttempts,
