@@ -10,6 +10,14 @@
       href="https://fonts.googleapis.com/css2?family=Kalam:wght@300;400;700&family=JetBrains+Mono:wght@400;700&display=swap"
       rel="stylesheet"
     />
+    <script>
+      var t = localStorage.getItem('theme');
+      if (t) document.documentElement.setAttribute('data-theme', t);
+    </script>
+    <style>
+      html, body { background: #f4f3ec; }
+      html[data-theme="dark"], html[data-theme="dark"] body { background: #10141a; }
+    </style>
   </head>
   <body>
     <div id="root"></div>

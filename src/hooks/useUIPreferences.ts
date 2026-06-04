@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useLayoutEffect, useState } from "react";
 
 export const useUIPreferences = () => {
   const [theme, setThemeState] = useState<"light" | "dark">(
@@ -13,6 +13,10 @@ export const useUIPreferences = () => {
       return next;
     });
   };
+  useLayoutEffect(() => {
+    document.documentElement.setAttribute("data-theme", theme);
+  }, [theme]);
+
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [devMode, setDevMode] = useState(false);
 
