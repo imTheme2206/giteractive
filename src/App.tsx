@@ -90,7 +90,9 @@ export const App = () => {
   const executeModuleCommand = (cmd: string) => {
     const { branches, commits, HEAD } = engine.gitState
 
-    if (cmd.startsWith('git commit')) {
+    if (cmd.startsWith('git add')) {
+      actions.doStageChanges()
+    } else if (cmd.startsWith('git commit')) {
       actions.doAddCommit()
     } else if (cmd === 'git checkout -b feature') {
       const headCommit = branches[HEAD] ?? HEAD
@@ -201,6 +203,7 @@ export const App = () => {
               doCheckout={actions.doCheckout}
               doResetHard={actions.doResetHard}
               doSquash={actions.doSquash}
+              doStageChanges={actions.doStageChanges}
               setGhostCommand={(cmd, subtitle) =>
                 feedback.setTicker({
                   command: cmd,
@@ -209,6 +212,7 @@ export const App = () => {
                 })
               }
               wip={interaction.wip}
+              staged={interaction.staged}
               highlightNodeIds={highlightNodeIds}
             />
 
@@ -252,7 +256,7 @@ export const App = () => {
         </div>
 
         <CommandPanel
-          commands={deriveCommands(moduleFlow.mode as ModuleId, engine.gitState, interaction.wip, interaction.stashStack)}
+          commands={deriveCommands(moduleFlow.mode as ModuleId, engine.gitState, interaction.wip, interaction.staged, interaction.stashStack)}
           onPreview={(cmd) => feedback.setTicker({ command: cmd, state: cmd ? 'ghost' : 'idle' })}
           onExecute={executeModuleCommand}
         />

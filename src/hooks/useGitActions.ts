@@ -4,14 +4,26 @@ import { useModuleFlow } from '../store/module-flow-store'
 import { useUIFeedback } from '../store/ui-feedback-store'
 
 export const useGitActions = () => ({
-  doAddCommit: () => {
-    const { wip } = useInteraction.getState()
+  doStageChanges: () => {
     const engine = useGitEngine.getState()
     const before = engine.gitState
+    const { wip } = useInteraction.getState()
     const message = wip ?? `feat: new commit ${before.nextCommitNum}`
-    const result = engine.doAddCommit(message)
-    if (!result) return
     useInteraction.getState().setWip(null)
+    useInteraction.getState().setStaged(message)
+  },
+
+  doAddCommit: () => {
+    const engine = useGitEngine.getState()
+    const before = engine.gitState
+
+    const { staged } = useInteraction.getState()
+    const message = staged ?? `feat: new commit ${before.nextCommitNum}`
+    const result = engine.doAddCommit(message)
+    if (!result) {
+      return
+    }
+    useInteraction.getState().setStaged(null)
     useUIFeedback.getState().flashAndLogCommit(result.command, before.HEAD, before, result.state)
     useModuleFlow.getState().checkCompletion('addCommit', result.state)
   },

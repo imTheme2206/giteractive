@@ -23,6 +23,8 @@ type GitCanvasProps = {
   doCheckout: (target: string) => void
   doResetHard: (commitId: string) => void
   doSquash: (branchName: string, count: number, message: string) => void
+  doStageChanges: () => void
+  staged: string | null
   setGhostCommand: (cmd: string, subtitle?: string) => void
   wip?: string | null
   highlightNodeIds?: string[]
@@ -50,6 +52,8 @@ export const GitCanvas = ({
   doSquash,
   setGhostCommand,
   wip,
+  staged,
+  doStageChanges,
   highlightNodeIds,
 }: GitCanvasProps) => {
   const { t } = useTranslation()
@@ -170,6 +174,22 @@ export const GitCanvas = ({
           },
           draggable: false,
         })
+      } else if (staged !== null) {
+        result.push({
+          id: 'staged-changes',
+          type: 'commit',
+          position: { x: headLayout.x + 130, y: headLayout.y },
+          data: {
+            label: 'IDX',
+            branch: gitState.commits[headCommitId]?.branch ?? 'main',
+            isGhost: false,
+            isHead: false,
+            isWip: false,
+            isStaged: true,
+            wipMessage: staged,
+          },
+          draggable: false,
+        })
       } else {
         result.push({
           id: 'addCommit',
@@ -206,6 +226,7 @@ export const GitCanvas = ({
     headAncestors,
     isDetachedHead,
     wip,
+    staged,
     highlightNodeIds,
     isEmpty,
     gitState.HEAD,
@@ -240,9 +261,17 @@ export const GitCanvas = ({
         type: 'smoothstep',
         style: { stroke: 'var(--ghost)', strokeWidth: 2, strokeDasharray: '4 3' },
       })
+    } else if (headCommitId && !isDetachedHead && staged !== null) {
+      result.push({
+        id: 'e-staged',
+        source: headCommitId,
+        target: 'staged-changes',
+        type: 'smoothstep',
+        style: { stroke: 'var(--ghost)', strokeWidth: 2, strokeDasharray: '4 3' },
+      })
     }
     return result
-  }, [gitState.commits, layout, wip, headCommitId, isDetachedHead])
+  }, [gitState.commits, layout, wip, staged, headCommitId, isDetachedHead])
 
   const onNodeClick: NodeMouseHandler = useCallback(
     (event, node) => {
@@ -254,6 +283,11 @@ export const GitCanvas = ({
       }
 
       if (node.id === 'ghost-wip') {
+        doStageChanges()
+        return
+      }
+
+      if (node.id === 'staged-changes') {
         doAddCommit()
         return
       }

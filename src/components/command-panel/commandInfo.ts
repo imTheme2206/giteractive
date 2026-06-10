@@ -5,6 +5,7 @@ export type { GitCommandName as CommandKey }
 export const COMMANDS_WITH_STEPS: ReadonlySet<GitCommandName> = new Set(['cherry_pick', 'rebase_i', 'rebase', 'merge', 'reset_hard'])
 
 export const matchCommand = (cmd: string): GitCommandName | null => {
+  if (cmd.startsWith('git add')) return 'stage'
   if (cmd.startsWith('git rebase -i')) return 'rebase_i'
   if (cmd.startsWith('git rebase')) return 'rebase'
   if (cmd.startsWith('git checkout -b')) return 'checkout_b'

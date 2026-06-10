@@ -89,6 +89,7 @@ export type ReflogEntry = {
 }
 
 export type GitCommandName =
+  | 'stage'
   | 'commit'
   | 'checkout_b'
   | 'checkout'

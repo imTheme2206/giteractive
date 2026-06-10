@@ -21,6 +21,7 @@ type GitEngineStore = {
   gitState: GitState
   reflog: ReflogEntry[]
   shadowCommits: Record<CommitHash, CommitNode>
+  doStageChanges: () => void
   doAddCommit: (message: string) => { state: GitState; command: string } | null
   doCherryPick: (sourceId: string, targetBranch: string) => { state: GitState; command: string } | null
   doRebase: (branch: string, onto: string) => { state: GitState; command: string } | null
@@ -46,7 +47,13 @@ export const useGitEngine = create<GitEngineStore>((set, get) => ({
   gitState: isFirstVisit ? git.makeModule0State() : git.makeSandboxState(),
   reflog: [],
   shadowCommits: {},
-
+  doStageChanges: () => {
+    const before = get().gitState
+    const result = git.stageChanges(before)
+    if (!result) return null
+    set({ gitState: result.state })
+    return result
+  },
   doAddCommit: (message) => {
     const before = get().gitState
     const result = git.addCommit(before, message)
