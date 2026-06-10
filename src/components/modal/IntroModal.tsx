@@ -1,22 +1,22 @@
-import { useTranslation } from 'react-i18next';
-import type { ModuleId } from '../../types';
-import { ModalBackdrop } from './ModalBackdrop';
-import { Button } from '../common/Button';
-import { cardRadius, insightRadius } from '../common/radii';
+import { useTranslation } from 'react-i18next'
+import type { ModuleId } from '../../types'
+import { ModalBackdrop } from './ModalBackdrop'
+import { Button } from '../common/Button'
+import { cardRadius, insightRadius } from '../common/radii'
 
 type IntroModalProps = {
-  moduleId: Exclude<ModuleId, 'sandbox'>;
-  onStart: () => void;
-  onSkip: () => void;
-};
+  moduleId: Exclude<ModuleId, 'sandbox'>
+  onStart: () => void
+  onSkip: () => void
+}
 
 export const IntroModal = ({ moduleId, onStart, onSkip }: IntroModalProps) => {
-  const { t } = useTranslation();
+  const { t } = useTranslation()
 
   return (
     <ModalBackdrop>
       <div
-        className="bg-[var(--panel)] shadow-2xl w-full mx-6"
+        className="mx-6 w-full bg-[var(--panel)] shadow-2xl"
         style={{
           maxWidth: 480,
           border: '2.5px solid var(--ink)',
@@ -24,28 +24,18 @@ export const IntroModal = ({ moduleId, onStart, onSkip }: IntroModalProps) => {
         }}
       >
         <div className="px-7 pt-7 pb-2">
-          <div className="font-bold text-lg text-[var(--ink)] leading-tight font-hand">
-            {t(`intro.${moduleId}.title`)}
-          </div>
+          <div className="font-hand text-lg leading-tight font-bold text-[var(--ink)]">{t(`intro.${moduleId}.title`)}</div>
         </div>
 
-        <div className="px-7 pt-3 pb-1 flex flex-col gap-4">
+        <div className="flex flex-col gap-4 px-7 pt-3 pb-1">
           <div>
-            <span className="font-mono text-xs uppercase tracking-widest text-[var(--muted)] block mb-1">
-              The Problem
-            </span>
-            <p className="text-sm text-[var(--soft)] leading-relaxed m-0 font-hand">
-              {t(`intro.${moduleId}.scenario`)}
-            </p>
+            <span className="mb-1 block font-mono text-xs tracking-widest text-[var(--muted)] uppercase">The Problem</span>
+            <p className="m-0 font-hand text-sm leading-relaxed text-[var(--soft)]">{t(`intro.${moduleId}.scenario`)}</p>
           </div>
 
           <div>
-            <span className="font-mono text-xs uppercase tracking-widest text-[var(--muted)] block mb-1">
-              How Git Works
-            </span>
-            <p className="text-sm text-[var(--soft)] leading-relaxed m-0 font-hand">
-              {t(`intro.${moduleId}.concept`)}
-            </p>
+            <span className="mb-1 block font-mono text-xs tracking-widest text-[var(--muted)] uppercase">How Git Works</span>
+            <p className="m-0 font-hand text-sm leading-relaxed text-[var(--soft)]">{t(`intro.${moduleId}.concept`)}</p>
           </div>
 
           <div
@@ -56,16 +46,12 @@ export const IntroModal = ({ moduleId, onStart, onSkip }: IntroModalProps) => {
               background: 'color-mix(in srgb, var(--feat) 6%, var(--panel))',
             }}
           >
-            <span className="font-bold text-xs text-[var(--feat)] font-hand">
-              Key insight:{' '}
-            </span>
-            <span className="text-sm text-[var(--soft)] font-hand">
-              {t(`intro.${moduleId}.keyInsight`)}
-            </span>
+            <span className="font-hand text-xs font-bold text-[var(--feat)]">Key insight: </span>
+            <span className="font-hand text-sm text-[var(--soft)]">{t(`intro.${moduleId}.keyInsight`)}</span>
           </div>
         </div>
 
-        <div className="px-7 py-5 flex items-center justify-between">
+        <div className="flex items-center justify-between px-7 py-5">
           <Button variant="ghost" onClick={onSkip}>
             Skip intro
           </Button>
@@ -75,5 +61,5 @@ export const IntroModal = ({ moduleId, onStart, onSkip }: IntroModalProps) => {
         </div>
       </div>
     </ModalBackdrop>
-  );
-};
+  )
+}

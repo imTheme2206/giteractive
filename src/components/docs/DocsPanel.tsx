@@ -1,44 +1,46 @@
-import { useEffect, useRef, useState } from 'react';
-import { useTranslation } from 'react-i18next';
-import { insightRadius } from '../common/radii';
-import { CommandCard } from './CommandCard';
-import { MODULES } from './moduleData';
-import { Section } from './Section';
+import { useEffect, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
+import { insightRadius } from '../common/radii'
+import { CommandCard } from './CommandCard'
+import { MODULES } from './moduleData'
+import { Section } from './Section'
 
 type Props = {
-  currentModuleId: string;
-  isOpen: boolean;
-};
+  currentModuleId: string
+  isOpen: boolean
+}
 
-type CmdText = { description: string; steps?: string[] };
+type CmdText = { description: string; steps?: string[] }
 
 export const DocsPanel = ({ currentModuleId, isOpen }: Props) => {
-  const { t } = useTranslation();
-  const [open, setOpen] = useState<string | null>(null);
-  const rowRefs = useRef<Record<string, HTMLDivElement | null>>({});
+  const { t } = useTranslation()
+  const [open, setOpen] = useState<string | null>(null)
+  const rowRefs = useRef<Record<string, HTMLDivElement | null>>({})
 
   useEffect(() => {
-    if (!isOpen) return;
-    const match = MODULES.find((m) => m.id === currentModuleId);
-    if (!match) return;
-    setOpen(match.id);
+    if (!isOpen) return
+    const match = MODULES.find((m) => m.id === currentModuleId)
+    if (!match) return
+    setOpen(match.id)
     requestAnimationFrame(() => {
-      rowRefs.current[match.id]?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    });
-  }, [currentModuleId, isOpen]);
+      rowRefs.current[match.id]?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    })
+  }, [currentModuleId, isOpen])
 
   return (
     <div className="h-full overflow-y-auto">
-      <div className="px-3 py-4 flex flex-col gap-2">
+      <div className="flex flex-col gap-2 px-3 py-4">
         {MODULES.map((mod) => {
-          const isExpanded = open === mod.id;
-          const isCurrent = mod.id === currentModuleId;
-          const cmdTexts = t(`docs.modules.${mod.id}.commands`, { returnObjects: true }) as CmdText[];
+          const isExpanded = open === mod.id
+          const isCurrent = mod.id === currentModuleId
+          const cmdTexts = t(`docs.modules.${mod.id}.commands`, { returnObjects: true }) as CmdText[]
 
           return (
             <div
               key={mod.id}
-              ref={(el) => { rowRefs.current[mod.id] = el; }}
+              ref={(el) => {
+                rowRefs.current[mod.id] = el
+              }}
               className="overflow-hidden"
               style={{
                 borderRadius: '12px',
@@ -49,17 +51,15 @@ export const DocsPanel = ({ currentModuleId, isOpen }: Props) => {
             >
               <button
                 type="button"
-                className="w-full text-left flex items-center gap-2.5 px-3 py-2.5 cursor-pointer"
+                className="flex w-full cursor-pointer items-center gap-2.5 px-3 py-2.5 text-left"
                 style={{
-                  background: isExpanded
-                    ? `color-mix(in srgb, ${mod.accent} 7%, var(--panel))`
-                    : 'transparent',
+                  background: isExpanded ? `color-mix(in srgb, ${mod.accent} 7%, var(--panel))` : 'transparent',
                   transition: 'background 0.2s',
                 }}
                 onClick={() => setOpen(isExpanded ? null : mod.id)}
               >
                 <span
-                  className="font-mono text-xs font-bold w-6 h-6 flex items-center justify-center flex-shrink-0"
+                  className="flex h-6 w-6 flex-shrink-0 items-center justify-center font-mono text-xs font-bold"
                   style={{
                     borderRadius: '7px',
                     background: `color-mix(in srgb, ${mod.accent} 15%, var(--panel2))`,
@@ -69,17 +69,10 @@ export const DocsPanel = ({ currentModuleId, isOpen }: Props) => {
                 >
                   {mod.num}
                 </span>
-                <span className="font-hand font-bold text-sm text-[var(--ink)] flex-1 leading-tight">
-                  {t(`intro.${mod.id}.title`)}
-                </span>
-                {isCurrent && !isExpanded && (
-                  <span
-                    className="w-1.5 h-1.5 rounded-full flex-shrink-0"
-                    style={{ background: mod.accent }}
-                  />
-                )}
+                <span className="flex-1 font-hand text-sm leading-tight font-bold text-[var(--ink)]">{t(`intro.${mod.id}.title`)}</span>
+                {isCurrent && !isExpanded && <span className="h-1.5 w-1.5 flex-shrink-0 rounded-full" style={{ background: mod.accent }} />}
                 <span
-                  className="font-mono text-xs text-[var(--muted)] flex-shrink-0"
+                  className="flex-shrink-0 font-mono text-xs text-[var(--muted)]"
                   style={{ transition: 'transform 0.2s', transform: isExpanded ? 'rotate(180deg)' : 'none' }}
                 >
                   ▾
@@ -87,19 +80,15 @@ export const DocsPanel = ({ currentModuleId, isOpen }: Props) => {
               </button>
 
               {isExpanded && (
-                <div className="px-3 pb-3 flex flex-col gap-3">
+                <div className="flex flex-col gap-3 px-3 pb-3">
                   <div className="h-px" style={{ background: `color-mix(in srgb, ${mod.accent} 20%, var(--hair))` }} />
 
                   <div className="flex flex-col gap-2">
                     <Section label={t('docs.labels.theProblem')}>
-                      <p className="text-sm text-[var(--soft)] leading-relaxed m-0 font-hand">
-                        {t(`intro.${mod.id}.scenario`)}
-                      </p>
+                      <p className="m-0 font-hand text-sm leading-relaxed text-[var(--soft)]">{t(`intro.${mod.id}.scenario`)}</p>
                     </Section>
                     <Section label={t('docs.labels.howGitWorks')}>
-                      <p className="text-sm text-[var(--soft)] leading-relaxed m-0 font-hand">
-                        {t(`intro.${mod.id}.concept`)}
-                      </p>
+                      <p className="m-0 font-hand text-sm leading-relaxed text-[var(--soft)]">{t(`intro.${mod.id}.concept`)}</p>
                     </Section>
                   </div>
 
@@ -111,18 +100,16 @@ export const DocsPanel = ({ currentModuleId, isOpen }: Props) => {
                       background: `color-mix(in srgb, ${mod.accent} 7%, var(--panel))`,
                     }}
                   >
-                    <span className="font-bold text-xs font-hand" style={{ color: mod.accent }}>
+                    <span className="font-hand text-xs font-bold" style={{ color: mod.accent }}>
                       {t('docs.labels.keyInsight')}{' '}
                     </span>
-                    <span className="text-sm text-[var(--soft)] font-hand">
-                      {t(`intro.${mod.id}.keyInsight`)}
-                    </span>
+                    <span className="font-hand text-sm text-[var(--soft)]">{t(`intro.${mod.id}.keyInsight`)}</span>
                   </div>
 
                   <Section label={t('docs.labels.commands')}>
                     <div className="flex flex-col gap-1.5">
                       {mod.commandStrings.map((cmdStr, i) => {
-                        const txt = Array.isArray(cmdTexts) ? cmdTexts[i] : undefined;
+                        const txt = Array.isArray(cmdTexts) ? cmdTexts[i] : undefined
                         return (
                           <CommandCard
                             key={cmdStr}
@@ -131,16 +118,16 @@ export const DocsPanel = ({ currentModuleId, isOpen }: Props) => {
                             steps={txt?.steps}
                             accent={mod.accent}
                           />
-                        );
+                        )
                       })}
                     </div>
                   </Section>
                 </div>
               )}
             </div>
-          );
+          )
         })}
       </div>
     </div>
-  );
-};
+  )
+}

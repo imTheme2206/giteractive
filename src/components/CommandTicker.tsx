@@ -1,21 +1,21 @@
-import { useState } from 'react';
-import type { TickerEntry, GitState } from '../types';
+import { useState } from 'react'
+import type { TickerEntry, GitState } from '../types'
 
 type CommandTickerProps = {
-  ticker: { command: string; subtitle?: string; state: 'idle' | 'ghost' | 'flash' };
-  history: TickerEntry[];
-  gitState: GitState;
-  onTokenHover: (nodeIds: string[]) => void;
-};
+  ticker: { command: string; subtitle?: string; state: 'idle' | 'ghost' | 'flash' }
+  history: TickerEntry[]
+  gitState: GitState
+  onTokenHover: (nodeIds: string[]) => void
+}
 
-type TokenType = 'git' | 'subcommand' | 'branch' | 'hash' | 'flag' | 'string' | 'space';
+type TokenType = 'git' | 'subcommand' | 'branch' | 'hash' | 'flag' | 'string' | 'space'
 
 type ParsedToken = {
-  text: string;
-  type: TokenType;
-  nodeId?: string;
-  tip?: string;
-};
+  text: string
+  type: TokenType
+  nodeId?: string
+  tip?: string
+}
 
 const SUBCOMMAND_TIPS: Record<string, string> = {
   commit: 'Snapshots staged changes into a new node in the graph.',
@@ -24,76 +24,76 @@ const SUBCOMMAND_TIPS: Record<string, string> = {
   merge: 'Joins two branch histories with a new merge commit. Original hashes are preserved.',
   reset: 'Moves the branch pointer backward, permanently erasing commits after the target.',
   stash: 'Saves uncommitted changes to a temporary stack; leaves a clean working tree.',
-  checkout: 'Moves HEAD to a branch or commit, updating what you\'re working on.',
-};
+  checkout: "Moves HEAD to a branch or commit, updating what you're working on.",
+}
 
 const parseCommand = (command: string, gitState: GitState): ParsedToken[] => {
-  if (!command) return [];
-  const parts = command.split(/(\s+)/);
-  const branches = Object.keys(gitState.branches);
-  const commitIds = Object.keys(gitState.commits);
+  if (!command) return []
+  const parts = command.split(/(\s+)/)
+  const branches = Object.keys(gitState.branches)
+  const commitIds = Object.keys(gitState.commits)
 
-  let nonSpaceIdx = 0;
-  return parts.map(text => {
-    if (/^\s+$/.test(text)) return { text, type: 'space' };
-    const idx = nonSpaceIdx++;
-    if (idx === 0) return { text, type: 'git' };
+  let nonSpaceIdx = 0
+  return parts.map((text) => {
+    if (/^\s+$/.test(text)) return { text, type: 'space' }
+    const idx = nonSpaceIdx++
+    if (idx === 0) return { text, type: 'git' }
     if (idx === 1) {
-      const tip = SUBCOMMAND_TIPS[text];
-      return { text, type: 'subcommand', tip };
+      const tip = SUBCOMMAND_TIPS[text]
+      return { text, type: 'subcommand', tip }
     }
-    if (text.startsWith('-')) return { text, type: 'flag' };
-    if (text.startsWith('"') || text.startsWith("'")) return { text, type: 'string' };
-    if (text === 'HEAD') return { text, type: 'branch', nodeId: 'label-HEAD' };
-    if (branches.includes(text)) return { text, type: 'branch', nodeId: `branch-${text}` };
-    const matchId = commitIds.find(id => id.startsWith(text));
-    if (matchId) return { text, type: 'hash', nodeId: matchId };
-    return { text, type: 'string' };
-  });
-};
+    if (text.startsWith('-')) return { text, type: 'flag' }
+    if (text.startsWith('"') || text.startsWith("'")) return { text, type: 'string' }
+    if (text === 'HEAD') return { text, type: 'branch', nodeId: 'label-HEAD' }
+    if (branches.includes(text)) return { text, type: 'branch', nodeId: `branch-${text}` }
+    const matchId = commitIds.find((id) => id.startsWith(text))
+    if (matchId) return { text, type: 'hash', nodeId: matchId }
+    return { text, type: 'string' }
+  })
+}
 
-const argNodeIds = (tokens: ParsedToken[]) =>
-  tokens.filter(t => t.nodeId && t.type !== 'subcommand').map(t => t.nodeId!);
+const argNodeIds = (tokens: ParsedToken[]) => tokens.filter((t) => t.nodeId && t.type !== 'subcommand').map((t) => t.nodeId!)
 
 type TokenSpanProps = {
-  token: ParsedToken;
-  allTokens: ParsedToken[];
-  onEnter: (ids: string[]) => void;
-  onLeave: () => void;
-  baseColor: string;
-};
+  token: ParsedToken
+  allTokens: ParsedToken[]
+  onEnter: (ids: string[]) => void
+  onLeave: () => void
+  baseColor: string
+}
 
 const TokenSpan = ({ token, allTokens, onEnter, onLeave, baseColor }: TokenSpanProps) => {
-  const [hovered, setHovered] = useState(false);
+  const [hovered, setHovered] = useState(false)
 
-  if (token.type === 'space') return <span>{token.text}</span>;
+  if (token.type === 'space') return <span>{token.text}</span>
 
-  const isInteractive = token.type === 'branch' || token.type === 'hash' || (token.type === 'subcommand' && (!!token.nodeId || !!token.tip));
-  const isBranchOrHash = token.type === 'branch' || token.type === 'hash';
+  const isInteractive = token.type === 'branch' || token.type === 'hash' || (token.type === 'subcommand' && (!!token.nodeId || !!token.tip))
+  const isBranchOrHash = token.type === 'branch' || token.type === 'hash'
 
-  const color = hovered && isBranchOrHash
-    ? token.type === 'hash'
-      ? 'var(--head)'
-      : token.text === 'main'
-        ? 'var(--main)'
-        : 'var(--feat)'
-    : token.type === 'flag'
-      ? 'var(--muted)'
-      : baseColor;
+  const color =
+    hovered && isBranchOrHash
+      ? token.type === 'hash'
+        ? 'var(--head)'
+        : token.text === 'main'
+          ? 'var(--main)'
+          : 'var(--feat)'
+      : token.type === 'flag'
+        ? 'var(--muted)'
+        : baseColor
 
   const handleEnter = () => {
-    setHovered(true);
+    setHovered(true)
     if (token.type === 'subcommand') {
-      onEnter(argNodeIds(allTokens));
+      onEnter(argNodeIds(allTokens))
     } else if (token.nodeId) {
-      onEnter([token.nodeId]);
+      onEnter([token.nodeId])
     }
-  };
+  }
 
   const handleLeave = () => {
-    setHovered(false);
-    onLeave();
-  };
+    setHovered(false)
+    onLeave()
+  }
 
   return (
     <span
@@ -134,8 +134,8 @@ const TokenSpan = ({ token, allTokens, onEnter, onLeave, baseColor }: TokenSpanP
         </span>
       )}
     </span>
-  );
-};
+  )
+}
 
 const TokenizedCommand = ({
   command,
@@ -143,47 +143,36 @@ const TokenizedCommand = ({
   baseColor,
   onTokenHover,
 }: {
-  command: string;
-  gitState: GitState;
-  baseColor: string;
-  onTokenHover: (ids: string[]) => void;
+  command: string
+  gitState: GitState
+  baseColor: string
+  onTokenHover: (ids: string[]) => void
 }) => {
-  const tokens = parseCommand(command, gitState);
+  const tokens = parseCommand(command, gitState)
   return (
     <>
       {tokens.map((token, i) => (
-        <TokenSpan
-          key={i}
-          token={token}
-          allTokens={tokens}
-          onEnter={onTokenHover}
-          onLeave={() => onTokenHover([])}
-          baseColor={baseColor}
-        />
+        <TokenSpan key={i} token={token} allTokens={tokens} onEnter={onTokenHover} onLeave={() => onTokenHover([])} baseColor={baseColor} />
       ))}
     </>
-  );
-};
+  )
+}
 
 export const CommandTicker = ({ ticker, history, gitState, onTokenHover }: CommandTickerProps) => {
-  const isIdle = ticker.state === 'idle';
-  const isGhost = ticker.state === 'ghost';
-  const isFlash = ticker.state === 'flash';
+  const isIdle = ticker.state === 'idle'
+  const isGhost = ticker.state === 'ghost'
+  const isFlash = ticker.state === 'flash'
 
-  const latestHistory = history[0];
+  const latestHistory = history[0]
 
-  const lineColor = isFlash
-    ? 'var(--ok)'
-    : isGhost
-      ? 'var(--ghost)'
-      : 'var(--soft)';
+  const lineColor = isFlash ? 'var(--ok)' : isGhost ? 'var(--ghost)' : 'var(--soft)'
 
-  const hasSubtitle = isGhost && !!ticker.subtitle;
+  const hasSubtitle = isGhost && !!ticker.subtitle
 
   return (
     <div
       className={[
-        'flex flex-col justify-center px-4 gap-0.5 flex-shrink-0 font-mono text-sm',
+        'flex flex-shrink-0 flex-col justify-center gap-0.5 px-4 font-mono text-sm',
         isFlash
           ? 'border-t border-[var(--ok)] text-[var(--ok)]'
           : isGhost
@@ -194,9 +183,7 @@ export const CommandTicker = ({ ticker, history, gitState, onTokenHover }: Comma
         minHeight: 56,
         paddingTop: hasSubtitle ? 8 : undefined,
         paddingBottom: hasSubtitle ? 8 : undefined,
-        background: isFlash
-          ? 'color-mix(in srgb, var(--ok) 8%, var(--panel))'
-          : 'var(--panel)',
+        background: isFlash ? 'color-mix(in srgb, var(--ok) 8%, var(--panel))' : 'var(--panel)',
         transition: 'background 0.4s, border-color 0.3s',
         animation: isFlash ? 'tickerFlash 1.2s ease-out' : undefined,
       }}
@@ -206,40 +193,27 @@ export const CommandTicker = ({ ticker, history, gitState, onTokenHover }: Comma
           latestHistory ? (
             <>
               <span className="text-[var(--muted)]">$</span>{' '}
-              <TokenizedCommand
-                command={latestHistory.command}
-                gitState={gitState}
-                baseColor="var(--soft)"
-                onTokenHover={onTokenHover}
-              />
+              <TokenizedCommand command={latestHistory.command} gitState={gitState} baseColor="var(--soft)" onTokenHover={onTokenHover} />
             </>
           ) : (
             <>
               <span className="text-[var(--muted)]">$</span>{' '}
-              <span className="inline-block w-2 h-3.5 bg-[var(--muted)] animate-pulse align-middle" />
+              <span className="inline-block h-3.5 w-2 animate-pulse bg-[var(--muted)] align-middle" />
             </>
           )
         ) : (
           <>
             <span className="text-[var(--muted)]">$</span>{' '}
-            <TokenizedCommand
-              command={ticker.command}
-              gitState={gitState}
-              baseColor={lineColor}
-              onTokenHover={onTokenHover}
-            />
+            <TokenizedCommand command={ticker.command} gitState={gitState} baseColor={lineColor} onTokenHover={onTokenHover} />
             {isFlash && <span className="ml-1.5">✓</span>}
           </>
         )}
       </span>
       {hasSubtitle && (
-        <span
-          className="text-xs text-[var(--muted)] leading-tight"
-          style={{ fontFamily: 'var(--hand)', paddingLeft: '1.1em' }}
-        >
+        <span className="text-xs leading-tight text-[var(--muted)]" style={{ fontFamily: 'var(--hand)', paddingLeft: '1.1em' }}>
           {ticker.subtitle}
         </span>
       )}
     </div>
-  );
-};
+  )
+}

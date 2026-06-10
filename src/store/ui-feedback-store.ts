@@ -1,40 +1,31 @@
-import { create } from "zustand";
-import type { GitState, TickerData, TickerEntry } from "../types";
+import { create } from 'zustand'
+import type { GitState, TickerData, TickerEntry } from '../types'
 
 type UIFeedbackStore = {
-  ticker: TickerData;
-  history: TickerEntry[];
-  setTicker: (data: Partial<TickerData>) => void;
-  flashAndLog: (
-    command: string,
-    stateBefore?: GitState,
-    stateAfter?: GitState,
-  ) => void;
-  flashAndLogCommit: (
-    command: string,
-    branch: string,
-    stateBefore: GitState,
-    stateAfter: GitState,
-  ) => void;
-  clear: () => void;
-};
+  ticker: TickerData
+  history: TickerEntry[]
+  setTicker: (data: Partial<TickerData>) => void
+  flashAndLog: (command: string, stateBefore?: GitState, stateAfter?: GitState) => void
+  flashAndLogCommit: (command: string, branch: string, stateBefore: GitState, stateAfter: GitState) => void
+  clear: () => void
+}
 
-const isFirstVisit = !localStorage.getItem("giteractive_welcomed");
+const isFirstVisit = !localStorage.getItem('giteractive_welcomed')
 
 export const useUIFeedback = create<UIFeedbackStore>((set) => ({
   ticker: {
-    command: isFirstVisit ? "git init" : "",
-    state: isFirstVisit ? "flash" : "idle",
+    command: isFirstVisit ? 'git init' : '',
+    state: isFirstVisit ? 'flash' : 'idle',
   },
   history: [],
 
   setTicker: (data) => set((s) => ({ ticker: { ...s.ticker, ...data } })),
 
   flashAndLog: (command, stateBefore, stateAfter) => {
-    set({ ticker: { command, state: "flash" } });
+    set({ ticker: { command, state: 'flash' } })
     setTimeout(() => {
       set((s) => ({
-        ticker: { ...s.ticker, state: "idle" },
+        ticker: { ...s.ticker, state: 'idle' },
         history: [
           {
             id: crypto.randomUUID(),
@@ -45,16 +36,16 @@ export const useUIFeedback = create<UIFeedbackStore>((set) => ({
           },
           ...s.history,
         ],
-      }));
-    }, 1200);
+      }))
+    }, 1200)
   },
 
   flashAndLogCommit: (command, branch, stateBefore, stateAfter) => {
-    set({ ticker: { command, state: "flash" } });
+    set({ ticker: { command, state: 'flash' } })
     setTimeout(() => {
-      const now = Date.now();
+      const now = Date.now()
       set((s) => ({
-        ticker: { ...s.ticker, state: "idle" },
+        ticker: { ...s.ticker, state: 'idle' },
         history: [
           {
             id: crypto.randomUUID(),
@@ -72,16 +63,16 @@ export const useUIFeedback = create<UIFeedbackStore>((set) => ({
           },
           {
             id: crypto.randomUUID(),
-            command: "git add .",
+            command: 'git add .',
             timestamp: now,
             stateBefore,
             stateAfter: stateBefore,
           },
           ...s.history,
         ],
-      }));
-    }, 1200);
+      }))
+    }, 1200)
   },
 
-  clear: () => set({ history: [], ticker: { command: "", state: "idle" } }),
-}));
+  clear: () => set({ history: [], ticker: { command: '', state: 'idle' } }),
+}))

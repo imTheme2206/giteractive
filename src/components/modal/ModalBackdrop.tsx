@@ -1,10 +1,10 @@
-import type { ReactNode } from 'react';
+import type { ReactNode } from 'react'
 
 type ModalBackdropProps = {
-  children: ReactNode;
-  zIndex?: number;
-  background?: string;
-};
+  children: ReactNode
+  zIndex?: number
+  background?: string
+}
 
 export const ModalBackdrop = ({ children, zIndex = 50, background }: ModalBackdropProps) => (
   <div
@@ -13,4 +13,4 @@ export const ModalBackdrop = ({ children, zIndex = 50, background }: ModalBackdr
   >
     {children}
   </div>
-);
+)

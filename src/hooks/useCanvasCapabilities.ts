@@ -1,4 +1,4 @@
-import type { Mode } from '../types';
+import type { Mode } from '../types'
 
 export const useCanvasCapabilities = (mode: Mode) => ({
   canBranch: mode !== 'module1',
@@ -6,4 +6,4 @@ export const useCanvasCapabilities = (mode: Mode) => ({
   canDrag: mode === 'sandbox' || mode === 'module3' || mode === 'module4' || mode === 'module5' || mode === 'module6',
   canReset: mode === 'sandbox' || mode === 'module7' || mode === 'module11',
   canSquash: mode === 'module9',
-});
+})

@@ -1,4 +1,4 @@
-import { Handle, Position } from '@xyflow/react';
+import { Handle, Position } from '@xyflow/react'
 
 export const AddCommitNode = ({ data }: { data: { disabled?: boolean; [key: string]: unknown } }) => {
   return (
@@ -19,8 +19,7 @@ export const AddCommitNode = ({ data }: { data: { disabled?: boolean; [key: stri
       }}
       title={data.disabled ? 'Detached HEAD — create a branch first to commit' : undefined}
     >
-      <Handle type="target" position={Position.Left} style={{ opacity: 0 }} />
-      +
+      <Handle type="target" position={Position.Left} style={{ opacity: 0 }} />+
     </div>
-  );
-};
+  )
+}

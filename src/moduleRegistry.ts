@@ -11,7 +11,7 @@ import {
   LESSON_RESET,
   LESSON_SQUASH,
   LESSON_STASH,
-} from "./lessons";
+} from './lessons'
 import {
   makeModule0State,
   makeModule10State,
@@ -26,141 +26,134 @@ import {
   makeModule9State,
   makeModuleState,
   makeSandboxState,
-} from "./store/gitState";
-import type {
-  CommitNode,
-  GitState,
-  LessonGoal,
-  ModuleId,
-  ModuleStatus,
-  ReflogEntry,
-} from "./types";
+} from './store/gitState'
+import type { CommitNode, GitState, LessonGoal, ModuleId, ModuleStatus, ReflogEntry } from './types'
 
 export type CompletionTrigger =
-  | "addCommit"
-  | "cherryPick"
-  | "rebase"
-  | "merge"
-  | "resolveConflict"
-  | "checkout"
-  | "resetHard"
-  | "stashPop"
-  | "squash"
-  | "reflogRecover";
+  | 'addCommit'
+  | 'cherryPick'
+  | 'rebase'
+  | 'merge'
+  | 'resolveConflict'
+  | 'checkout'
+  | 'resetHard'
+  | 'stashPop'
+  | 'squash'
+  | 'reflogRecover'
 
 export type ModuleDefinition = {
-  lesson?: LessonGoal;
-  makeState: () => GitState;
-  initialStatus: ModuleStatus;
-  next?: ModuleId;
-  completionTrigger?: CompletionTrigger;
-  initialWip?: string;
-  getShadowCommits?: () => Record<string, CommitNode>;
-  getInitialReflog?: () => ReflogEntry[];
-  validate?: (state: GitState) => boolean;
-};
+  lesson?: LessonGoal
+  makeState: () => GitState
+  initialStatus: ModuleStatus
+  next?: ModuleId
+  completionTrigger?: CompletionTrigger
+  initialWip?: string
+  getShadowCommits?: () => Record<string, CommitNode>
+  getInitialReflog?: () => ReflogEntry[]
+  validate?: (state: GitState) => boolean
+}
 
 export const MODULE_REGISTRY: Record<ModuleId, ModuleDefinition> = {
   module0: {
     lesson: LESSON_INIT,
     makeState: makeModule0State,
-    initialStatus: "available",
-    next: "module1",
-    completionTrigger: "addCommit",
+    initialStatus: 'available',
+    next: 'module1',
+    completionTrigger: 'addCommit',
   },
   module1: {
     lesson: LESSON_LINEAR,
     makeState: makeModuleState,
-    initialStatus: "locked",
-    next: "module2",
-    completionTrigger: "addCommit",
+    initialStatus: 'locked',
+    next: 'module2',
+    completionTrigger: 'addCommit',
   },
   module2: {
     lesson: LESSON_BRANCH,
     makeState: makeModuleState,
-    initialStatus: "locked",
-    next: "module3",
-    completionTrigger: "addCommit",
+    initialStatus: 'locked',
+    next: 'module3',
+    completionTrigger: 'addCommit',
     validate: (state) => {
-      const { HEAD, branches, commits } = state;
-      if (HEAD !== "main" && branches[HEAD]) {
-        const tip = commits[branches[HEAD]];
-        return !!(tip?.branch && tip.branch !== "main");
+      const { HEAD, branches, commits } = state
+      if (HEAD !== 'main' && branches[HEAD]) {
+        const tip = commits[branches[HEAD]]
+        return !!(tip?.branch && tip.branch !== 'main')
       }
-      return false;
+      return false
     },
   },
   module3: {
     lesson: LESSON_CHERRY_PICK,
     makeState: makeModule3State,
-    initialStatus: "locked",
-    next: "module4",
-    completionTrigger: "cherryPick",
+    initialStatus: 'locked',
+    next: 'module4',
+    completionTrigger: 'cherryPick',
   },
   module4: {
     lesson: LESSON_REBASE,
     makeState: makeModule4State,
-    initialStatus: "locked",
-    next: "module5",
-    completionTrigger: "rebase",
+    initialStatus: 'locked',
+    next: 'module5',
+    completionTrigger: 'rebase',
   },
   module5: {
     lesson: LESSON_MERGE,
     makeState: makeModule5State,
-    initialStatus: "locked",
-    next: "module6",
-    completionTrigger: "merge",
+    initialStatus: 'locked',
+    next: 'module6',
+    completionTrigger: 'merge',
   },
   module6: {
     lesson: LESSON_CONFLICT,
     makeState: makeModule6State,
-    initialStatus: "locked",
-    next: "module7",
-    completionTrigger: "resolveConflict",
+    initialStatus: 'locked',
+    next: 'module7',
+    completionTrigger: 'resolveConflict',
   },
   module7: {
     lesson: LESSON_RESET,
     makeState: makeModule7State,
-    initialStatus: "locked",
-    next: "module8",
-    completionTrigger: "resetHard",
+    initialStatus: 'locked',
+    next: 'module8',
+    completionTrigger: 'resetHard',
   },
   module8: {
     lesson: LESSON_STASH,
     makeState: makeModule8State,
-    initialStatus: "locked",
-    next: "module9",
-    completionTrigger: "stashPop",
-    initialWip: "fix: urgent hotfix for prod",
+    initialStatus: 'locked',
+    next: 'module9',
+    completionTrigger: 'stashPop',
+    initialWip: 'fix: urgent hotfix for prod',
   },
   module9: {
     lesson: LESSON_SQUASH,
     makeState: makeModule9State,
-    initialStatus: "locked",
-    next: "module10",
-    completionTrigger: "squash",
+    initialStatus: 'locked',
+    next: 'module10',
+    completionTrigger: 'squash',
   },
   module10: {
     lesson: LESSON_DETACHED_HEAD,
     makeState: makeModule10State,
-    initialStatus: "locked",
-    next: "module11",
-    completionTrigger: "checkout",
+    initialStatus: 'locked',
+    next: 'module11',
+    completionTrigger: 'checkout',
   },
   module11: {
     lesson: LESSON_REFLOG,
     makeState: makeModule11State,
-    initialStatus: "locked",
-    completionTrigger: "reflogRecover",
+    initialStatus: 'locked',
+    completionTrigger: 'reflogRecover',
     getShadowCommits: makeModule11ShadowCommits,
     getInitialReflog: () => [
-      { hash: "c5", message: "commit: feat: add dashboard", headRef: "main" },
-      { hash: "c4", message: "commit: feat: add login", headRef: "main" },
-      { hash: "c3", message: "commit: feat: setup project", headRef: "main" },
+      { hash: 'c5', message: 'commit: feat: add dashboard', headRef: 'main' },
+      { hash: 'c4', message: 'commit: feat: add login', headRef: 'main' },
+      { hash: 'c3', message: 'commit: feat: setup project', headRef: 'main' },
     ],
   },
   sandbox: {
     makeState: makeSandboxState,
-    initialStatus: "available",
+    initialStatus: 'available',
   },
-};
+}

@@ -1,15 +1,15 @@
-import type { DiffLine } from './diffStates';
+import type { DiffLine } from './diffStates'
 
 type DiffViewProps = {
-  lines: DiffLine[];
-};
+  lines: DiffLine[]
+}
 
 export const DiffView = ({ lines }: DiffViewProps) => (
   <div className="flex flex-col gap-0.5">
     {lines.map((line, i) => (
       <div
         key={i}
-        className="font-mono text-xs px-2 py-0.5 rounded"
+        className="rounded px-2 py-0.5 font-mono text-xs"
         style={{
           background:
             line.kind === 'added'
@@ -17,12 +17,7 @@ export const DiffView = ({ lines }: DiffViewProps) => (
               : line.kind === 'removed'
                 ? 'color-mix(in srgb, var(--conflict) 12%, transparent)'
                 : 'transparent',
-          color:
-            line.kind === 'added'
-              ? 'var(--ok)'
-              : line.kind === 'removed'
-                ? 'var(--conflict)'
-                : 'var(--muted)',
+          color: line.kind === 'added' ? 'var(--ok)' : line.kind === 'removed' ? 'var(--conflict)' : 'var(--muted)',
         }}
       >
         {line.kind === 'added' ? '+ ' : line.kind === 'removed' ? '− ' : '  '}
@@ -30,4 +25,4 @@ export const DiffView = ({ lines }: DiffViewProps) => (
       </div>
     ))}
   </div>
-);
+)

@@ -1,30 +1,28 @@
-import { useState } from 'react';
-import ReactDOM from 'react-dom';
-import { cardRadius } from '../common/radii';
+import { useState } from 'react'
+import ReactDOM from 'react-dom'
+import { cardRadius } from '../common/radii'
 
-type DragOp =
-  | { type: 'rebase'; branchToRebase: string; ontoBranch: string }
-  | { type: 'merge'; sourceBranch: string; targetBranch: string };
+type DragOp = { type: 'rebase'; branchToRebase: string; ontoBranch: string } | { type: 'merge'; sourceBranch: string; targetBranch: string }
 
 type DragConfirmModalProps = {
-  op: DragOp;
-  headBranch: string;
-  onConfirm: (choice: 'rebase' | 'merge') => void;
-  onCancel: () => void;
-};
+  op: DragOp
+  headBranch: string
+  onConfirm: (choice: 'rebase' | 'merge') => void
+  onCancel: () => void
+}
 
 type OptionCard = {
-  id: 'rebase' | 'merge';
-  label: string;
-  description: string;
-  command: string;
-  color: string;
-  bg: string;
-};
+  id: 'rebase' | 'merge'
+  label: string
+  description: string
+  command: string
+  color: string
+  bg: string
+}
 
 const buildCards = (op: DragOp): OptionCard[] => {
-  const fromBranch = op.type === 'rebase' ? op.branchToRebase : op.sourceBranch;
-  const ontoBranch = op.type === 'rebase' ? op.ontoBranch : op.targetBranch;
+  const fromBranch = op.type === 'rebase' ? op.branchToRebase : op.sourceBranch
+  const ontoBranch = op.type === 'rebase' ? op.ontoBranch : op.targetBranch
 
   return [
     {
@@ -43,31 +41,33 @@ const buildCards = (op: DragOp): OptionCard[] => {
       color: 'var(--feat)',
       bg: 'color-mix(in srgb, var(--feat) 8%, var(--panel))',
     },
-  ];
-};
+  ]
+}
 
 const getSmartDefault = (op: DragOp, headBranch: string): 'rebase' | 'merge' | null => {
-  const draggedBranch = op.type === 'rebase' ? op.branchToRebase : op.sourceBranch;
-  const onto = op.type === 'rebase' ? op.ontoBranch : op.targetBranch;
-  if (draggedBranch === headBranch) return 'rebase';
-  if (onto === headBranch) return 'merge';
-  return null;
-};
+  const draggedBranch = op.type === 'rebase' ? op.branchToRebase : op.sourceBranch
+  const onto = op.type === 'rebase' ? op.ontoBranch : op.targetBranch
+  if (draggedBranch === headBranch) return 'rebase'
+  if (onto === headBranch) return 'merge'
+  return null
+}
 
 export const DragConfirmModal = ({ op, headBranch, onConfirm, onCancel }: DragConfirmModalProps) => {
-  const smartDefault = getSmartDefault(op, headBranch);
-  const [selected, setSelected] = useState<'rebase' | 'merge'>(smartDefault ?? op.type);
+  const smartDefault = getSmartDefault(op, headBranch)
+  const [selected, setSelected] = useState<'rebase' | 'merge'>(smartDefault ?? op.type)
 
-  const cards = buildCards(op);
+  const cards = buildCards(op)
 
   return ReactDOM.createPortal(
     <div
       className="fixed inset-0 flex items-center justify-center backdrop-blur-sm"
       style={{ background: 'var(--backdrop)', zIndex: 100 }}
-      onMouseDown={(e) => { if (e.target === e.currentTarget) onCancel(); }}
+      onMouseDown={(e) => {
+        if (e.target === e.currentTarget) onCancel()
+      }}
     >
       <div
-        className="w-[520px] max-w-[92vw] p-6 border-2"
+        className="w-[520px] max-w-[92vw] border-2 p-6"
         style={{
           borderRadius: cardRadius,
           background: 'var(--panel)',
@@ -76,25 +76,21 @@ export const DragConfirmModal = ({ op, headBranch, onConfirm, onCancel }: DragCo
         }}
       >
         <div className="mb-5">
-          <div className="font-bold text-base text-[var(--ink)] font-hand mb-1">
-            How do you want to integrate these branches?
-          </div>
+          <div className="mb-1 font-hand text-base font-bold text-[var(--ink)]">How do you want to integrate these branches?</div>
           <div className="font-mono text-xs text-[var(--muted)]">
-            {op.type === 'rebase'
-              ? `${op.branchToRebase} → ${op.ontoBranch}`
-              : `${op.sourceBranch} → ${op.targetBranch}`}
+            {op.type === 'rebase' ? `${op.branchToRebase} → ${op.ontoBranch}` : `${op.sourceBranch} → ${op.targetBranch}`}
           </div>
         </div>
 
-        <div className="flex gap-3 mb-5">
+        <div className="mb-5 flex gap-3">
           {cards.map((card) => {
-            const isSelected = selected === card.id;
-            const isDefault = smartDefault === card.id;
+            const isSelected = selected === card.id
+            const isDefault = smartDefault === card.id
             return (
               <button
                 key={card.id}
                 onClick={() => setSelected(card.id)}
-                className="flex-1 text-left p-4 border-2 cursor-pointer transition-all"
+                className="flex-1 cursor-pointer border-2 p-4 text-left transition-all"
                 style={{
                   borderRadius: cardRadius,
                   borderColor: isSelected ? card.color : 'var(--hair)',
@@ -102,24 +98,22 @@ export const DragConfirmModal = ({ op, headBranch, onConfirm, onCancel }: DragCo
                   outline: 'none',
                 }}
               >
-                <div className="flex items-center gap-2 mb-2">
-                  <span className="font-bold text-sm font-hand" style={{ color: card.color }}>
+                <div className="mb-2 flex items-center gap-2">
+                  <span className="font-hand text-sm font-bold" style={{ color: card.color }}>
                     {card.label}
                   </span>
                   {isDefault && (
                     <span
-                      className="font-mono text-xs uppercase tracking-widest px-1.5 py-0.5 rounded"
+                      className="rounded px-1.5 py-0.5 font-mono text-xs tracking-widest uppercase"
                       style={{ background: card.color, color: 'var(--panel)' }}
                     >
                       suggested
                     </span>
                   )}
                 </div>
-                <div className="font-mono text-xs text-[var(--soft)] mb-3 leading-relaxed">
-                  {card.description}
-                </div>
+                <div className="mb-3 font-mono text-xs leading-relaxed text-[var(--soft)]">{card.description}</div>
                 <div
-                  className="font-mono text-xs px-2 py-1.5 rounded"
+                  className="rounded px-2 py-1.5 font-mono text-xs"
                   style={{
                     background: 'var(--panel2)',
                     color: card.color,
@@ -130,14 +124,14 @@ export const DragConfirmModal = ({ op, headBranch, onConfirm, onCancel }: DragCo
                   $ {card.command}
                 </div>
               </button>
-            );
+            )
           })}
         </div>
 
         <div className="flex justify-end gap-2">
           <button
             onClick={onCancel}
-            className="font-mono text-sm px-4 py-1.5 border cursor-pointer"
+            className="cursor-pointer border px-4 py-1.5 font-mono text-sm"
             style={{
               borderRadius: '8px',
               borderColor: 'var(--hair)',
@@ -149,7 +143,7 @@ export const DragConfirmModal = ({ op, headBranch, onConfirm, onCancel }: DragCo
           </button>
           <button
             onClick={() => onConfirm(selected)}
-            className="font-mono text-sm px-4 py-1.5 border cursor-pointer font-bold"
+            className="cursor-pointer border px-4 py-1.5 font-mono text-sm font-bold"
             style={{
               borderRadius: '8px',
               borderColor: selected === 'rebase' ? 'var(--main)' : 'var(--feat)',
@@ -163,5 +157,5 @@ export const DragConfirmModal = ({ op, headBranch, onConfirm, onCancel }: DragCo
       </div>
     </div>,
     document.body
-  );
-};
+  )
+}

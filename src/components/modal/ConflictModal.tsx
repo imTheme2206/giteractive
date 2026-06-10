@@ -1,20 +1,20 @@
-import { useTranslation } from 'react-i18next';
-import type { ConflictState } from '../../types';
-import { ModalBackdrop } from './ModalBackdrop';
-import { cardRadius } from '../common/radii';
+import { useTranslation } from 'react-i18next'
+import type { ConflictState } from '../../types'
+import { ModalBackdrop } from './ModalBackdrop'
+import { cardRadius } from '../common/radii'
 
 type ConflictModalProps = {
-  conflict: ConflictState;
-  onResolve: (resolution: 'ours' | 'theirs' | 'both') => void;
-};
+  conflict: ConflictState
+  onResolve: (resolution: 'ours' | 'theirs' | 'both') => void
+}
 
 type HunkOption = {
-  id: 'ours' | 'theirs' | 'both';
-  labelKey: string;
-  lines: string[];
-  color: string;
-  bg: string;
-};
+  id: 'ours' | 'theirs' | 'both'
+  labelKey: string
+  lines: string[]
+  color: string
+  bg: string
+}
 
 const HUNK_OPTIONS: HunkOption[] = [
   {
@@ -38,15 +38,15 @@ const HUNK_OPTIONS: HunkOption[] = [
     color: 'var(--ok)',
     bg: 'color-mix(in srgb, var(--ok) 8%, var(--panel))',
   },
-];
+]
 
 export const ConflictModal = ({ conflict, onResolve }: ConflictModalProps) => {
-  const { t } = useTranslation();
+  const { t } = useTranslation()
 
   return (
     <ModalBackdrop background="color-mix(in srgb, var(--conflict) 18%, var(--backdrop))">
       <div
-        className="w-[480px] max-w-[92vw] p-5 border-2"
+        className="w-[480px] max-w-[92vw] border-2 p-5"
         style={{
           borderRadius: cardRadius,
           background: 'var(--panel)',
@@ -54,20 +54,17 @@ export const ConflictModal = ({ conflict, onResolve }: ConflictModalProps) => {
           boxShadow: '0 8px 40px color-mix(in srgb, var(--conflict) 30%, transparent)',
         }}
       >
-        <div className="flex items-center gap-2 mb-1">
+        <div className="mb-1 flex items-center gap-2">
           <span style={{ color: 'var(--conflict)', fontSize: 18 }}>⚡</span>
-          <span className="font-bold text-base text-[var(--ink)] font-hand">
-            {t('conflict.title')}
-          </span>
+          <span className="font-hand text-base font-bold text-[var(--ink)]">{t('conflict.title')}</span>
         </div>
-        <p className="font-mono text-xs text-[var(--muted)] mb-4">
-          {conflict.sourceBranch} ↔ {conflict.targetBranch} both modified{' '}
-          <span style={{ color: 'var(--conflict)' }}>greeting.txt</span>
+        <p className="mb-4 font-mono text-xs text-[var(--muted)]">
+          {conflict.sourceBranch} ↔ {conflict.targetBranch} both modified <span style={{ color: 'var(--conflict)' }}>greeting.txt</span>
         </p>
 
         {/* Conflict diff */}
         <div
-          className="font-mono text-xs mb-4 p-3 border"
+          className="mb-4 border p-3 font-mono text-xs"
           style={{ borderRadius: '8px', borderColor: 'var(--hair)', background: 'var(--panel2)' }}
         >
           <div style={{ color: 'var(--muted)' }}># greeting.txt</div>
@@ -78,22 +75,20 @@ export const ConflictModal = ({ conflict, onResolve }: ConflictModalProps) => {
           <div style={{ color: 'var(--conflict)' }}>{`>>>>>>> ${conflict.sourceBranch}`}</div>
         </div>
 
-        <p className="font-mono text-xs uppercase tracking-widest text-[var(--muted)] mb-2">
-          {t('conflict.chooseResolution')}
-        </p>
-        <div className="flex flex-col gap-2 mb-4">
+        <p className="mb-2 font-mono text-xs tracking-widest text-[var(--muted)] uppercase">{t('conflict.chooseResolution')}</p>
+        <div className="mb-4 flex flex-col gap-2">
           {HUNK_OPTIONS.map((opt) => (
             <button
               key={opt.id}
               onClick={() => onResolve(opt.id)}
-              className="text-left p-3 border cursor-pointer"
+              className="cursor-pointer border p-3 text-left"
               style={{
                 borderRadius: cardRadius,
                 borderColor: opt.color,
                 background: opt.bg,
               }}
             >
-              <div className="font-bold text-sm mb-1 font-hand" style={{ color: opt.color }}>
+              <div className="mb-1 font-hand text-sm font-bold" style={{ color: opt.color }}>
                 {t(opt.labelKey)}
               </div>
               {opt.lines.map((line, i) => (
@@ -105,10 +100,8 @@ export const ConflictModal = ({ conflict, onResolve }: ConflictModalProps) => {
           ))}
         </div>
 
-        <div className="font-mono text-xs text-[var(--muted)] text-center">
-          {t('conflict.footer')}
-        </div>
+        <div className="text-center font-mono text-xs text-[var(--muted)]">{t('conflict.footer')}</div>
       </div>
     </ModalBackdrop>
-  );
-};
+  )
+}

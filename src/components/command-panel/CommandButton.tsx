@@ -1,35 +1,25 @@
-import { useTranslation } from 'react-i18next';
-import { cardRadius } from '../common/radii';
-import { matchCommand } from './commandInfo';
+import { useTranslation } from 'react-i18next'
+import { cardRadius } from '../common/radii'
+import { matchCommand } from './commandInfo'
 
 type CommandButtonProps = {
-  cmd: string;
-  isActive: boolean;
-  onMouseEnter: () => void;
-  onMouseLeave: () => void;
-  onClick: () => void;
-  onTipToggle: () => void;
-};
+  cmd: string
+  isActive: boolean
+  onMouseEnter: () => void
+  onMouseLeave: () => void
+  onClick: () => void
+  onTipToggle: () => void
+}
 
-export const CommandButton = ({
-  cmd,
-  isActive,
-  onMouseEnter,
-  onMouseLeave,
-  onClick,
-  onTipToggle,
-}: CommandButtonProps) => {
-  const { t } = useTranslation();
-  const commandKey = matchCommand(cmd);
+export const CommandButton = ({ cmd, isActive, onMouseEnter, onMouseLeave, onClick, onTipToggle }: CommandButtonProps) => {
+  const { t } = useTranslation()
+  const commandKey = matchCommand(cmd)
 
   return (
-    <div
-      className="flex items-stretch border border-[var(--hair)] bg-[var(--panel)] overflow-hidden"
-      style={{ borderRadius: cardRadius }}
-    >
+    <div className="flex items-stretch overflow-hidden border border-[var(--hair)] bg-[var(--panel)]" style={{ borderRadius: cardRadius }}>
       <button
         type="button"
-        className="px-2 py-0.5 font-mono text-xs text-[var(--soft)] hover:bg-[var(--panel2)] hover:text-[var(--ink)] transition-colors cursor-pointer"
+        className="cursor-pointer px-2 py-0.5 font-mono text-xs text-[var(--soft)] transition-colors hover:bg-[var(--panel2)] hover:text-[var(--ink)]"
         onMouseEnter={onMouseEnter}
         onMouseLeave={onMouseLeave}
         onClick={onClick}
@@ -39,7 +29,7 @@ export const CommandButton = ({
       {commandKey && (
         <button
           type="button"
-          className="px-1.5 border-l border-[var(--hair)] font-mono text-xs text-[var(--muted)] hover:text-[var(--ink)] hover:bg-[var(--panel2)] transition-colors cursor-pointer flex-shrink-0"
+          className="flex-shrink-0 cursor-pointer border-l border-[var(--hair)] px-1.5 font-mono text-xs text-[var(--muted)] transition-colors hover:bg-[var(--panel2)] hover:text-[var(--ink)]"
           style={{
             color: isActive ? 'var(--ink)' : undefined,
             background: isActive ? 'var(--panel2)' : undefined,
@@ -51,5 +41,5 @@ export const CommandButton = ({
         </button>
       )}
     </div>
-  );
-};
+  )
+}

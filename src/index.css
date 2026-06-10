@@ -1,4 +1,4 @@
-@import "tailwindcss";
+@import 'tailwindcss';
 
 @theme {
   --font-hand: 'Kalam', cursive;
@@ -11,34 +11,34 @@
   --muted: #9a978c;
   --panel: #fbfaf5;
   --panel2: #eeece3;
-  --grid: rgba(44,43,38,.055);
-  --hair: rgba(44,43,38,.28);
+  --grid: rgba(44, 43, 38, 0.055);
+  --hair: rgba(44, 43, 38, 0.28);
   --main: #3a6ea5;
   --feat: #c5773a;
   --head: #bd463f;
   --ok: #3c8a57;
-  --ghost: rgba(44,43,38,.32);
-  --backdrop: rgba(244,243,236,0.82);
+  --ghost: rgba(44, 43, 38, 0.32);
+  --backdrop: rgba(244, 243, 236, 0.82);
   --conflict: #c45c1a;
   --hand: 'Kalam', cursive;
   --mono: 'JetBrains Mono', ui-monospace, monospace;
 }
 
-[data-theme="dark"] {
+[data-theme='dark'] {
   --bg: #10141a;
   --ink: #e8e5da;
   --soft: #aab0b8;
   --muted: #737a83;
   --panel: #171d25;
   --panel2: #1f2630;
-  --grid: rgba(255,255,255,.045);
-  --hair: rgba(232,229,218,.26);
+  --grid: rgba(255, 255, 255, 0.045);
+  --hair: rgba(232, 229, 218, 0.26);
   --main: #5b95d6;
   --feat: #e0985a;
   --head: #e0635b;
   --ok: #56b87b;
-  --ghost: rgba(232,229,218,.30);
-  --backdrop: rgba(16,20,26,0.82);
+  --ghost: rgba(232, 229, 218, 0.3);
+  --backdrop: rgba(16, 20, 26, 0.82);
   --conflict: #e07840;
 }
 
@@ -81,31 +81,61 @@ body {
 }
 
 @keyframes pulse {
-  0%, 100% { opacity: .5; }
-  50% { opacity: 1; }
+  0%,
+  100% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 1;
+  }
 }
 
 @keyframes tickerFlash {
-  0% { background: color-mix(in srgb, var(--ok) 10%, var(--panel)); }
-  100% { background: var(--panel); }
+  0% {
+    background: color-mix(in srgb, var(--ok) 10%, var(--panel));
+  }
+  100% {
+    background: var(--panel);
+  }
 }
 
 @keyframes moduleUnlockGlow {
-  0%, 100% { box-shadow: 0 0 0 0 transparent; }
-  40% { box-shadow: 0 0 0 3px var(--glow-color, var(--ok)); }
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 transparent;
+  }
+  40% {
+    box-shadow: 0 0 0 3px var(--glow-color, var(--ok));
+  }
 }
 
 @keyframes toastSlideIn {
-  from { transform: translateX(110%); opacity: 0; }
-  to { transform: translateX(0); opacity: 1; }
+  from {
+    transform: translateX(110%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
 }
 
 @keyframes toastSlideOut {
-  from { transform: translateX(0); opacity: 1; }
-  to { transform: translateX(110%); opacity: 0; }
+  from {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(110%);
+    opacity: 0;
+  }
 }
 
 @keyframes progressShrink {
-  from { width: 100%; }
-  to { width: 0%; }
+  from {
+    width: 100%;
+  }
+  to {
+    width: 0%;
+  }
 }

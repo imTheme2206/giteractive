@@ -1,9 +1,9 @@
 type ModuleData = {
-  id: string;
-  num: string;
-  accent: string;
-  commandStrings: string[];
-};
+  id: string
+  num: string
+  accent: string
+  commandStrings: string[]
+}
 
 export const MODULES: readonly ModuleData[] = [
   { id: 'module0', num: '00', accent: 'var(--ok)', commandStrings: ['git init', 'git add .', 'git commit -m "message"'] },
@@ -18,4 +18,4 @@ export const MODULES: readonly ModuleData[] = [
   { id: 'module9', num: '09', accent: 'var(--feat)', commandStrings: ['git rebase -i HEAD~N'] },
   { id: 'module10', num: '10', accent: 'var(--head)', commandStrings: ['git checkout <hash>', 'git checkout <branch>'] },
   { id: 'module11', num: '11', accent: 'var(--ok)', commandStrings: ['git reflog', 'git reset --hard <hash>'] },
-];
+]
