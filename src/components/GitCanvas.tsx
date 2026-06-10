@@ -57,8 +57,7 @@ export const GitCanvas = ({
   const { canBranch, canCheckout, canDrag, canReset, canSquash } = useCanvasCapabilities(mode)
 
   const isEmpty = Object.keys(gitState.commits).length === 0
-  const EMPTY_POS = { x: 260, y: 180 }
-
+  const EMPTY_POS = useMemo(() => ({ x: 260, y: 180 }), [])
   const headCommitId = gitState.branches[gitState.HEAD] !== undefined ? (gitState.branches[gitState.HEAD] ?? gitState.HEAD) : gitState.HEAD
 
   const headLayout = isEmpty ? EMPTY_POS : layout.get(headCommitId)
@@ -209,6 +208,8 @@ export const GitCanvas = ({
     wip,
     highlightNodeIds,
     isEmpty,
+    gitState.HEAD,
+    EMPTY_POS,
   ])
 
   const edges: Edge[] = useMemo(() => {

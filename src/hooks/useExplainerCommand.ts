@@ -16,7 +16,7 @@ export const useExplainerCommand = (ticker: TickerData) => {
         setExplainerCommand(ticker.command)
       }
     }
-  }, [ticker.state, ticker.command])
+  }, [ticker.state, ticker.command, explainerCommand])
 
   return {
     explainerCommand,

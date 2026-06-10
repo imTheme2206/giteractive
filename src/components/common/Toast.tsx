@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { ModuleId } from '../../types'
 import { cardRadius } from './radii'
@@ -16,18 +16,18 @@ export const Toast = ({ moduleId, accentColor, onDismiss }: ToastProps) => {
   const [exiting, setExiting] = useState(false)
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  const dismiss = () => {
+  const dismiss = useCallback(() => {
     if (exiting) return
     setExiting(true)
     timerRef.current = setTimeout(onDismiss, 300)
-  }
+  }, [exiting, onDismiss])
 
   useEffect(() => {
     timerRef.current = setTimeout(dismiss, DURATION_MS)
     return () => {
       if (timerRef.current) clearTimeout(timerRef.current)
     }
-  }, [])
+  }, [dismiss])
 
   const moduleNum = moduleId === 'sandbox' ? '' : moduleId.replace('module', '')
 
