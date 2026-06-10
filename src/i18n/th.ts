@@ -410,19 +410,19 @@ const th = {
   commandPanel: {
     whatDoesThisDo: 'คำสั่งนี้ทำอะไร?',
     commands: {
-      gitCommit: {
+      commit: {
         title: 'git commit',
         description: 'บันทึกการเปลี่ยนแปลงที่ stage ไว้เป็น node ใหม่ในกราฟ HEAD และ branch ปัจจุบันจะเลื่อนไปยัง commit ใหม่',
       },
-      gitCheckoutB: {
+      checkout_b: {
         title: 'git checkout -b',
         description: 'สร้าง branch pointer ใหม่และสลับไปยัง branch นั้นทันที ไม่มีการคัดลอกไฟล์ — branch คือแค่ label ที่เคลื่อนที่ได้',
       },
-      gitCheckout: {
+      checkout: {
         title: 'git checkout',
         description: 'ย้าย HEAD ไปยัง branch หรือ commit hash ถ้าเป็น branch: HEAD จะติดตาม branch นั้น ถ้าเป็น hash: HEAD จะ detach — เข้าสู่โหมดสำรวจโดยไม่มี branch',
       },
-      gitCherryPick: {
+      cherry_pick: {
         title: 'git cherry-pick',
         description: 'คัดลอก diff ของ commit หนึ่งไปยังปลาย branch ปัจจุบัน สำเนาได้ hash ใหม่แต่มีการเปลี่ยนแปลงเหมือนกัน',
         steps: [
@@ -431,7 +431,7 @@ const th = {
           'สร้าง commit ใหม่ที่มี diff เหมือนกันแต่ได้ hash ใหม่',
         ],
       },
-      gitRebaseI: {
+      rebase_i: {
         title: 'git rebase -i (interactive squash)',
         description: 'แก้ไข commit หลายตัวแบบ interactive — squash รวม commit ที่ไม่เป็นระเบียบหลายตัวเป็น commit เดียวก่อน merge',
         steps: [
@@ -440,7 +440,7 @@ const th = {
           'กำหนด hash ใหม่ — ประวัติ local ถูกเขียนใหม่อย่างสะอาด',
         ],
       },
-      gitRebase: {
+      rebase: {
         title: 'git rebase',
         description: 'ยก commit ออกจากฐานเดิมและนำไปใช้ซ้ำบน branch เป้าหมาย แต่ละ commit จะได้ hash ใหม่เพราะ parent เปลี่ยนไป',
         steps: [
@@ -449,7 +449,7 @@ const th = {
           'นำ commit แต่ละตัวไปใช้ซ้ำบนปลายทาง — กำหนด hash ใหม่',
         ],
       },
-      gitMerge: {
+      merge: {
         title: 'git merge',
         description: 'รวมประวัติของสอง branch ด้วย merge commit ใหม่ที่มีสอง parent ไม่มี commit เดิมที่ถูกเขียนใหม่หรือย้าย',
         steps: [
@@ -458,7 +458,7 @@ const th = {
           'สร้าง merge commit ที่มีสอง parent — ประวัติทั้งหมดถูกเก็บรักษาไว้',
         ],
       },
-      gitResetHard: {
+      reset_hard: {
         title: 'git reset --hard',
         description: 'ย้าย branch pointer กลับไปยัง commit ที่ระบุ ทิ้งทุกอย่างหลังจากนั้นอย่างถาวร working tree จะถูก reset ให้ตรงกัน',
         steps: [
@@ -467,15 +467,15 @@ const th = {
           'Working tree ถูกทำความสะอาด — ไม่มีร่องรอยของ commit ที่หายไป',
         ],
       },
-      gitStashPop: {
+      stash_pop: {
         title: 'git stash pop',
         description: 'คืนการเปลี่ยนแปลงที่ stash ไว้ล่าสุดกลับมาที่ working tree และลบ entry นั้นออกจาก stack',
       },
-      gitStash: {
+      stash: {
         title: 'git stash',
         description: 'บันทึกการเปลี่ยนแปลงที่ยังไม่ได้ commit ไปที่ stack ชั่วคราวและให้ working tree สะอาด เพื่อให้สลับ branch ได้อย่างปลอดภัย',
       },
-      gitReflog: {
+      reflog: {
         title: 'git reflog',
         description: 'แสดงทุกที่ที่ HEAD เคยอยู่ — commits, checkouts, resets, merges ตาข่ายนิรภัยสำหรับกู้คืน commit ที่ดูเหมือนหายไปหลัง hard reset',
       },

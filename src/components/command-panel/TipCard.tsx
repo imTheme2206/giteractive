@@ -1,10 +1,10 @@
 import { useTranslation } from 'react-i18next';
 import { Card, CardBody } from '../common/Card';
-import type { CommandKey } from './commandInfo';
+import type { GitCommandName } from '../../types';
 import { COMMANDS_WITH_STEPS } from './commandInfo';
 
 type TipCardProps = {
-  commandKey: CommandKey;
+  commandKey: GitCommandName;
   onClose: () => void;
 };
 

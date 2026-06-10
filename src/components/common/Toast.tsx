@@ -1,63 +1,57 @@
-import { useEffect, useRef, useState } from 'react';
-import { useTranslation } from 'react-i18next';
-import type { ModuleId } from '../../types';
-import { cardRadius } from './radii';
+import { useEffect, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
+import type { ModuleId } from '../../types'
+import { cardRadius } from './radii'
 
 type ToastProps = {
-  moduleId: ModuleId;
-  accentColor: string;
-  onDismiss: () => void;
-};
+  moduleId: ModuleId
+  accentColor: string
+  onDismiss: () => void
+}
 
-const DURATION_MS = 5000;
+const DURATION_MS = 5000
 
 export const Toast = ({ moduleId, accentColor, onDismiss }: ToastProps) => {
-  const { t } = useTranslation();
-  const [exiting, setExiting] = useState(false);
-  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const { t } = useTranslation()
+  const [exiting, setExiting] = useState(false)
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const dismiss = () => {
-    if (exiting) return;
-    setExiting(true);
-    timerRef.current = setTimeout(onDismiss, 300);
-  };
+    if (exiting) return
+    setExiting(true)
+    timerRef.current = setTimeout(onDismiss, 300)
+  }
 
   useEffect(() => {
-    timerRef.current = setTimeout(dismiss, DURATION_MS);
+    timerRef.current = setTimeout(dismiss, DURATION_MS)
     return () => {
-      if (timerRef.current) clearTimeout(timerRef.current);
-    };
-  }, []);
+      if (timerRef.current) clearTimeout(timerRef.current)
+    }
+  }, [])
 
-  const moduleNum = moduleId === 'sandbox' ? '' : moduleId.replace('module', '');
+  const moduleNum = moduleId === 'sandbox' ? '' : moduleId.replace('module', '')
 
   return (
     <div
-      className="fixed bottom-4 right-4 z-50 flex flex-col gap-0 overflow-hidden shadow-lg"
+      className="fixed right-4 bottom-4 z-50 flex flex-col gap-0 overflow-hidden shadow-lg"
       style={{
         borderRadius: cardRadius,
         border: `1.5px solid ${accentColor}`,
         background: 'var(--panel)',
         minWidth: 260,
         maxWidth: 320,
-        animation: exiting
-          ? 'toastSlideOut 0.3s ease-in forwards'
-          : 'toastSlideIn 0.3s ease-out forwards',
+        animation: exiting ? 'toastSlideOut 0.3s ease-in forwards' : 'toastSlideIn 0.3s ease-out forwards',
       }}
     >
       <div className="flex items-start gap-3 px-4 pt-3 pb-2">
         <span style={{ color: accentColor, fontSize: 20, lineHeight: 1, flexShrink: 0 }}>✓</span>
-        <div className="flex-1 min-w-0">
-          <div className="font-hand font-bold text-[var(--ink)] text-base leading-tight">
-            {t('toast.complete', { n: moduleNum })}
-          </div>
-          <div className="font-mono text-xs text-[var(--soft)] mt-0.5">
-            {t('toast.hint')}
-          </div>
+        <div className="min-w-0 flex-1">
+          <div className="font-hand text-base leading-tight font-bold text-[var(--ink)]">{t('toast.complete', { n: moduleNum })}</div>
+          <div className="mt-0.5 font-mono text-xs text-[var(--soft)]">{t('toast.hint')}</div>
         </div>
         <button
           onClick={dismiss}
-          className="flex-shrink-0 text-[var(--muted)] hover:text-[var(--ink)] transition-colors leading-none"
+          className="flex-shrink-0 leading-none text-[var(--muted)] transition-colors hover:text-[var(--ink)]"
           style={{ fontSize: 16, lineHeight: 1, background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
           aria-label="Dismiss"
         >
@@ -73,5 +67,5 @@ export const Toast = ({ moduleId, accentColor, onDismiss }: ToastProps) => {
         }}
       />
     </div>
-  );
-};
+  )
+}

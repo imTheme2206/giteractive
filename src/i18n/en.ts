@@ -299,19 +299,19 @@ const en = {
   commandPanel: {
     whatDoesThisDo: 'What does this do?',
     commands: {
-      gitCommit: {
+      commit: {
         title: 'git commit',
         description: 'Snapshots your staged changes into a permanent new node in the graph. HEAD and your current branch advance to the new commit.',
       },
-      gitCheckoutB: {
+      checkout_b: {
         title: 'git checkout -b',
         description: 'Creates a new branch pointer and switches to it immediately. No files are copied — a branch is just a movable label.',
       },
-      gitCheckout: {
+      checkout: {
         title: 'git checkout',
         description: 'Moves HEAD to a branch or commit hash. On a branch: HEAD follows it. On a hash: HEAD detaches — you enter exploration mode with no branch attached.',
       },
-      gitCherryPick: {
+      cherry_pick: {
         title: 'git cherry-pick',
         description: "Copies one commit's diff onto your current branch tip. The copy gets a new hash but identical changes.",
         steps: [
@@ -320,7 +320,7 @@ const en = {
           'Creates a new commit with the same diff but a fresh hash',
         ],
       },
-      gitRebaseI: {
+      rebase_i: {
         title: 'git rebase -i (interactive squash)',
         description: 'Rewrites a sequence of commits interactively — squash collapses multiple messy commits into one clean commit before merging.',
         steps: [
@@ -329,7 +329,7 @@ const en = {
           'New hash assigned — local history rewritten cleanly',
         ],
       },
-      gitRebase: {
+      rebase: {
         title: 'git rebase',
         description: 'Lifts your commits off their old base and re-applies them on top of the target branch. Each commit gets a new hash because its parent changed.',
         steps: [
@@ -338,7 +338,7 @@ const en = {
           'Re-applies each commit on top of the target — new hashes assigned',
         ],
       },
-      gitMerge: {
+      merge: {
         title: 'git merge',
         description: 'Combines two branch histories with a new merge commit that has two parents. No existing commit is rewritten or moved.',
         steps: [
@@ -347,7 +347,7 @@ const en = {
           'Creates a merge commit with two parents — full history preserved',
         ],
       },
-      gitResetHard: {
+      reset_hard: {
         title: 'git reset --hard',
         description: 'Moves the branch pointer back to a specific commit, permanently discarding everything after it. Working tree is reset to match.',
         steps: [
@@ -356,15 +356,15 @@ const en = {
           'Working tree is cleaned — no trace of the dropped commits remains',
         ],
       },
-      gitStashPop: {
+      stash_pop: {
         title: 'git stash pop',
         description: 'Restores the most recently stashed changes back onto your working tree and removes that entry from the stack.',
       },
-      gitStash: {
+      stash: {
         title: 'git stash',
         description: 'Saves your uncommitted changes to a temporary stack and gives you a clean working tree, so you can safely switch branches.',
       },
-      gitReflog: {
+      reflog: {
         title: 'git reflog',
         description: "Shows every place HEAD has ever been — commits, checkouts, resets, merges. Your safety net for recovering commits that seem lost after a hard reset.",
       },

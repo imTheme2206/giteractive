@@ -1,34 +1,30 @@
-import { useState } from 'react';
-import { useTranslation } from 'react-i18next';
-import type { Mode } from '../../types';
-import { matchCommand } from './commandInfo';
-import { CommandButton } from './CommandButton';
-import { TipCard } from './TipCard';
+import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
+import { CommandButton } from './CommandButton'
+import { matchCommand } from './commandInfo'
+import { TipCard } from './TipCard'
 
 type CommandPanelProps = {
-  mode: Mode;
-  commands: string[];
-  onPreview: (cmd: string) => void;
-  onExecute: (cmd: string) => void;
-};
+  commands: string[]
+  onPreview: (cmd: string) => void
+  onExecute: (cmd: string) => void
+}
 
-export const CommandPanel = ({ mode: _mode, commands, onPreview, onExecute }: CommandPanelProps) => {
-  const { t } = useTranslation();
-  const [tipsCmd, setTipsCmd] = useState<string | null>(null);
+export const CommandPanel = ({ commands, onPreview, onExecute }: CommandPanelProps) => {
+  const { t } = useTranslation()
+  const [tipsCmd, setTipsCmd] = useState<string | null>(null)
 
-  if (commands.length === 0) return null;
+  if (commands.length === 0) {
+    return null
+  }
 
-  const tipsCommandKey = tipsCmd ? matchCommand(tipsCmd) : null;
+  const tipsCommandKey = tipsCmd ? matchCommand(tipsCmd) : null
 
   return (
-    <div className="flex-shrink-0 relative border-t border-dashed border-[var(--hair)] bg-[var(--panel2)]">
-      {tipsCommandKey && (
-        <TipCard commandKey={tipsCommandKey} onClose={() => setTipsCmd(null)} />
-      )}
+    <div className="relative shrink-0 border-t border-dashed border-[var(--hair)] bg-[var(--panel2)]">
+      {tipsCommandKey && <TipCard commandKey={tipsCommandKey} onClose={() => setTipsCmd(null)} />}
       <div className="flex items-center gap-2 px-4 py-1.5">
-        <span className="font-mono text-xs uppercase tracking-widest text-[var(--muted)] flex-shrink-0">
-          {t('sidebar.commands')}
-        </span>
+        <span className="shrink-0 font-mono text-xs tracking-widest text-[var(--muted)] uppercase">{t('sidebar.commands')}</span>
         <div className="flex flex-wrap gap-1.5">
           {commands.map((cmd) => (
             <CommandButton
@@ -44,5 +40,5 @@ export const CommandPanel = ({ mode: _mode, commands, onPreview, onExecute }: Co
         </div>
       </div>
     </div>
-  );
-};
+  )
+}
