@@ -1,4 +1,4 @@
-name: Frontend Testing
+name: Build Project
 
 on:
   push:
@@ -38,5 +38,5 @@ jobs:
 
       - name: Compile assets for testing
         env:
-          NODE_OPTIONS: "--max_old_space_size=4096"
+          NODE_OPTIONS: '--max_old_space_size=4096'
         run: bun run build
