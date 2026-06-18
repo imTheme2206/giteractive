@@ -1,12 +1,5 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { TickerEntry, GitState } from '../types'
-
-type CommandTickerProps = {
-  ticker: { command: string; subtitle?: string; state: 'idle' | 'ghost' | 'flash' }
-  history: TickerEntry[]
-  gitState: GitState
-  onTokenHover: (nodeIds: string[]) => void
-}
 
 type TokenType = 'git' | 'subcommand' | 'branch' | 'hash' | 'flag' | 'string' | 'space'
 
@@ -52,7 +45,8 @@ const parseCommand = (command: string, gitState: GitState): ParsedToken[] => {
   })
 }
 
-const argNodeIds = (tokens: ParsedToken[]) => tokens.filter((t) => t.nodeId && t.type !== 'subcommand').map((t) => t.nodeId!)
+const argNodeIds = (tokens: ParsedToken[]) =>
+  tokens.filter((t) => t.nodeId && t.type !== 'subcommand').map((t) => t.nodeId!)
 
 type TokenSpanProps = {
   token: ParsedToken
@@ -67,7 +61,8 @@ const TokenSpan = ({ token, allTokens, onEnter, onLeave, baseColor }: TokenSpanP
 
   if (token.type === 'space') return <span>{token.text}</span>
 
-  const isInteractive = token.type === 'branch' || token.type === 'hash' || (token.type === 'subcommand' && (!!token.nodeId || !!token.tip))
+  const isInteractive =
+    token.type === 'branch' || token.type === 'hash' || (token.type === 'subcommand' && (!!token.nodeId || !!token.tip))
   const isBranchOrHash = token.type === 'branch' || token.type === 'hash'
 
   const color =
@@ -158,62 +153,139 @@ const TokenizedCommand = ({
   )
 }
 
-export const CommandTicker = ({ ticker, history, gitState, onTokenHover }: CommandTickerProps) => {
-  const isIdle = ticker.state === 'idle'
-  const isGhost = ticker.state === 'ghost'
+type CommandTickerProps = {
+  inputValue: string
+  isValid: boolean
+  suggestions: string[]
+  activeSuggestionIdx: number
+  onInputChange: (val: string) => void
+  onKeyDown: (e: React.KeyboardEvent<HTMLInputElement>) => void
+  onSuggestionSelect: (s: string) => void
+  ticker: { command: string; state: 'idle' | 'ghost' | 'flash' }
+  history: TickerEntry[]
+  gitState: GitState
+  onTokenHover: (nodeIds: string[]) => void
+}
+
+export const CommandTicker = ({
+  inputValue,
+  isValid,
+  suggestions,
+  activeSuggestionIdx,
+  onInputChange,
+  onKeyDown,
+  onSuggestionSelect,
+  ticker,
+  history,
+  gitState,
+  onTokenHover,
+}: CommandTickerProps) => {
+  const inputRef = useRef<HTMLInputElement>(null)
   const isFlash = ticker.state === 'flash'
-
   const latestHistory = history[0]
+  const showSuggestions = suggestions.length > 0 && !isFlash
 
-  const lineColor = isFlash ? 'var(--ok)' : isGhost ? 'var(--ghost)' : 'var(--soft)'
+  useEffect(() => {
+    if (!isFlash) inputRef.current?.focus()
+  }, [isFlash])
 
-  const hasSubtitle = isGhost && !!ticker.subtitle
+  const inputColor = isValid ? 'var(--ok)' : inputValue ? 'var(--ink)' : 'var(--soft)'
 
   return (
     <div
-      className={[
-        'flex flex-shrink-0 flex-col justify-center gap-0.5 px-4 font-mono text-sm',
-        isFlash
-          ? 'border-t border-[var(--ok)] text-[var(--ok)]'
-          : isGhost
-            ? 'border-t border-dashed border-[var(--hair)] text-[var(--ghost)]'
-            : 'border-t border-[var(--hair)] text-[var(--soft)]',
-      ].join(' ')}
+      className="shrink-0"
       style={{
-        minHeight: 56,
-        paddingTop: hasSubtitle ? 8 : undefined,
-        paddingBottom: hasSubtitle ? 8 : undefined,
         background: isFlash ? 'color-mix(in srgb, var(--ok) 8%, var(--panel))' : 'var(--panel)',
+        borderTop: isFlash ? '1px solid var(--ok)' : '1px solid var(--hair)',
         transition: 'background 0.4s, border-color 0.3s',
         animation: isFlash ? 'tickerFlash 1.2s ease-out' : undefined,
       }}
+      onClick={() => inputRef.current?.focus()}
     >
-      <span>
-        {isIdle ? (
-          latestHistory ? (
-            <>
-              <span className="text-[var(--muted)]">$</span>{' '}
-              <TokenizedCommand command={latestHistory.command} gitState={gitState} baseColor="var(--soft)" onTokenHover={onTokenHover} />
-            </>
-          ) : (
-            <>
-              <span className="text-[var(--muted)]">$</span>{' '}
-              <span className="inline-block h-3.5 w-2 animate-pulse bg-[var(--muted)] align-middle" />
-            </>
-          )
-        ) : (
-          <>
-            <span className="text-[var(--muted)]">$</span>{' '}
-            <TokenizedCommand command={ticker.command} gitState={gitState} baseColor={lineColor} onTokenHover={onTokenHover} />
-            {isFlash && <span className="ml-1.5">✓</span>}
-          </>
-        )}
-      </span>
-      {hasSubtitle && (
-        <span className="text-xs leading-tight text-[var(--muted)]" style={{ fontFamily: 'var(--hand)', paddingLeft: '1.1em' }}>
-          {ticker.subtitle}
-        </span>
+      {/* Suggestions — normal flow, above input line */}
+      {showSuggestions && (
+        <div className="flex flex-wrap gap-1 px-4 pt-2 pb-0">
+          {suggestions.map((s, i) => {
+            const isActive = i === activeSuggestionIdx
+            return (
+              <button
+                key={s}
+                className="font-mono text-xs px-2 py-0.5 rounded"
+                style={{
+                  background: isActive
+                    ? 'color-mix(in srgb, var(--ok) 18%, var(--panel2))'
+                    : 'var(--panel2)',
+                  color: isActive ? 'var(--ok)' : 'var(--soft)',
+                  border: `1px solid ${isActive ? 'var(--ok)' : 'var(--hair)'}`,
+                  cursor: 'pointer',
+                  transition: 'background 0.1s, color 0.1s, border-color 0.1s',
+                }}
+                onMouseDown={(e) => {
+                  e.preventDefault()
+                  onSuggestionSelect(s)
+                }}
+              >
+                {s}
+              </button>
+            )
+          })}
+          <span className="font-mono text-xs self-center" style={{ color: 'var(--muted)', opacity: 0.6 }}>
+            tab
+          </span>
+        </div>
       )}
+
+      {/* Input / flash line */}
+      <div className="flex items-center px-4 font-mono text-sm" style={{ minHeight: 44, paddingTop: showSuggestions ? 6 : undefined, paddingBottom: showSuggestions ? 8 : undefined }}>
+        <span style={{ color: 'var(--muted)', flexShrink: 0 }}>$</span>
+        <span style={{ marginLeft: '0.35em', flexShrink: 0 }} />
+
+        {isFlash ? (
+          <span style={{ color: 'var(--ok)' }}>
+            <TokenizedCommand command={ticker.command} gitState={gitState} baseColor="var(--ok)" onTokenHover={onTokenHover} />
+            <span className="ml-1.5">✓</span>
+          </span>
+        ) : (
+          <span className="relative flex min-w-0 flex-1 items-center">
+            <input
+              ref={inputRef}
+              value={inputValue}
+              onChange={(e) => onInputChange(e.target.value)}
+              onKeyDown={onKeyDown}
+              className="min-w-0 flex-1 bg-transparent font-mono text-sm outline-none"
+              style={{
+                color: inputColor,
+                caretColor: 'var(--ink)',
+                border: 'none',
+                padding: 0,
+                transition: 'color 0.15s',
+              }}
+              spellCheck={false}
+              autoCapitalize="off"
+              autoCorrect="off"
+              autoComplete="off"
+            />
+            {!inputValue && (
+              <span
+                className="pointer-events-none absolute inset-0 font-mono text-sm"
+                style={{ color: 'var(--muted)', opacity: 0.45 }}
+                aria-hidden
+              >
+                {latestHistory ? (
+                  <TokenizedCommand
+                    command={latestHistory.command}
+                    gitState={gitState}
+                    baseColor="var(--muted)"
+                    onTokenHover={() => {}}
+                  />
+                ) : (
+                  'type a git command…'
+                )}
+              </span>
+            )}
+          </span>
+        )}
+      </div>
     </div>
   )
 }

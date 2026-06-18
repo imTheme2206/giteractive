@@ -95,16 +95,17 @@ export const BranchLabelNode = ({ data }: { data: BranchLabelData }) => {
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
       data-checkout-branch={data.showCheckout ? data.branch : undefined}
-      title={data.showCheckout ? `Checkout ${data.branch}` : data.canDrag && !isHead ? `Drag to merge or rebase ${data.branch}` : undefined}
+      title={data.showCheckout ? `Checkout ${data.branch}` : undefined}
       className="flex items-center gap-1 bg-[var(--panel)] font-mono text-xs font-bold whitespace-nowrap"
       style={{
         padding: '4px 11px',
         borderRadius: '60px 10px 60px 10px/10px 60px 10px 60px',
         border: `2px ${borderStyle} ${color}`,
         color,
-        cursor: data.showCheckout ? 'pointer' : data.canDrag && !isHead ? 'grab' : 'default',
+        cursor: data.showCheckout ? 'pointer' : 'default',
         boxShadow: data.highlighted ? `0 0 0 4px color-mix(in srgb, ${color} 40%, transparent)` : undefined,
         transition: 'box-shadow 0.2s',
+        opacity: data.isGhost ? 0.45 : 1,
       }}
     >
       <Handle type="target" position={Position.Left} style={{ opacity: 0 }} />

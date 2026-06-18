@@ -1,6 +1,7 @@
 import type { GitCommandName, GitState, ModuleId } from '../types'
 
 const ALL_KEYS: GitCommandName[] = [
+  'make_changes',
   'stage',
   'commit',
   'checkout_b',
@@ -16,15 +17,15 @@ const ALL_KEYS: GitCommandName[] = [
 ]
 
 const MODULE_ALLOWED: Record<ModuleId, GitCommandName[]> = {
-  module0: ['stage', 'commit'],
-  module1: ['stage', 'commit'],
-  module2: ['checkout_b', 'stage', 'commit'],
+  module0: ['make_changes', 'stage', 'commit'],
+  module1: ['make_changes', 'stage', 'commit'],
+  module2: ['checkout_b', 'make_changes', 'stage', 'commit'],
   module3: ['cherry_pick'],
   module4: ['checkout', 'rebase'],
   module5: ['merge'],
   module6: ['merge'],
   module7: ['reset_hard'],
-  module8: ['stash', 'checkout', 'stash_pop', 'stage', 'commit'],
+  module8: ['make_changes', 'stash', 'checkout', 'stash_pop', 'stage', 'commit'],
   module9: ['rebase_i'],
   module10: ['checkout'],
   module11: ['reflog', 'reset_hard'],
@@ -47,6 +48,10 @@ function generateCommand(
   const otherBranches = Object.keys(branches).filter((b) => b !== HEAD)
 
   switch (key) {
+    case 'make_changes':
+      if (wip !== null) return []
+      return ['echo "update" >> app.js']
+
     case 'stage':
       if (wip === null) return []
       return ['git add .']

@@ -1,33 +1,28 @@
-import { Background, BackgroundVariant, ReactFlow, type Edge, type Node, type NodeMouseHandler, type NodeTypes } from '@xyflow/react'
+import { Background, BackgroundVariant, ReactFlow, type Node, type NodeMouseHandler, type NodeTypes } from '@xyflow/react'
 import '@xyflow/react/dist/style.css'
 import { useCallback, useMemo } from 'react'
-import { useTranslation } from 'react-i18next'
 import { useCanvasCapabilities } from '../hooks/useCanvasCapabilities'
-import { useDragHandlers } from '../hooks/useDragHandlers'
 import type { GitState, Mode } from '../types'
 import { computeLayout } from '../utils/computeLayout'
+import { computePreview } from '../utils/computePreview'
 import { AddCommitNode } from './AddCommitNode'
 import { BranchLabelNode } from './BranchLabelNode'
 import { CommitGraphNode } from './CommitGraphNode'
-import { DragConfirmModal } from './modal/DragConfirmModal'
 
 type GitCanvasProps = {
   gitState: GitState
   mode: Mode
   doAddCommit: () => void
   doStartWip: () => void
-  doCherryPick: (sourceId: string, targetBranch: string) => void
-  doRebase: (branchToRebase: string, ontoBranch: string) => void
-  doMerge: (sourceBranch: string, targetBranch: string) => void
   doCreateBranch: (commitId: string) => void
   doCheckout: (target: string) => void
   doResetHard: (commitId: string) => void
   doSquash: (branchName: string, count: number, message: string) => void
   doStageChanges: () => void
   staged: string | null
-  setGhostCommand: (cmd: string, subtitle?: string) => void
   wip?: string | null
   highlightNodeIds?: string[]
+  previewCommand?: string | null
 }
 
 const nodeTypes: NodeTypes = {
@@ -43,22 +38,18 @@ export const GitCanvas = ({
   mode,
   doAddCommit,
   doStartWip,
-  doCherryPick,
-  doRebase,
-  doMerge,
   doCreateBranch,
   doCheckout,
   doResetHard,
   doSquash,
-  setGhostCommand,
   wip,
   staged,
   doStageChanges,
   highlightNodeIds,
+  previewCommand,
 }: GitCanvasProps) => {
-  const { t } = useTranslation()
   const layout = useMemo(() => computeLayout(gitState), [gitState])
-  const { canBranch, canCheckout, canDrag, canReset, canSquash } = useCanvasCapabilities(mode)
+  const { canBranch, canCheckout, canReset, canSquash } = useCanvasCapabilities(mode)
 
   const isEmpty = Object.keys(gitState.commits).length === 0
   const EMPTY_POS = useMemo(() => ({ x: 260, y: 180 }), [])
@@ -79,17 +70,10 @@ export const GitCanvas = ({
     return ancestors
   }, [canReset, headCommitId, gitState.commits])
 
-  const { pendingDragOp, onNodeDrag, onNodeDragStop, handleModalConfirm, handleModalCancel, ghostElements } = useDragHandlers({
-    canDrag,
-    layout,
-    gitState,
-    mode,
-    doCherryPick,
-    doRebase,
-    doMerge,
-    setGhostCommand,
-    t,
-  })
+  const previewElements = useMemo(
+    () => (previewCommand ? computePreview(previewCommand, gitState, layout) : { nodes: [], edges: [] }),
+    [previewCommand, gitState, layout]
+  )
 
   const nodes: Node[] = useMemo(() => {
     const result: Node[] = []
@@ -117,7 +101,7 @@ export const GitCanvas = ({
           showSquash: isFeatureTip,
           highlighted: highlightNodeIds?.includes(id) ?? false,
         },
-        draggable: canDrag,
+        draggable: false,
       })
     }
 
@@ -132,12 +116,12 @@ export const GitCanvas = ({
           label: branchName,
           branch: branchName,
           showCheckout: canCheckout,
-          canDrag,
+          canDrag: false,
           tipHash: tipId,
           isCurrentHead: gitState.HEAD === branchName,
           highlighted: highlightNodeIds?.includes(`branch-${branchName}`) ?? false,
         },
-        draggable: canDrag,
+        draggable: false,
       })
     }
 
@@ -222,7 +206,6 @@ export const GitCanvas = ({
     canCheckout,
     canReset,
     canSquash,
-    canDrag,
     headAncestors,
     isDetachedHead,
     wip,
@@ -233,8 +216,8 @@ export const GitCanvas = ({
     EMPTY_POS,
   ])
 
-  const edges: Edge[] = useMemo(() => {
-    const result: Edge[] = []
+  const edges = useMemo(() => {
+    const result = []
     for (const [id, commit] of Object.entries(gitState.commits)) {
       const isMerge = commit.parentIds.length > 1
       commit.parentIds.forEach((parentId, idx) => {
@@ -324,21 +307,7 @@ export const GitCanvas = ({
         doCheckout(branchName)
       }
     },
-    [
-      canBranch,
-      canCheckout,
-      canReset,
-      canSquash,
-      headCommitId,
-      headAncestors,
-      gitState.branches,
-      doAddCommit,
-      doStartWip,
-      doCreateBranch,
-      doCheckout,
-      doResetHard,
-      doSquash,
-    ]
+    [canBranch, canCheckout, canReset, canSquash, headCommitId, headAncestors, gitState.branches, doAddCommit, doStartWip, doCreateBranch, doCheckout, doResetHard, doSquash, doStageChanges]
   )
 
   return (
@@ -367,24 +336,19 @@ export const GitCanvas = ({
       )}
       <ReactFlow
         key={mode}
-        nodes={[...nodes, ...ghostElements.nodes]}
-        edges={[...edges, ...ghostElements.edges]}
+        nodes={[...nodes, ...previewElements.nodes]}
+        edges={[...edges, ...previewElements.edges]}
         nodeTypes={nodeTypes}
-        nodesDraggable={canDrag}
+        nodesDraggable={false}
         nodesConnectable={false}
         elementsSelectable={true}
         onNodeClick={onNodeClick}
-        onNodeDrag={onNodeDrag}
-        onNodeDragStop={onNodeDragStop}
         fitView
         fitViewOptions={{ padding: 0.3 }}
         proOptions={{ hideAttribution: true }}
       >
         <Background variant={BackgroundVariant.Dots} gap={22} size={1.4} color="var(--grid)" />
       </ReactFlow>
-      {pendingDragOp && (
-        <DragConfirmModal op={pendingDragOp} headBranch={gitState.HEAD} onConfirm={handleModalConfirm} onCancel={handleModalCancel} />
-      )}
     </div>
   )
 }

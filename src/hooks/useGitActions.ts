@@ -13,12 +13,12 @@ export const useGitActions = () => ({
     useInteraction.getState().setStaged(message)
   },
 
-  doAddCommit: () => {
+  doAddCommit: (messageOverride?: string) => {
     const engine = useGitEngine.getState()
     const before = engine.gitState
 
     const { staged } = useInteraction.getState()
-    const message = staged ?? `feat: new commit ${before.nextCommitNum}`
+    const message = messageOverride ?? staged ?? `feat: new commit ${before.nextCommitNum}`
     const result = engine.doAddCommit(message)
     if (!result) {
       return
@@ -85,9 +85,9 @@ export const useGitActions = () => ({
     useUIFeedback.getState().flashAndLog(result.command, before, result.state)
   },
 
-  doCreateBranch: (commitId: string) => {
+  doCreateBranch: (commitId: string, branchName?: string) => {
     const before = useGitEngine.getState().gitState
-    const result = useGitEngine.getState().doCreateBranch(commitId)
+    const result = useGitEngine.getState().doCreateBranch(commitId, branchName)
     if (!result) return
     useUIFeedback.getState().flashAndLog(result.command, before, result.state)
     if (useModuleFlow.getState().mode === 'module2') {

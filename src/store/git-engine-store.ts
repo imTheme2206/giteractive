@@ -27,7 +27,7 @@ type GitEngineStore = {
   doRebase: (branch: string, onto: string) => { state: GitState; command: string } | null
   doMerge: (source: string, target: string) => { state: GitState; command: string } | null
   doCheckout: (target: string) => { state: GitState; command: string } | null
-  doCreateBranch: (commitId: string) => { state: GitState; command: string } | null
+  doCreateBranch: (commitId: string, branchName?: string) => { state: GitState; command: string } | null
   doResetHard: (targetId: string) => { state: GitState; command: string } | null
   doSquash: (branch: string, count: number, message: string) => { state: GitState; command: string } | null
   doReflogRecover: (hash: string) => { before: GitState; after: GitState } | null
@@ -76,9 +76,9 @@ export const useGitEngine = create<GitEngineStore>((set, get) => ({
     return result
   },
 
-  doCreateBranch: (commitId) => {
-    const branchName = git.getNextBranchName(Object.keys(get().gitState.branches))
-    return runMutation(get, set, git.createBranch, commitId, branchName)
+  doCreateBranch: (commitId, branchName) => {
+    const name = branchName ?? git.getNextBranchName(Object.keys(get().gitState.branches))
+    return runMutation(get, set, git.createBranch, commitId, name)
   },
 
   doResetHard: (targetId) => runMutation(get, set, git.resetHard, targetId),

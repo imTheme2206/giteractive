@@ -6,11 +6,10 @@ import { TipCard } from './TipCard'
 
 type CommandPanelProps = {
   commands: string[]
-  onPreview: (cmd: string) => void
-  onExecute: (cmd: string) => void
+  onPaste: (cmd: string) => void
 }
 
-export const CommandPanel = ({ commands, onPreview, onExecute }: CommandPanelProps) => {
+export const CommandPanel = ({ commands, onPaste }: CommandPanelProps) => {
   const { t } = useTranslation()
   const [tipsCmd, setTipsCmd] = useState<string | null>(null)
 
@@ -19,6 +18,15 @@ export const CommandPanel = ({ commands, onPreview, onExecute }: CommandPanelPro
   }
 
   const tipsCommandKey = tipsCmd ? matchCommand(tipsCmd) : null
+
+  const handlePaste = (cmd: string) => {
+    // Paste prefix only for checkout -b (no placeholder branch name)
+    if (cmd === 'git checkout -b feature') {
+      onPaste('git checkout -b ')
+    } else {
+      onPaste(cmd)
+    }
+  }
 
   return (
     <div className="relative shrink-0 border-t border-dashed border-[var(--hair)] bg-[var(--panel2)]">
@@ -31,9 +39,9 @@ export const CommandPanel = ({ commands, onPreview, onExecute }: CommandPanelPro
               key={cmd}
               cmd={cmd}
               isActive={tipsCmd === cmd}
-              onMouseEnter={() => onPreview(cmd)}
-              onMouseLeave={() => onPreview('')}
-              onClick={() => onExecute(cmd)}
+              onMouseEnter={() => {}}
+              onMouseLeave={() => {}}
+              onClick={() => handlePaste(cmd)}
               onTipToggle={() => setTipsCmd(tipsCmd === cmd ? null : cmd)}
             />
           ))}

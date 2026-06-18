@@ -14,6 +14,7 @@ import { Sidebar } from './components/sidebar/Sidebar'
 import { SidebarPanel } from './components/sidebar/SidebarPanel'
 import { Toolbar } from './components/toolbar/Toolbar'
 import { WelcomeOverlay } from './components/WelcomeOverlay'
+import { useCommandInput } from './hooks/useCommandInput'
 import { useDocsPanelResize } from './hooks/useDocsPanelResize'
 import { useExplainerCommand } from './hooks/useExplainerCommand'
 import { useGitActions } from './hooks/useGitActions'
@@ -46,7 +47,24 @@ export const App = () => {
   const currentLesson = MODULE_REGISTRY[moduleFlow.mode]?.lesson
   const currentComplete = moduleFlow.moduleProgress.find((p) => p.id === moduleFlow.mode)?.status === 'complete'
 
-  // — orchestration functions that coordinate multiple stores —
+  const handleReflog = () => {
+    feedback.setTicker({ command: 'git reflog', state: 'flash' })
+    setTimeout(() => feedback.setTicker({ command: '', state: 'idle' }), 1200)
+  }
+
+  const handleInit = () => {
+    feedback.flashAndLog('git init', engine.gitState, engine.gitState)
+  }
+
+  const commandInput = useCommandInput({
+    gitState: engine.gitState,
+    actions,
+    staged: interaction.staged,
+    wip: interaction.wip,
+    stashStack: interaction.stashStack,
+    onReflog: handleReflog,
+    onInit: handleInit,
+  })
 
   const enterModule = (id: ModuleId) => {
     const def = MODULE_REGISTRY[id]
@@ -58,10 +76,6 @@ export const App = () => {
     engine.resetToState(def.makeState(), def.getShadowCommits?.() ?? {}, def.getInitialReflog?.() ?? [])
     interaction.reset(def.initialWip)
     feedback.clear()
-    if (id === 'module0') {
-      feedback.setTicker({ command: 'git init', state: 'flash' })
-      setTimeout(() => feedback.setTicker({ command: 'git init', state: 'idle' }), 1400)
-    }
   }
 
   const doReset = () => {
@@ -87,65 +101,7 @@ export const App = () => {
     enterModule(id)
   }
 
-  const executeModuleCommand = (cmd: string) => {
-    const { branches, commits, HEAD } = engine.gitState
-
-    if (cmd.startsWith('git add')) {
-      actions.doStageChanges()
-    } else if (cmd.startsWith('git commit')) {
-      actions.doAddCommit()
-    } else if (cmd === 'git checkout -b feature') {
-      const headCommit = branches[HEAD] ?? HEAD
-      actions.doCreateBranch(headCommit)
-    } else if (cmd.startsWith('git checkout') && !cmd.includes('-b')) {
-      const target = cmd.split(' ').pop()
-      if (target) actions.doCheckout(target)
-    } else if (cmd.startsWith('git cherry-pick')) {
-      const otherBranch = Object.keys(branches).find((b) => b !== HEAD)
-      if (otherBranch) {
-        const sourceCommit = branches[otherBranch]
-        if (sourceCommit) actions.doCherryPick(sourceCommit, HEAD)
-      }
-    } else if (cmd === 'git rebase main') {
-      const featureBranch = Object.keys(branches).find((b) => b !== 'main') ?? HEAD
-      actions.doRebase(featureBranch, 'main')
-    } else if (cmd.startsWith('git merge')) {
-      const sourceBranch = cmd.split(' ')[2]
-      const targetBranch = HEAD !== sourceBranch ? HEAD : 'main'
-      if (sourceBranch) actions.doMerge(sourceBranch, targetBranch)
-    } else if (cmd.startsWith('git reset --hard') && !cmd.includes('<')) {
-      const target = cmd.split(' ').pop()
-      if (target) actions.doResetHard(target)
-    } else if (cmd === 'git stash') {
-      actions.doStash()
-    } else if (cmd === 'git stash pop') {
-      actions.doStashPop()
-    } else if (cmd.startsWith('git rebase -i')) {
-      const featureBranch = Object.keys(branches).find((b) => b !== 'main') ?? HEAD
-      const featureTip = branches[featureBranch]
-      if (!featureTip) return
-      const mainTip = branches['main']
-      const mainCommits = new Set<string>()
-      let cur: string | undefined = mainTip
-      while (cur) {
-        mainCommits.add(cur)
-        cur = commits[cur]?.parentIds[0]
-      }
-      let count = 0
-      cur = featureTip
-      while (cur && !mainCommits.has(cur)) {
-        count++
-        cur = commits[cur]?.parentIds[0]
-      }
-      if (count > 1) actions.doSquash(featureBranch, count, 'feat: squashed')
-    } else if (cmd === 'git reflog') {
-      feedback.setTicker({ command: 'git reflog', state: 'flash' })
-      setTimeout(() => feedback.setTicker({ command: '', state: 'idle' }), 1200)
-    } else if (cmd.startsWith('git reset --hard') && cmd.includes('<')) {
-      const firstEntry = engine.reflog[0]
-      if (firstEntry) actions.doReflogRecover(firstEntry.hash)
-    }
-  }
+  const previewCommand = commandInput.isValid ? commandInput.inputValue : null
 
   return (
     <div className="relative flex h-screen overflow-hidden">
@@ -195,25 +151,16 @@ export const App = () => {
               gitState={engine.gitState}
               mode={moduleFlow.mode}
               doAddCommit={actions.doAddCommit}
-              doCherryPick={actions.doCherryPick}
-              doRebase={actions.doRebase}
-              doMerge={actions.doMerge}
               doStartWip={actions.doStartWip}
               doCreateBranch={actions.doCreateBranch}
               doCheckout={actions.doCheckout}
               doResetHard={actions.doResetHard}
               doSquash={actions.doSquash}
               doStageChanges={actions.doStageChanges}
-              setGhostCommand={(cmd, subtitle) =>
-                feedback.setTicker({
-                  command: cmd,
-                  subtitle,
-                  state: cmd ? 'ghost' : 'idle',
-                })
-              }
               wip={interaction.wip}
               staged={interaction.staged}
               highlightNodeIds={highlightNodeIds}
+              previewCommand={previewCommand}
             />
 
             {currentLesson && !currentComplete && (
@@ -257,11 +204,22 @@ export const App = () => {
 
         <CommandPanel
           commands={deriveCommands(moduleFlow.mode as ModuleId, engine.gitState, interaction.wip, interaction.staged, interaction.stashStack)}
-          onPreview={(cmd) => feedback.setTicker({ command: cmd, state: cmd ? 'ghost' : 'idle' })}
-          onExecute={executeModuleCommand}
+          onPaste={commandInput.pasteCommand}
         />
 
-        <CommandTicker ticker={feedback.ticker} history={feedback.history} gitState={engine.gitState} onTokenHover={setHighlightNodeIds} />
+        <CommandTicker
+          inputValue={commandInput.inputValue}
+          isValid={commandInput.isValid}
+          suggestions={commandInput.suggestions}
+          activeSuggestionIdx={commandInput.activeSuggestionIdx}
+          onInputChange={commandInput.handleChange}
+          onKeyDown={commandInput.handleKeyDown}
+          onSuggestionSelect={commandInput.acceptSuggestion}
+          ticker={feedback.ticker}
+          history={feedback.history}
+          gitState={engine.gitState}
+          onTokenHover={setHighlightNodeIds}
+        />
       </div>
 
       {docsOpen && (
