@@ -3,12 +3,14 @@ import type { ConflictState } from '../types'
 
 type InteractionStore = {
   wip: string | null
+  staged: string | null
   stashStack: Array<{ message: string; fromBranch: string }>
   conflictState: ConflictState | null
   conflictFlash: boolean
   pendingConflictMerge: ConflictState | null
   hasDetached: boolean
   setWip: (message: string | null) => void
+  setStaged: (message: string | null) => void
   pushStash: (message: string, fromBranch: string) => void
   popStash: () => { message: string; fromBranch: string } | null
   triggerConflict: (source: string, target: string) => void
@@ -19,11 +21,14 @@ type InteractionStore = {
 
 export const useInteraction = create<InteractionStore>((set, get) => ({
   wip: null,
+  staged: null,
   stashStack: [],
   conflictState: null,
   conflictFlash: false,
   pendingConflictMerge: null,
   hasDetached: false,
+
+  setStaged: (message: string | null) => set({ staged: message }),
 
   setWip: (message) => set({ wip: message }),
 
@@ -60,6 +65,7 @@ export const useInteraction = create<InteractionStore>((set, get) => ({
   reset: (initialWip = null) =>
     set({
       wip: initialWip,
+      staged: null,
       stashStack: [],
       conflictState: null,
       conflictFlash: false,

@@ -3,6 +3,8 @@ const th = {
     stash: '⬇ เก็บงาน (Stash)',
     pop: '⬆ ดึงกลับ ({{count}})',
     reset: '↺ รีเซ็ต',
+    undo: '↩ เลิกทำ',
+    redo: '↪ ทำซ้ำ',
     theme: 'ธีม',
     dev: 'นักพัฒนา',
     tabGraph: 'กราฟ',
@@ -33,6 +35,8 @@ const th = {
     timeJustNow: 'เมื่อสักครู่',
     timeSeconds: '{{count}} วินาทีที่แล้ว',
     timeMinutes: '{{count}} นาทีที่แล้ว',
+    progressCount: '{{completed}} / {{total}} ด่าน',
+    progressDone: 'ครบแล้ว ✓',
 
     modules: {
       module0: { title: 'โมดูล 0', subtitle: 'เริ่มต้น' },
@@ -60,86 +64,89 @@ const th = {
     guided: 'โหมดสอน',
     sandbox: 'Sandbox',
     attempts: 'ลองไปแล้ว: {{count}} ครั้ง',
+    commandLabel: 'คำสั่งที่ต้องพิมพ์:',
+    commandLabelEscalated: 'ลองพิมพ์ตรง ๆ:',
+    paste: '→ วาง',
   },
 
   lessons: {
     init: {
       title: 'ด่าน 00 — commit แรกของคุณ',
       description: 'คุณมี repository ที่ว่างเปล่า สร้าง commit แรกเพื่อเริ่มติดตามประวัติ',
-      hint: 'กดปุ่ม + เพื่อ stage การเปลี่ยนแปลง จากนั้น commit',
+      hint: 'พิมพ์ `git commit -m "init: first commit"` ในช่องด้านล่างแล้วกด Enter',
       chips: ['การกระทำ: commit แรก'],
     },
     linear: {
       title: 'ด่าน 01 — ไทม์ไลน์เส้นตรง',
       description: 'สร้าง commit เพิ่มอีก 4 ครั้ง เพื่อให้มีทั้งหมด 7 commits และดูว่า Git สร้างประวัติแบบเส้นตรงอย่างไร',
-      hint: 'กดปุ่ม + เพื่อสร้าง commit สังเกตว่า HEAD และ main จะเลื่อนไปข้างหน้าทุกครั้ง',
+      hint: 'พิมพ์ `git commit -m "feat: ..."` ในช่อง — ทำซ้ำจนถึง 7 commits',
       chips: ['เป้าหมาย: 7 commits', 'การกระทำ: commit'],
     },
 
     branch: {
       title: 'ด่าน 02 — จักรวาลคู่ขนาน',
       description: 'สร้าง branch ใหม่ แล้วเพิ่ม commit ลงใน branch นั้น โดยไม่แตะต้อง main',
-      hint: 'กดป้าย ⎇ บน commit ที่ HEAD ชี้อยู่เพื่อสร้าง branch จากนั้นกด + เพื่อ commit',
+      hint: 'พิมพ์ `git checkout -b feature` เพื่อสร้างและสลับไปยัง branch ใหม่ จากนั้นเพิ่ม commit',
       chips: ['การกระทำ: branch + commit'],
     },
 
     'cherry-pick': {
       title: 'ด่าน 03 — Cherry-pick',
       description: 'ย้ายเฉพาะ commit f2 จาก feature มายัง main โดยไม่เอาทั้ง branch มาด้วย',
-      hint: 'ลาก commit f2 ไปวางบน c3 (ปลายของ main) ระบบจะแสดงตัวอย่างคำสั่ง git cherry-pick f2 ก่อนปล่อยเมาส์',
+      hint: 'พิมพ์ `git cherry-pick f2` เพื่อคัดลอก commit f2 มายัง main',
       chips: ['เป้าหมาย: main', 'จำนวน commit ที่ย้าย: 1'],
     },
 
     rebase: {
       title: 'ด่าน 04 — Rebase',
       description: 'ย้าย branch feature ทั้งเส้นขึ้นไปต่อจากปลายของ main พร้อมเขียนประวัติใหม่ให้ดูเหมือนเริ่มจากตรงนั้นตั้งแต่แรก',
-      hint: 'ลากป้าย feature ไปวางบนปลายของ main สังเกตว่า ID ของ commit เปลี่ยนไป นั่นคือการ rewrite history',
+      hint: 'พิมพ์ `git rebase main` ขณะอยู่บน branch feature เพื่อ rebase ไปที่ main',
       chips: ['ปลายทาง: main', 'branch: feature'],
     },
 
     merge: {
       title: 'ด่าน 05 — Merge',
       description: 'รวม feature เข้ากับ main โดยสร้าง merge commit ที่เชื่อมประวัติทั้งสองฝั่งเข้าด้วยกัน โดยไม่เปลี่ยน ID ของ commit เดิม',
-      hint: 'ลากป้าย feature ไปวางบนป้าย branch ของ main แล้วดู merge commit ที่มี parent สองตัว',
+      hint: 'พิมพ์ `git merge feature` ขณะอยู่บน main เพื่อ merge branch feature',
       chips: ['เป้าหมาย: main', 'branch: feature', 'ผลลัพธ์: merge commit'],
     },
 
     conflict: {
       title: 'ด่าน 06 — Merge Conflict',
       description: 'ทั้งสอง branch แก้ไฟล์เดียวกัน ลอง merge feature เข้ากับ main แล้วเลือกวิธีแก้ conflict',
-      hint: 'ลาก feature ไปหา main ถ้าหน้าจอเป็นสีส้มแสดงว่าเกิด conflict จากนั้นเลือกวิธีแก้ในหน้าต่างที่แสดงขึ้น',
+      hint: 'พิมพ์ `git merge feature` เพื่อเริ่ม merge — จากนั้นแก้ conflict ในหน้าต่างที่แสดงขึ้น',
       chips: ['ไฟล์ที่ขัดแย้ง: greeting.txt', 'วิธีแก้: เลือกเวอร์ชัน'],
     },
 
     reset: {
       title: 'ด่าน 07 — git reset',
       description: 'มี commit ทดลองที่ไม่ต้องการหลุดเข้ามาใน main ให้ย้อน main กลับไปที่ c3 และลบ commit ที่ผิดพลาดออกจากประวัติ',
-      hint: 'เอาเมาส์ไปชี้ที่ c3 แล้วกดปุ่ม ↺ reset commit ที่ผิดพลาดจะหายไป (--hard)',
+      hint: 'พิมพ์ `git reset --hard c3` เพื่อย้าย main กลับไปที่ c3 ลบ commit ที่ผิดพลาด',
       chips: ['โหมด: --hard', 'เป้าหมาย: c3', 'หายไป: c4, c5'],
     },
 
     stash: {
       title: 'ด่าน 08 — git stash',
       description: 'คุณมีงานค้างอยู่บน feature แต่ main ต้องการ hotfix ด่วน เก็บงานไว้ก่อน แก้ main แล้วค่อยดึงงานกลับมา',
-      hint: 'กด ⬇ Stash เพื่อเก็บงาน สลับไป main สร้าง commit แล้วกลับมา feature และกด Pop',
+      hint: 'พิมพ์ `git stash` เพื่อเก็บงาน สลับไป main แก้ไข กลับมา feature แล้วพิมพ์ `git stash pop`',
       chips: ['เก็บงาน', 'แก้ main', 'ดึงงานกลับ'],
     },
     squash: {
       title: 'ด่าน 09 — Interactive Squash',
       description: 'มี commit WIP สามตัวอยู่บน feature รวมมันเป็น commit เดียวก่อน merge',
-      hint: 'กดปุ่ม ⊕ squash ที่ปลาย feature ดู commit 3 ตัวรวมเป็น 1',
+      hint: 'พิมพ์ `git rebase -i HEAD~3` เพื่อเปิด interactive rebase และรวม 3 WIP commits',
       chips: ['โหมด: -i squash', 'เป้าหมาย: feature', 'ก่อน: 3 commits', 'หลัง: 1 commit'],
     },
     'detached-head': {
       title: 'ด่าน 10 — Detached HEAD',
       description: 'Checkout commit c2 โดยตรงเพื่อสำรวจอดีต — แล้ว reattach HEAD กลับไปที่ main',
-      hint: 'คลิก commit c2 เพื่อ checkout (HEAD จะหลุดออกจาก branch) จากนั้นคลิก label ของ main เพื่อ reattach',
+      hint: 'พิมพ์ `git checkout c2` เพื่อเข้า detached HEAD จากนั้นพิมพ์ `git checkout main` เพื่อ reattach',
       chips: ['ขั้นที่ 1: checkout c2', 'ขั้นที่ 2: reattach ไปที่ main'],
     },
     reflog: {
       title: 'ด่าน 11 — Reflog Recovery',
       description: 'คุณ reset --hard ไปที่ c3 โดยไม่ตั้งใจ ทำให้ c4 และ c5 หายไป ใช้ reflog เพื่อกู้คืน commit ที่หายไป',
-      hint: 'กดปุ่ม Recover ถัดจาก c5 ใน reflog panel แล้ว commit ที่หายไปจะกลับมา',
+      hint: 'พิมพ์ `git reset --hard c5` โดยใช้ hash จาก reflog panel เพื่อกู้คืน commit ที่หายไป',
       chips: ['หายไป: c4, c5', 'เครื่องมือ: git reflog', 'action: reset --hard <hash>'],
     },
   },
@@ -314,9 +321,19 @@ const th = {
     },
   },
   tickerSubtitles: {
-    cherryPick: 'คัดลอกเฉพาะการเปลี่ยนแปลงจาก commit นี้มายัง branch ปัจจุบัน',
-    rebase: 'นำ commit ของคุณมาเรียงใหม่บน branch เป้าหมายทีละตัว',
-    merge: 'เชื่อมประวัติทั้งสองฝั่งด้วย merge commit ใหม่',
+    commit: 'สร้าง snapshot ของการเปลี่ยนแปลงเป็น node ใหม่ในกราฟประวัติ',
+    checkoutB: 'สร้าง branch ใหม่จากตำแหน่ง HEAD ปัจจุบัน',
+    switchC: 'สร้าง branch ใหม่จากตำแหน่ง HEAD ปัจจุบัน',
+    checkout: 'ย้าย HEAD ไปยัง branch หรือ commit ที่กำหนด',
+    switch: 'ย้าย HEAD ไปยัง branch ที่กำหนด',
+    cherryPick: 'คัดลอก commit จาก branch อื่น — hash จะเปลี่ยนเมื่อนำไปประยุกต์ใหม่',
+    rebaseI: 'เปิด interactive rebase — squash, จัดลำดับ หรือลบ commit ก่อน review',
+    rebase: 'นำ commit ไปวางต่อจาก branch เป้าหมาย พร้อมเขียน hash ใหม่',
+    merge: 'รวมสอง branch ด้วย merge commit ใหม่ที่เก็บประวัติทั้งคู่ไว้',
+    resetHard: 'ย้าย pointer ของ branch กลับ ลบ commit ที่ตามมาทั้งหมด',
+    stashPop: 'ดึงงานที่ stash ล่าสุดกลับมายัง branch ปัจจุบัน',
+    stash: 'เก็บงานที่ยังไม่ commit ไว้ชั่วคราว ทิ้ง working tree ที่สะอาด',
+    reflog: 'แสดงประวัติทุกตำแหน่งที่ HEAD เคยชี้ไป — ไม่มีอะไรหายไปจริง ๆ',
   },
   explainer: {
     branchCreated: {
@@ -640,6 +657,91 @@ const th = {
       },
     },
     getStarted: 'เริ่มเลย →',
+  },
+  subcommandTips: {
+    commit: 'สร้าง snapshot ของการเปลี่ยนแปลงเป็น node ใหม่ในกราฟ',
+    cherryPick: 'คัดลอก commit เดียวไปยัง branch ปัจจุบัน — hash จะเปลี่ยนเมื่อนำไปใช้ใหม่',
+    rebase: 'ยก commit ออกจากฐานเดิมและวางใหม่บน branch เป้าหมาย ประวัติถูกเขียนใหม่',
+    merge: 'รวมประวัติสอง branch ด้วย merge commit ใหม่ hash เดิมไม่เปลี่ยน',
+    reset: 'ย้าย pointer ของ branch กลับ ลบ commit ที่ตามมา',
+    stash: 'เก็บการเปลี่ยนแปลงที่ยังไม่ commit ไว้ชั่วคราว คืน working tree ที่สะอาด',
+    checkout: 'ย้าย HEAD ไปยัง branch หรือ commit ที่กำหนด',
+  },
+  levelComplete: {
+    youLearned: 'คุณได้เรียนรู้',
+    levelTitle: 'ด่าน {{n}} สำเร็จ!',
+    allComplete: 'ครบทุกด่านแล้ว!',
+    unlocked: 'คุณได้ปลดล็อคด่านถัดไปแล้ว',
+    graduation: '🎓 คุณรู้จัก git แล้ว',
+    graduationSub: 'ฝึกครบ 12 คำสั่ง ลอง sandbox เพื่อสำรวจอย่างอิสระ',
+    stayHere: 'อยู่ที่นี่',
+    nextLevel: 'ด่านถัดไป →',
+    openSandbox: 'เปิด Sandbox →',
+    modules: {
+      module0: {
+        command: 'git commit',
+        takeaway: 'ทุกโปรเจกต์เริ่มต้นด้วย commit แรก — git ติดตามการเปลี่ยนแปลงเป็นลูกโซ่ของ snapshots',
+      },
+      module1: {
+        command: 'git commit',
+        takeaway: 'ประวัติเส้นตรงคือพื้นฐาน — เข้าใจลูกโซ่แล้วทุกอย่างจะชัดขึ้น',
+      },
+      module2: {
+        command: 'git checkout -b',
+        takeaway: 'Branch คือ pointer ราคาถูก — มีได้หลายสิบเส้นโดยไม่ต้องคัดลอกไฟล์',
+      },
+      module3: {
+        command: 'git cherry-pick',
+        takeaway: 'Cherry-pick ให้คุณหยิบ commit เดียว — เหมาะสำหรับ backport bugfix ไปยังเวอร์ชันเก่า',
+      },
+      module4: {
+        command: 'git rebase',
+        takeaway: 'Rebase เขียนประวัติให้ดูเป็นเส้นตรง — PR history ของทีมอ่านง่ายขึ้น',
+      },
+      module5: {
+        command: 'git merge',
+        takeaway: 'Merge เก็บทั้งสอง timeline ด้วย merge commit — เห็นได้ว่า branch แยกออกตรงไหน',
+      },
+      module6: {
+        command: 'git merge (conflicts)',
+        takeaway: 'Conflict คือ git ถามว่า "การเปลี่ยนแปลงไหนชนะ?" — มันหยุดเพื่อให้คุณตัดสินใจ',
+      },
+      module7: {
+        command: 'git reset --hard',
+        takeaway: 'Reset คือมีดผ่าตัด — ลบ commit อย่างถาวร มีประโยชน์ใน local อันตรายบน shared branch',
+      },
+      module8: {
+        command: 'git stash',
+        takeaway: 'Stash คือคลิปบอร์ดสำหรับงานที่ยังไม่ commit — เหมาะสำหรับสลับ context โดยไม่สูญเสียอะไร',
+      },
+      module9: {
+        command: 'git rebase -i',
+        takeaway: 'Interactive rebase คือเครื่องมือ "แก้ก่อน push" — รวม WIP commits ให้ reviewable',
+      },
+      module10: {
+        command: 'git checkout <hash>',
+        takeaway: 'Detached HEAD คือการเดินทางข้ามเวลาแบบอ่านอย่างเดียว — สร้าง branch ก่อน commit เสมอ',
+      },
+      module11: {
+        command: 'git reflog',
+        takeaway: 'Reflog คือตาข่ายนิรภัย — git ไม่ลบ commit จนกว่า garbage collection คุณกู้คืนได้เสมอ',
+      },
+    },
+  },
+  introModal: {
+    theProblem: 'ปัญหาคืออะไร',
+    howGitWorks: 'Git ทำงานอย่างไร',
+    keyInsight: 'ข้อสังเกตสำคัญ:',
+    skipIntro: 'ข้ามไปเลย',
+    start: 'เริ่มเลย →',
+  },
+  canvas: {
+    emptyInit: 'git init ✓',
+    emptyBranch: 'เริ่มต้น Repository แล้ว — สร้าง branch <code>{{branch}}</code> แต่ยังไม่มี commit',
+    emptyAction: 'กด + เพื่อ stage การเปลี่ยนแปลงและสร้าง commit แรกของคุณ',
+  },
+  ticker: {
+    placeholder: 'พิมพ์คำสั่ง git…',
   },
 }
 

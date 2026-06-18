@@ -1,6 +1,8 @@
 import type { GitCommandName, GitState, ModuleId } from '../types'
 
 const ALL_KEYS: GitCommandName[] = [
+  'make_changes',
+  'stage',
   'commit',
   'checkout_b',
   'checkout',
@@ -15,15 +17,15 @@ const ALL_KEYS: GitCommandName[] = [
 ]
 
 const MODULE_ALLOWED: Record<ModuleId, GitCommandName[]> = {
-  module0: ['commit'],
-  module1: ['commit'],
-  module2: ['checkout_b', 'commit'],
+  module0: ['make_changes', 'stage', 'commit'],
+  module1: ['make_changes', 'stage', 'commit'],
+  module2: ['checkout_b', 'make_changes', 'stage', 'commit'],
   module3: ['cherry_pick'],
   module4: ['checkout', 'rebase'],
   module5: ['merge'],
   module6: ['merge'],
   module7: ['reset_hard'],
-  module8: ['stash', 'checkout', 'stash_pop', 'commit'],
+  module8: ['make_changes', 'stash', 'checkout', 'stash_pop', 'stage', 'commit'],
   module9: ['rebase_i'],
   module10: ['checkout'],
   module11: ['reflog', 'reset_hard'],
@@ -31,7 +33,7 @@ const MODULE_ALLOWED: Record<ModuleId, GitCommandName[]> = {
 }
 
 const MODULE_STATIC: Partial<Record<ModuleId, string[]>> = {
-  module0: ['git init', 'git add .'],
+  module0: ['git init'],
 }
 
 function generateCommand(
@@ -39,15 +41,24 @@ function generateCommand(
   mode: ModuleId,
   gitState: GitState,
   wip: string | null,
+  staged: string | null,
   stashStack: Array<{ message: string; fromBranch: string }>
 ): string[] {
   const { branches, HEAD, commits } = gitState
   const otherBranches = Object.keys(branches).filter((b) => b !== HEAD)
 
   switch (key) {
-    case 'commit':
+    case 'make_changes':
+      if (wip !== null) return []
+      return ['echo "update" >> app.js']
+
+    case 'stage':
       if (wip === null) return []
-      return [`git commit -m "${wip}"`]
+      return ['git add .']
+
+    case 'commit':
+      if (staged === null) return []
+      return [`git commit -m "${staged}"`]
 
     case 'checkout_b':
       return ['git checkout -b feature']
@@ -121,9 +132,10 @@ export function deriveCommands(
   mode: ModuleId,
   gitState: GitState,
   wip: string | null,
+  staged: string | null,
   stashStack: Array<{ message: string; fromBranch: string }>
 ): string[] {
   const statics = MODULE_STATIC[mode] ?? []
-  const dynamic = MODULE_ALLOWED[mode].flatMap((key) => generateCommand(key, mode, gitState, wip, stashStack))
+  const dynamic = MODULE_ALLOWED[mode].flatMap((key) => generateCommand(key, mode, gitState, wip, staged, stashStack))
   return [...statics, ...dynamic]
 }

@@ -10,12 +10,10 @@ type UIFeedbackStore = {
   clear: () => void
 }
 
-const isFirstVisit = !localStorage.getItem('giteractive_welcomed')
-
 export const useUIFeedback = create<UIFeedbackStore>((set) => ({
   ticker: {
-    command: isFirstVisit ? 'git init' : '',
-    state: isFirstVisit ? 'flash' : 'idle',
+    command: '',
+    state: 'idle',
   },
   history: [],
 

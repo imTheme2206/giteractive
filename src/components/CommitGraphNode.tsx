@@ -9,6 +9,7 @@ type CommitNodeData = {
   isMerge?: boolean
   isGhost?: boolean
   isWip?: boolean
+  isStaged?: boolean
   wipMessage?: string
   message?: string
   hash?: string
@@ -47,13 +48,65 @@ export const CommitGraphNode = ({ data }: { data: CommitNodeData }) => {
         ? 'var(--feat)'
         : 'var(--ink)'
   const borderStyle = data.isGhost ? 'dashed' : 'solid'
-  const bg = data.isGhost
-    ? hovered && data.isWip
-      ? `color-mix(in srgb, ${branchColor} 8%, var(--panel))`
-      : 'transparent'
-    : data.isMerge
-      ? 'color-mix(in srgb, var(--ok) 12%, var(--panel))'
-      : 'var(--panel)'
+  const bg = data.isStaged
+    ? hovered
+      ? 'color-mix(in srgb, var(--ok) 22%, var(--panel))'
+      : 'color-mix(in srgb, var(--ok) 13%, var(--panel))'
+    : data.isGhost
+      ? hovered && data.isWip
+        ? `color-mix(in srgb, ${branchColor} 8%, var(--panel))`
+        : 'transparent'
+      : data.isMerge
+        ? 'color-mix(in srgb, var(--ok) 12%, var(--panel))'
+        : 'var(--panel)'
+
+  if (data.isStaged) {
+    return (
+      <div
+        className="commit-node-body relative grid place-items-center font-mono font-bold select-none"
+        style={{
+          width: 46,
+          height: 46,
+          borderRadius: 10,
+          border: `2.2px solid var(--ok)`,
+          background: bg,
+          fontSize: 10,
+          color: 'var(--ok)',
+          cursor: 'pointer',
+          transition: 'background 0.15s',
+          boxShadow: hovered ? '0 0 0 3px color-mix(in srgb, var(--ok) 30%, transparent)' : undefined,
+        }}
+        onMouseEnter={() => { setHovered(true); onMouseEnter() }}
+        onMouseLeave={() => { setHovered(false); onMouseLeave() }}
+        title="Click to commit (git commit)"
+      >
+        <Handle type="target" position={Position.Left} style={{ opacity: 0 }} />
+        {data.label}
+        <Handle type="source" position={Position.Right} style={{ opacity: 0 }} />
+        <div
+          className="pointer-events-none absolute font-mono whitespace-nowrap select-none"
+          style={{
+            bottom: -18,
+            left: '50%',
+            transform: 'translateX(-50%)',
+            fontSize: 9,
+            color: 'var(--ok)',
+            letterSpacing: '0.04em',
+            opacity: hovered ? 1 : 0.6,
+            transition: 'opacity 0.15s',
+          }}
+        >
+          {hovered
+            ? 'click to commit'
+            : data.wipMessage
+              ? data.wipMessage.length > 18
+                ? `${data.wipMessage.slice(0, 16)}…`
+                : data.wipMessage
+              : 'staged'}
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div
@@ -85,7 +138,7 @@ export const CommitGraphNode = ({ data }: { data: CommitNodeData }) => {
         setHovered(false)
         onMouseLeave()
       }}
-      title={data.isWip ? 'Click to commit (git commit)' : undefined}
+      title={data.isWip ? 'Click to stage (git add .)' : undefined}
     >
       <Handle type="target" position={Position.Left} style={{ opacity: 0 }} />
       {data.label}
@@ -105,12 +158,12 @@ export const CommitGraphNode = ({ data }: { data: CommitNodeData }) => {
           }}
         >
           {hovered
-            ? 'click to commit'
+            ? 'click to stage'
             : data.wipMessage
               ? data.wipMessage.length > 18
                 ? `${data.wipMessage.slice(0, 16)}…`
                 : data.wipMessage
-              : 'click to commit'}
+              : 'click to stage'}
         </div>
       )}
       {!data.isGhost && data.message && (

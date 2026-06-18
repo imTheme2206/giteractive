@@ -1,34 +1,68 @@
+import type { GitState } from '../types'
 import { useGitEngine } from '../store/git-engine-store'
 import { useInteraction } from '../store/interaction-store'
 import { useModuleFlow } from '../store/module-flow-store'
 import { useUIFeedback } from '../store/ui-feedback-store'
 
+const pushSandboxReflog = (state: GitState, message: string) => {
+  if (useModuleFlow.getState().mode !== 'sandbox') return
+  const hash = state.branches[state.HEAD] ?? state.HEAD
+  useGitEngine.getState().pushReflogEntry({ hash, message, headRef: state.HEAD })
+}
+
 export const useGitActions = () => ({
-  doAddCommit: () => {
-    const { wip } = useInteraction.getState()
+  doStageChanges: () => {
     const engine = useGitEngine.getState()
     const before = engine.gitState
+    const { wip } = useInteraction.getState()
     const message = wip ?? `feat: new commit ${before.nextCommitNum}`
-    const result = engine.doAddCommit(message)
-    if (!result) return
     useInteraction.getState().setWip(null)
-    useUIFeedback.getState().flashAndLogCommit(result.command, before.HEAD, before, result.state)
+    useInteraction.getState().setStaged(message)
+  },
+
+  doAddCommit: (messageOverride?: string) => {
+    const engine = useGitEngine.getState()
+    engine.saveUndoCheckpoint()
+    const before = engine.gitState
+
+    const { staged } = useInteraction.getState()
+    // Empty string from bare `git commit` falls through to auto-generated message
+    const message = (messageOverride || null) ?? staged ?? `feat: new commit ${before.nextCommitNum}`
+    const result = engine.doAddCommit(message)
+    if (!result) {
+      return
+    }
+    // When coming from direct command input, clear wip too and use simple log
+    if (messageOverride !== undefined) {
+      useInteraction.getState().setWip(null)
+      useInteraction.getState().setStaged(null)
+      useUIFeedback.getState().flashAndLog(result.command, before, result.state)
+    } else {
+      // Click-based flow: keep the add→commit→push history entries for teaching
+      useInteraction.getState().setStaged(null)
+      useUIFeedback.getState().flashAndLogCommit(result.command, before.HEAD, before, result.state)
+    }
+    pushSandboxReflog(result.state, `commit: ${message}`)
     useModuleFlow.getState().checkCompletion('addCommit', result.state)
   },
 
   doCherryPick: (sourceId: string, targetBranch: string) => {
+    useGitEngine.getState().saveUndoCheckpoint()
     const before = useGitEngine.getState().gitState
     const result = useGitEngine.getState().doCherryPick(sourceId, targetBranch)
     if (!result) return
     useUIFeedback.getState().flashAndLog(result.command, before, result.state)
+    pushSandboxReflog(result.state, `cherry-pick: ${sourceId}`)
     useModuleFlow.getState().checkCompletion('cherryPick', result.state)
   },
 
   doRebase: (branch: string, onto: string) => {
+    useGitEngine.getState().saveUndoCheckpoint()
     const before = useGitEngine.getState().gitState
     const result = useGitEngine.getState().doRebase(branch, onto)
     if (!result) return
     useUIFeedback.getState().flashAndLog(result.command, before, result.state)
+    pushSandboxReflog(result.state, `rebase: rebased ${branch} onto ${onto}`)
     useModuleFlow.getState().checkCompletion('rebase', result.state)
   },
 
@@ -37,10 +71,12 @@ export const useGitActions = () => ({
       useInteraction.getState().triggerConflict(source, target)
       return
     }
+    useGitEngine.getState().saveUndoCheckpoint()
     const before = useGitEngine.getState().gitState
     const result = useGitEngine.getState().doMerge(source, target)
     if (!result) return
     useUIFeedback.getState().flashAndLog(result.command, before, result.state)
+    pushSandboxReflog(result.state, `merge: merged ${source} into ${target}`)
     useModuleFlow.getState().checkCompletion('merge', result.state)
   },
 
@@ -56,6 +92,7 @@ export const useGitActions = () => ({
       return
     }
 
+    useGitEngine.getState().saveUndoCheckpoint()
     const before = useGitEngine.getState().gitState
     const result = useGitEngine.getState().doCheckout(target)
     if (!result) return
@@ -70,12 +107,14 @@ export const useGitActions = () => ({
       return
     }
 
+    pushSandboxReflog(result.state, `checkout: moving to ${target}`)
     useUIFeedback.getState().flashAndLog(result.command, before, result.state)
   },
 
-  doCreateBranch: (commitId: string) => {
+  doCreateBranch: (commitId: string, branchName?: string) => {
+    useGitEngine.getState().saveUndoCheckpoint()
     const before = useGitEngine.getState().gitState
-    const result = useGitEngine.getState().doCreateBranch(commitId)
+    const result = useGitEngine.getState().doCreateBranch(commitId, branchName)
     if (!result) return
     useUIFeedback.getState().flashAndLog(result.command, before, result.state)
     if (useModuleFlow.getState().mode === 'module2') {
@@ -84,7 +123,9 @@ export const useGitActions = () => ({
   },
 
   doResetHard: (targetId: string) => {
-    if (useModuleFlow.getState().mode === 'module11') {
+    useGitEngine.getState().saveUndoCheckpoint()
+    const mode = useModuleFlow.getState().mode
+    if (mode === 'module11') {
       useGitEngine.getState().pushReflogEntry({
         hash: targetId,
         message: `reset: moving to ${targetId}`,
@@ -95,10 +136,14 @@ export const useGitActions = () => ({
     const result = useGitEngine.getState().doResetHard(targetId)
     if (!result) return
     useUIFeedback.getState().flashAndLog(result.command, before, result.state)
+    if (mode === 'sandbox') {
+      pushSandboxReflog(result.state, `reset: moving to ${targetId}`)
+    }
     useModuleFlow.getState().checkCompletion('resetHard', result.state)
   },
 
   doSquash: (branch: string, count: number, message: string) => {
+    useGitEngine.getState().saveUndoCheckpoint()
     const before = useGitEngine.getState().gitState
     const result = useGitEngine.getState().doSquash(branch, count, message)
     if (!result) return
@@ -107,6 +152,7 @@ export const useGitActions = () => ({
   },
 
   doReflogRecover: (hash: string) => {
+    useGitEngine.getState().saveUndoCheckpoint()
     const result = useGitEngine.getState().doReflogRecover(hash)
     if (!result) return
     useUIFeedback.getState().flashAndLog(`git reset --hard ${hash}`, result.before, result.after)
@@ -114,6 +160,7 @@ export const useGitActions = () => ({
   },
 
   resolveConflict: (resolution: 'ours' | 'theirs' | 'both') => {
+    useGitEngine.getState().saveUndoCheckpoint()
     const { pendingConflictMerge } = useInteraction.getState()
     if (!pendingConflictMerge) return
     const { sourceBranch, targetBranch } = pendingConflictMerge
@@ -121,7 +168,18 @@ export const useGitActions = () => ({
     if (!result) return
     useUIFeedback.getState().flashAndLog(result.command, result.before, result.after)
     useInteraction.getState().clearConflict()
+    pushSandboxReflog(result.after, `merge: merged ${sourceBranch} into ${targetBranch}`)
     useModuleFlow.getState().checkCompletion('resolveConflict', result.after)
+  },
+
+  doUndo: () => {
+    const ok = useGitEngine.getState().undo()
+    if (ok) useUIFeedback.getState().setTicker({ command: '', state: 'idle' })
+  },
+
+  doRedo: () => {
+    const ok = useGitEngine.getState().redo()
+    if (ok) useUIFeedback.getState().setTicker({ command: '', state: 'idle' })
   },
 
   doStartWip: () => {

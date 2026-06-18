@@ -336,6 +336,13 @@ export const makeSandboxState = (): GitState => {
   }
 }
 
+export const stageChanges = (state: GitState): { state: GitState; command: string } | null => {
+  return {
+    state: { ...state, HEAD: state.HEAD },
+    command: `git add .`,
+  }
+}
+
 export const checkout = (state: GitState, target: string): { state: GitState; command: string } | null => {
   if (target === state.HEAD) return null
   if (state.branches[target] === undefined && state.commits[target] === undefined) return null

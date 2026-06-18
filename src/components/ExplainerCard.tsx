@@ -132,13 +132,13 @@ export const ExplainerCard = ({ command, onDismiss }: ExplainerCardProps) => {
                 <span className="mt-0.5 flex-shrink-0 font-mono text-xs" style={{ color: keys.color, minWidth: '1.2em' }}>
                   {i + 1}.
                 </span>
-                <span className="font-hand text-sm leading-snug text-[var(--soft)]">{step}</span>
+                <span className="font-hand text-sm leading-snug text-soft">{step}</span>
               </li>
             ))}
           </ol>
         )}
 
-        <Badge className="border border-[var(--hair)] bg-[var(--panel2)] px-2 py-0.5 text-xs text-[var(--muted)]">$ {command}</Badge>
+        <Badge className="border border-hair bg-panel2 px-2 py-0.5 text-xs text-muted">$ {command}</Badge>
       </Card>
     </div>
   )

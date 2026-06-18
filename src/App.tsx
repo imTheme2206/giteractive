@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { CommandHistoryTab } from './components/command-history/CommandHistoryTab'
 import { CommandPanel } from './components/command-panel/CommandPanel'
 import { CommandTicker } from './components/CommandTicker'
@@ -9,11 +10,13 @@ import { GitCanvas } from './components/GitCanvas'
 import { GoalCard } from './components/GoalCard'
 import { ConflictModal } from './components/modal/ConflictModal'
 import { IntroModal } from './components/modal/IntroModal'
+import { LevelCompleteOverlay } from './components/modal/LevelCompleteOverlay'
 import { ReflogPanel } from './components/ReflogPanel'
 import { Sidebar } from './components/sidebar/Sidebar'
 import { SidebarPanel } from './components/sidebar/SidebarPanel'
 import { Toolbar } from './components/toolbar/Toolbar'
 import { WelcomeOverlay } from './components/WelcomeOverlay'
+import { useCommandInput } from './hooks/useCommandInput'
 import { useDocsPanelResize } from './hooks/useDocsPanelResize'
 import { useExplainerCommand } from './hooks/useExplainerCommand'
 import { useGitActions } from './hooks/useGitActions'
@@ -34,6 +37,7 @@ export const App = () => {
   const interaction = useInteraction()
   const actions = useGitActions()
 
+  const { t } = useTranslation()
   const { sidebarOpen, setSidebarOpen } = useUIPreferences()
   const [highlightNodeIds, setHighlightNodeIds] = useState<string[]>([])
   const [pendingModule, setPendingModule] = useState<ModuleId | null>(null)
@@ -41,12 +45,33 @@ export const App = () => {
 
   const { docsOpen, docsPanelWidth, toggleDocs, onResizeMouseDown } = useDocsPanelResize()
   const { explainerCommand, explainerKey, dismissExplainer } = useExplainerCommand(feedback.ticker)
-  const { toastModuleId, justUnlockedId, dismissToast } = useModuleCompletion(moduleFlow.showCompletionOverlay, moduleFlow.mode)
+  const { toastModuleId, levelCompleteId, justUnlockedId, dismissToast, dismissLevelComplete } = useModuleCompletion(
+    moduleFlow.showCompletionOverlay,
+    moduleFlow.isFirstCompletion,
+    moduleFlow.mode
+  )
 
   const currentLesson = MODULE_REGISTRY[moduleFlow.mode]?.lesson
   const currentComplete = moduleFlow.moduleProgress.find((p) => p.id === moduleFlow.mode)?.status === 'complete'
 
-  // — orchestration functions that coordinate multiple stores —
+  const handleReflog = () => {
+    feedback.setTicker({ command: 'git reflog', state: 'flash' })
+    setTimeout(() => feedback.setTicker({ command: '', state: 'idle' }), 1200)
+  }
+
+  const handleInit = () => {
+    feedback.flashAndLog('git init', engine.gitState, engine.gitState)
+  }
+
+  const commandInput = useCommandInput({
+    gitState: engine.gitState,
+    actions,
+    staged: interaction.staged,
+    wip: interaction.wip,
+    stashStack: interaction.stashStack,
+    onReflog: handleReflog,
+    onInit: handleInit,
+  })
 
   const enterModule = (id: ModuleId) => {
     const def = MODULE_REGISTRY[id]
@@ -56,12 +81,9 @@ export const App = () => {
     moduleFlow.setModuleGuided(true)
     moduleFlow.setModuleProgress((prev) => prev.map((p) => (p.id === id && p.status === 'available' ? { ...p, status: 'in_progress' } : p)))
     engine.resetToState(def.makeState(), def.getShadowCommits?.() ?? {}, def.getInitialReflog?.() ?? [])
+    engine.clearUndoHistory()
     interaction.reset(def.initialWip)
     feedback.clear()
-    if (id === 'module0') {
-      feedback.setTicker({ command: 'git init', state: 'flash' })
-      setTimeout(() => feedback.setTicker({ command: 'git init', state: 'idle' }), 1400)
-    }
   }
 
   const doReset = () => {
@@ -72,6 +94,7 @@ export const App = () => {
     }
     moduleFlow.dismissOverlay()
     moduleFlow.setModuleAttempts(0)
+    engine.clearUndoHistory()
     interaction.reset(def.initialWip)
     feedback.clear()
   }
@@ -87,63 +110,25 @@ export const App = () => {
     enterModule(id)
   }
 
-  const executeModuleCommand = (cmd: string) => {
-    const { branches, commits, HEAD } = engine.gitState
+  const canUndo = engine.undoStack.length > 0
+  const canRedo = engine.redoStack.length > 0
 
-    if (cmd.startsWith('git commit')) {
-      actions.doAddCommit()
-    } else if (cmd === 'git checkout -b feature') {
-      const headCommit = branches[HEAD] ?? HEAD
-      actions.doCreateBranch(headCommit)
-    } else if (cmd.startsWith('git checkout') && !cmd.includes('-b')) {
-      const target = cmd.split(' ').pop()
-      if (target) actions.doCheckout(target)
-    } else if (cmd.startsWith('git cherry-pick')) {
-      const otherBranch = Object.keys(branches).find((b) => b !== HEAD)
-      if (otherBranch) {
-        const sourceCommit = branches[otherBranch]
-        if (sourceCommit) actions.doCherryPick(sourceCommit, HEAD)
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (!(e.metaKey || e.ctrlKey)) return
+      if (e.key === 'z' && !e.shiftKey) {
+        e.preventDefault()
+        useGitEngine.getState().undo()
+      } else if ((e.key === 'z' && e.shiftKey) || e.key === 'y') {
+        e.preventDefault()
+        useGitEngine.getState().redo()
       }
-    } else if (cmd === 'git rebase main') {
-      const featureBranch = Object.keys(branches).find((b) => b !== 'main') ?? HEAD
-      actions.doRebase(featureBranch, 'main')
-    } else if (cmd.startsWith('git merge')) {
-      const sourceBranch = cmd.split(' ')[2]
-      const targetBranch = HEAD !== sourceBranch ? HEAD : 'main'
-      if (sourceBranch) actions.doMerge(sourceBranch, targetBranch)
-    } else if (cmd.startsWith('git reset --hard') && !cmd.includes('<')) {
-      const target = cmd.split(' ').pop()
-      if (target) actions.doResetHard(target)
-    } else if (cmd === 'git stash') {
-      actions.doStash()
-    } else if (cmd === 'git stash pop') {
-      actions.doStashPop()
-    } else if (cmd.startsWith('git rebase -i')) {
-      const featureBranch = Object.keys(branches).find((b) => b !== 'main') ?? HEAD
-      const featureTip = branches[featureBranch]
-      if (!featureTip) return
-      const mainTip = branches['main']
-      const mainCommits = new Set<string>()
-      let cur: string | undefined = mainTip
-      while (cur) {
-        mainCommits.add(cur)
-        cur = commits[cur]?.parentIds[0]
-      }
-      let count = 0
-      cur = featureTip
-      while (cur && !mainCommits.has(cur)) {
-        count++
-        cur = commits[cur]?.parentIds[0]
-      }
-      if (count > 1) actions.doSquash(featureBranch, count, 'feat: squashed')
-    } else if (cmd === 'git reflog') {
-      feedback.setTicker({ command: 'git reflog', state: 'flash' })
-      setTimeout(() => feedback.setTicker({ command: '', state: 'idle' }), 1200)
-    } else if (cmd.startsWith('git reset --hard') && cmd.includes('<')) {
-      const firstEntry = engine.reflog[0]
-      if (firstEntry) actions.doReflogRecover(firstEntry.hash)
     }
-  }
+    window.addEventListener('keydown', handler)
+    return () => window.removeEventListener('keydown', handler)
+  }, [])
+
+  const previewCommand = commandInput.isValid ? commandInput.inputValue : null
 
   return (
     <div className="relative flex h-screen overflow-hidden">
@@ -183,6 +168,10 @@ export const App = () => {
           onStash={actions.doStash}
           onStashPop={actions.doStashPop}
           onReset={doReset}
+          onUndo={actions.doUndo}
+          onRedo={actions.doRedo}
+          canUndo={canUndo}
+          canRedo={canRedo}
           historyCount={feedback.history.length}
         />
 
@@ -193,23 +182,16 @@ export const App = () => {
               gitState={engine.gitState}
               mode={moduleFlow.mode}
               doAddCommit={actions.doAddCommit}
-              doCherryPick={actions.doCherryPick}
-              doRebase={actions.doRebase}
-              doMerge={actions.doMerge}
               doStartWip={actions.doStartWip}
               doCreateBranch={actions.doCreateBranch}
               doCheckout={actions.doCheckout}
               doResetHard={actions.doResetHard}
               doSquash={actions.doSquash}
-              setGhostCommand={(cmd, subtitle) =>
-                feedback.setTicker({
-                  command: cmd,
-                  subtitle,
-                  state: cmd ? 'ghost' : 'idle',
-                })
-              }
+              doStageChanges={actions.doStageChanges}
               wip={interaction.wip}
+              staged={interaction.staged}
               highlightNodeIds={highlightNodeIds}
+              previewCommand={previewCommand}
             />
 
             {currentLesson && !currentComplete && (
@@ -218,6 +200,7 @@ export const App = () => {
                 attempts={moduleFlow.moduleAttempts}
                 guided={moduleFlow.moduleGuided}
                 onToggleGuided={moduleFlow.setModuleGuided}
+                onPasteCommand={commandInput.pasteCommand}
               />
             )}
 
@@ -252,12 +235,23 @@ export const App = () => {
         </div>
 
         <CommandPanel
-          commands={deriveCommands(moduleFlow.mode as ModuleId, engine.gitState, interaction.wip, interaction.stashStack)}
-          onPreview={(cmd) => feedback.setTicker({ command: cmd, state: cmd ? 'ghost' : 'idle' })}
-          onExecute={executeModuleCommand}
+          commands={deriveCommands(moduleFlow.mode as ModuleId, engine.gitState, interaction.wip, interaction.staged, interaction.stashStack)}
+          onPaste={commandInput.pasteCommand}
         />
 
-        <CommandTicker ticker={feedback.ticker} history={feedback.history} gitState={engine.gitState} onTokenHover={setHighlightNodeIds} />
+        <CommandTicker
+          inputValue={commandInput.inputValue}
+          isValid={commandInput.isValid}
+          suggestions={commandInput.suggestions}
+          activeSuggestionIdx={commandInput.activeSuggestionIdx}
+          onInputChange={commandInput.handleChange}
+          onKeyDown={commandInput.handleKeyDown}
+          onSuggestionSelect={commandInput.acceptSuggestion}
+          ticker={feedback.ticker}
+          history={feedback.history}
+          gitState={engine.gitState}
+          onTokenHover={setHighlightNodeIds}
+        />
       </div>
 
       {docsOpen && (
@@ -265,7 +259,7 @@ export const App = () => {
           alignment="right"
           resizable
           closeable
-          title="Docs"
+          title={t('sidebar.docs')}
           width={docsPanelWidth}
           onClose={toggleDocs}
           onResizeMouseDown={onResizeMouseDown}
@@ -274,7 +268,30 @@ export const App = () => {
         </SidebarPanel>
       )}
 
-      {toastModuleId && <Toast moduleId={toastModuleId} accentColor="primary" onDismiss={dismissToast} />}
+      {levelCompleteId && (
+        <LevelCompleteOverlay
+          moduleId={levelCompleteId}
+          onDismiss={() => {
+            dismissLevelComplete()
+            moduleFlow.dismissOverlay()
+          }}
+          onNext={() => {
+            const nextId = levelCompleteId === 'module11' ? 'sandbox' : MODULE_REGISTRY[levelCompleteId]?.next
+            dismissLevelComplete()
+            moduleFlow.dismissOverlay()
+            if (nextId) {
+              const progress = moduleFlow.moduleProgress.find((p) => p.id === nextId)
+              if (!progress || progress.status === 'available') {
+                setPendingModule(nextId as ModuleId)
+              } else {
+                handleEnterModule(nextId as ModuleId)
+              }
+            }
+          }}
+        />
+      )}
+
+      {toastModuleId && <Toast moduleId={toastModuleId} accentColor="var(--ok)" onDismiss={dismissToast} />}
 
       <WelcomeOverlay />
     </div>

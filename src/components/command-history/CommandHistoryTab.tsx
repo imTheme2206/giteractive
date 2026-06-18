@@ -12,7 +12,7 @@ export const CommandHistoryTab = ({ history }: CommandHistoryTabProps) => {
   const [expandedId, setExpandedId] = useState<string | null>(null)
 
   if (history.length === 0) {
-    return <div className="flex flex-1 items-center justify-center font-hand text-sm text-[var(--muted)]">{t('commandHistory.empty')}</div>
+    return <div className="flex flex-1 items-center justify-center font-hand text-sm text-muted">{t('commandHistory.empty')}</div>
   }
 
   return (
