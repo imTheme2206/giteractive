@@ -16,7 +16,7 @@ const WelcomeSection = ({ title, children }: WelcomeSectionProps) => (
     <span className="font-mono text-xs font-bold tracking-widest uppercase" style={{ color: 'var(--ok)' }}>
       {title}
     </span>
-    <p className="m-0 font-hand text-sm leading-relaxed text-[var(--soft)]">{children}</p>
+    <p className="m-0 font-hand text-sm leading-relaxed text-soft">{children}</p>
   </div>
 )
 
@@ -44,9 +44,9 @@ export const WelcomeOverlay = () => {
       >
         <div className="flex justify-between gap-x-4">
           <div className="flex flex-col gap-1">
-            <span className="font-mono text-xs tracking-widest text-[var(--muted)] uppercase">{t('welcome.subtitle')}</span>
-            <h1 className="m-0 font-hand text-3xl font-bold text-[var(--ink)]">Giteractive</h1>
-            <p className="m-0 font-hand text-sm text-[var(--soft)]">{t('welcome.tagline')}</p>
+            <span className="font-mono text-xs tracking-widest text-muted uppercase">{t('welcome.subtitle')}</span>
+            <h1 className="m-0 font-hand text-3xl font-bold text-ink">Giteractive</h1>
+            <p className="m-0 font-hand text-sm text-soft">{t('welcome.tagline')}</p>
           </div>
           <div className="flex h-fit gap-x-2">
             <ThemeSwitcher />

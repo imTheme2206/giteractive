@@ -46,12 +46,12 @@ export const Toast = ({ moduleId, accentColor, onDismiss }: ToastProps) => {
       <div className="flex items-start gap-3 px-4 pt-3 pb-2">
         <span style={{ color: accentColor, fontSize: 20, lineHeight: 1, flexShrink: 0 }}>✓</span>
         <div className="min-w-0 flex-1">
-          <div className="font-hand text-base leading-tight font-bold text-[var(--ink)]">{t('toast.complete', { n: moduleNum })}</div>
-          <div className="mt-0.5 font-mono text-xs text-[var(--soft)]">{t('toast.hint')}</div>
+          <div className="font-hand text-base leading-tight font-bold text-ink">{t('toast.complete', { n: moduleNum })}</div>
+          <div className="mt-0.5 font-mono text-xs text-soft">{t('toast.hint')}</div>
         </div>
         <button
           onClick={dismiss}
-          className="flex-shrink-0 leading-none text-[var(--muted)] transition-colors hover:text-[var(--ink)]"
+          className="flex-shrink-0 leading-none text-muted transition-colors hover:text-ink"
           style={{ fontSize: 16, lineHeight: 1, background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
           aria-label="Dismiss"
         >

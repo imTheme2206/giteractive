@@ -69,10 +69,10 @@ export const DocsPanel = ({ currentModuleId, isOpen }: Props) => {
                 >
                   {mod.num}
                 </span>
-                <span className="flex-1 font-hand text-sm leading-tight font-bold text-[var(--ink)]">{t(`intro.${mod.id}.title`)}</span>
+                <span className="flex-1 font-hand text-sm leading-tight font-bold text-ink">{t(`intro.${mod.id}.title`)}</span>
                 {isCurrent && !isExpanded && <span className="h-1.5 w-1.5 flex-shrink-0 rounded-full" style={{ background: mod.accent }} />}
                 <span
-                  className="flex-shrink-0 font-mono text-xs text-[var(--muted)]"
+                  className="flex-shrink-0 font-mono text-xs text-muted"
                   style={{ transition: 'transform 0.2s', transform: isExpanded ? 'rotate(180deg)' : 'none' }}
                 >
                   ▾
@@ -85,10 +85,10 @@ export const DocsPanel = ({ currentModuleId, isOpen }: Props) => {
 
                   <div className="flex flex-col gap-2">
                     <Section label={t('docs.labels.theProblem')}>
-                      <p className="m-0 font-hand text-sm leading-relaxed text-[var(--soft)]">{t(`intro.${mod.id}.scenario`)}</p>
+                      <p className="m-0 font-hand text-sm leading-relaxed text-soft">{t(`intro.${mod.id}.scenario`)}</p>
                     </Section>
                     <Section label={t('docs.labels.howGitWorks')}>
-                      <p className="m-0 font-hand text-sm leading-relaxed text-[var(--soft)]">{t(`intro.${mod.id}.concept`)}</p>
+                      <p className="m-0 font-hand text-sm leading-relaxed text-soft">{t(`intro.${mod.id}.concept`)}</p>
                     </Section>
                   </div>
 
@@ -103,7 +103,7 @@ export const DocsPanel = ({ currentModuleId, isOpen }: Props) => {
                     <span className="font-hand text-xs font-bold" style={{ color: mod.accent }}>
                       {t('docs.labels.keyInsight')}{' '}
                     </span>
-                    <span className="font-hand text-sm text-[var(--soft)]">{t(`intro.${mod.id}.keyInsight`)}</span>
+                    <span className="font-hand text-sm text-soft">{t(`intro.${mod.id}.keyInsight`)}</span>
                   </div>
 
                   <Section label={t('docs.labels.commands')}>

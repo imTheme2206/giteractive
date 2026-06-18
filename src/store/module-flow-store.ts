@@ -31,6 +31,7 @@ type ModuleFlowStore = {
   moduleAttempts: number
   moduleGuided: boolean
   showCompletionOverlay: boolean
+  isFirstCompletion: boolean
   devMode: boolean
   setMode: (id: ModuleId) => void
   setModuleProgress: (updater: (prev: ModuleProgress[]) => ModuleProgress[]) => void
@@ -49,6 +50,7 @@ export const useModuleFlow = create<ModuleFlowStore>((set, get) => ({
   moduleAttempts: 0,
   moduleGuided: true,
   showCompletionOverlay: false,
+  isFirstCompletion: false,
   devMode: false,
 
   setMode: (id) => set({ mode: id }),
@@ -70,6 +72,7 @@ export const useModuleFlow = create<ModuleFlowStore>((set, get) => ({
     })),
 
   completeModule: (id, nextId) => {
+    const wasAlreadyComplete = get().moduleProgress.find((p) => p.id === id)?.status === 'complete'
     get().setModuleProgress((prev) =>
       prev.map((p) => {
         if (p.id === id) return { ...p, status: 'complete' }
@@ -77,10 +80,10 @@ export const useModuleFlow = create<ModuleFlowStore>((set, get) => ({
         return p
       })
     )
-    set({ showCompletionOverlay: true })
+    set({ showCompletionOverlay: true, isFirstCompletion: !wasAlreadyComplete })
   },
 
-  dismissOverlay: () => set({ showCompletionOverlay: false }),
+  dismissOverlay: () => set({ showCompletionOverlay: false, isFirstCompletion: false }),
 
   checkCompletion: (trigger, state) => {
     const { mode } = get()

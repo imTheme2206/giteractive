@@ -22,6 +22,7 @@ export type LessonGoal = {
   description: string
   hint: string
   chips: string[]
+  command?: string // primary git command to type in the ticker
   validate: (state: GitState) => boolean
 }
 

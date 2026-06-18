@@ -16,10 +16,10 @@ export const CommandButton = ({ cmd, isActive, onMouseEnter, onMouseLeave, onCli
   const commandKey = matchCommand(cmd)
 
   return (
-    <div className="flex items-stretch overflow-hidden border border-[var(--hair)] bg-[var(--panel)]" style={{ borderRadius: cardRadius }}>
+    <div className="flex items-stretch overflow-hidden border border-hair bg-panel" style={{ borderRadius: cardRadius }}>
       <button
         type="button"
-        className="cursor-pointer px-2 py-0.5 font-mono text-xs text-[var(--soft)] transition-colors hover:bg-[var(--panel2)] hover:text-[var(--ink)]"
+        className="cursor-pointer px-2 py-0.5 font-mono text-xs text-soft transition-colors hover:bg-panel2 hover:text-ink"
         onMouseEnter={onMouseEnter}
         onMouseLeave={onMouseLeave}
         onClick={onClick}
@@ -29,7 +29,7 @@ export const CommandButton = ({ cmd, isActive, onMouseEnter, onMouseLeave, onCli
       {commandKey && (
         <button
           type="button"
-          className="flex-shrink-0 cursor-pointer border-l border-[var(--hair)] px-1.5 font-mono text-xs text-[var(--muted)] transition-colors hover:bg-[var(--panel2)] hover:text-[var(--ink)]"
+          className="flex-shrink-0 cursor-pointer border-l border-hair px-1.5 font-mono text-xs text-muted transition-colors hover:bg-panel2 hover:text-ink"
           style={{
             color: isActive ? 'var(--ink)' : undefined,
             background: isActive ? 'var(--panel2)' : undefined,

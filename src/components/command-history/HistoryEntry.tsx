@@ -16,7 +16,7 @@ export const HistoryEntry = ({ entry, isExpanded, onToggle }: HistoryEntryProps)
   const hasChange = diff.some((l) => l.kind !== 'unchanged')
 
   return (
-    <div style={{ borderRadius: cardRadius, border: '1.5px solid var(--hair)' }} className="overflow-hidden bg-[var(--panel)]">
+    <div style={{ borderRadius: cardRadius, border: '1.5px solid var(--hair)' }} className="overflow-hidden bg-panel">
       <button
         type="button"
         className="flex w-full items-center gap-2 px-3 py-2 text-left"

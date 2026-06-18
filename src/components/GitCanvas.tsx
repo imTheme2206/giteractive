@@ -1,6 +1,7 @@
 import { Background, BackgroundVariant, ReactFlow, type Node, type NodeMouseHandler, type NodeTypes } from '@xyflow/react'
 import '@xyflow/react/dist/style.css'
 import { useCallback, useMemo } from 'react'
+import { Trans, useTranslation } from 'react-i18next'
 import { useCanvasCapabilities } from '../hooks/useCanvasCapabilities'
 import type { GitState, Mode } from '../types'
 import { computeLayout } from '../utils/computeLayout'
@@ -48,6 +49,7 @@ export const GitCanvas = ({
   highlightNodeIds,
   previewCommand,
 }: GitCanvasProps) => {
+  const { t } = useTranslation()
   const layout = useMemo(() => computeLayout(gitState), [gitState])
   const { canBranch, canCheckout, canReset, canSquash } = useCanvasCapabilities(mode)
 
@@ -323,13 +325,16 @@ export const GitCanvas = ({
               maxWidth: '320px',
             }}
           >
-            <span className="font-mono text-xs tracking-widest text-[var(--ok)] uppercase">git init ✓</span>
-            <p className="m-0 font-hand text-sm leading-relaxed text-[var(--soft)]">
-              Repository initialized — <code className="rounded bg-[var(--panel2)] px-1 font-mono text-xs">main</code> branch created, no
-              commits yet.
+            <span className="font-mono text-xs tracking-widest text-ok uppercase">{t('canvas.emptyInit')}</span>
+            <p className="m-0 font-hand text-sm leading-relaxed text-soft">
+              <Trans
+                i18nKey="canvas.emptyBranch"
+                values={{ branch: 'main' }}
+                components={{ code: <code className="rounded bg-panel2 px-1 font-mono text-xs" /> }}
+              />
             </p>
-            <p className="m-0 font-hand text-sm text-[var(--muted)]">
-              Click <strong>+</strong> to stage your changes and make your first commit.
+            <p className="m-0 font-hand text-sm text-muted">
+              {t('canvas.emptyAction')}
             </p>
           </div>
         </div>

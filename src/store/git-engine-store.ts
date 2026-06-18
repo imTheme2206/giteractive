@@ -17,10 +17,18 @@ const runMutation = <TArgs extends unknown[]>(
   return result
 }
 
+const MAX_UNDO = 20
+
 type GitEngineStore = {
   gitState: GitState
   reflog: ReflogEntry[]
   shadowCommits: Record<CommitHash, CommitNode>
+  undoStack: GitState[]
+  redoStack: GitState[]
+  saveUndoCheckpoint: () => void
+  undo: () => boolean
+  redo: () => boolean
+  clearUndoHistory: () => void
   doStageChanges: () => void
   doAddCommit: (message: string) => { state: GitState; command: string } | null
   doCherryPick: (sourceId: string, targetBranch: string) => { state: GitState; command: string } | null
@@ -47,6 +55,32 @@ export const useGitEngine = create<GitEngineStore>((set, get) => ({
   gitState: isFirstVisit ? git.makeModule0State() : git.makeSandboxState(),
   reflog: [],
   shadowCommits: {},
+  undoStack: [],
+  redoStack: [],
+
+  saveUndoCheckpoint: () =>
+    set((s) => ({
+      undoStack: [s.gitState, ...s.undoStack].slice(0, MAX_UNDO),
+      redoStack: [],
+    })),
+
+  undo: () => {
+    const { undoStack, gitState } = get()
+    if (undoStack.length === 0) return false
+    const [prev, ...rest] = undoStack
+    set((s) => ({ gitState: prev, undoStack: rest, redoStack: [s.gitState, ...s.redoStack] }))
+    return true
+  },
+
+  redo: () => {
+    const { redoStack, gitState } = get()
+    if (redoStack.length === 0) return false
+    const [next, ...rest] = redoStack
+    set((s) => ({ gitState: next, redoStack: rest, undoStack: [s.gitState, ...s.undoStack] }))
+    return true
+  },
+
+  clearUndoHistory: () => set({ undoStack: [], redoStack: [] }),
   doStageChanges: () => {
     const before = get().gitState
     const result = git.stageChanges(before)

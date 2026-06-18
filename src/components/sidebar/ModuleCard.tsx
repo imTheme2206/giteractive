@@ -81,11 +81,11 @@ export const ModuleCard = ({ id, number, title, subtitle, status, isJustUnlocked
             {isComplete ? '✓' : number}
           </span>
         )}
-        <div className="font-hand text-sm text-[var(--ink)]" style={{ fontWeight: isActive ? 700 : 400 }}>
+        <div className="font-hand text-sm text-ink" style={{ fontWeight: isActive ? 700 : 400 }}>
           {title}
         </div>
       </div>
-      <div className={`mt-0.5 font-mono text-xs text-[var(--soft)] ${marginLeft}`}>{subtitle}</div>
+      <div className={`mt-0.5 font-mono text-xs text-soft ${marginLeft}`}>{subtitle}</div>
       <div className={`mt-1 ${marginLeft}`}>
         <Badge className="px-1.5 py-px" style={{ color: statusColor, border: `1px solid ${statusColor}` }}>
           {statusLabel}

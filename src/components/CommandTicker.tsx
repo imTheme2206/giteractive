@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import type { TickerEntry, GitState } from '../types'
 
 type TokenType = 'git' | 'subcommand' | 'branch' | 'hash' | 'flag' | 'string' | 'space'
@@ -10,14 +11,14 @@ type ParsedToken = {
   tip?: string
 }
 
-const SUBCOMMAND_TIPS: Record<string, string> = {
-  commit: 'Snapshots staged changes into a new node in the graph.',
-  'cherry-pick': 'Copies one commit onto the current branch — the hash changes on re-apply.',
-  rebase: 'Lifts commits off their base and re-applies them atop another branch. History is rewritten.',
-  merge: 'Joins two branch histories with a new merge commit. Original hashes are preserved.',
-  reset: 'Moves the branch pointer backward, permanently erasing commits after the target.',
-  stash: 'Saves uncommitted changes to a temporary stack; leaves a clean working tree.',
-  checkout: "Moves HEAD to a branch or commit, updating what you're working on.",
+const SUBCOMMAND_TIP_KEYS: Record<string, string> = {
+  commit: 'subcommandTips.commit',
+  'cherry-pick': 'subcommandTips.cherryPick',
+  rebase: 'subcommandTips.rebase',
+  merge: 'subcommandTips.merge',
+  reset: 'subcommandTips.reset',
+  stash: 'subcommandTips.stash',
+  checkout: 'subcommandTips.checkout',
 }
 
 const parseCommand = (command: string, gitState: GitState): ParsedToken[] => {
@@ -32,8 +33,8 @@ const parseCommand = (command: string, gitState: GitState): ParsedToken[] => {
     const idx = nonSpaceIdx++
     if (idx === 0) return { text, type: 'git' }
     if (idx === 1) {
-      const tip = SUBCOMMAND_TIPS[text]
-      return { text, type: 'subcommand', tip }
+      const tipKey = SUBCOMMAND_TIP_KEYS[text]
+      return { text, type: 'subcommand', tip: tipKey }
     }
     if (text.startsWith('-')) return { text, type: 'flag' }
     if (text.startsWith('"') || text.startsWith("'")) return { text, type: 'string' }
@@ -57,6 +58,7 @@ type TokenSpanProps = {
 }
 
 const TokenSpan = ({ token, allTokens, onEnter, onLeave, baseColor }: TokenSpanProps) => {
+  const { t } = useTranslation()
   const [hovered, setHovered] = useState(false)
 
   if (token.type === 'space') return <span>{token.text}</span>
@@ -125,7 +127,7 @@ const TokenSpan = ({ token, allTokens, onEnter, onLeave, baseColor }: TokenSpanP
             whiteSpace: 'normal',
           }}
         >
-          {token.tip}
+          {t(token.tip as Parameters<typeof t>[0])}
         </span>
       )}
     </span>
@@ -153,6 +155,29 @@ const TokenizedCommand = ({
   )
 }
 
+const COMMAND_SUBTITLE_KEYS: Array<[string, string]> = [
+  ['git commit', 'tickerSubtitles.commit'],
+  ['git checkout -b', 'tickerSubtitles.checkoutB'],
+  ['git switch -c', 'tickerSubtitles.switchC'],
+  ['git checkout', 'tickerSubtitles.checkout'],
+  ['git switch', 'tickerSubtitles.switch'],
+  ['git cherry-pick', 'tickerSubtitles.cherryPick'],
+  ['git rebase -i', 'tickerSubtitles.rebaseI'],
+  ['git rebase', 'tickerSubtitles.rebase'],
+  ['git merge', 'tickerSubtitles.merge'],
+  ['git reset --hard', 'tickerSubtitles.resetHard'],
+  ['git stash pop', 'tickerSubtitles.stashPop'],
+  ['git stash', 'tickerSubtitles.stash'],
+  ['git reflog', 'tickerSubtitles.reflog'],
+]
+
+const getCommandSubtitleKey = (input: string): string | null => {
+  for (const [prefix, key] of COMMAND_SUBTITLE_KEYS) {
+    if (input.startsWith(prefix)) return key
+  }
+  return null
+}
+
 type CommandTickerProps = {
   inputValue: string
   isValid: boolean
@@ -161,7 +186,7 @@ type CommandTickerProps = {
   onInputChange: (val: string) => void
   onKeyDown: (e: React.KeyboardEvent<HTMLInputElement>) => void
   onSuggestionSelect: (s: string) => void
-  ticker: { command: string; state: 'idle' | 'ghost' | 'flash' }
+  ticker: { command: string; subtitle?: string; state: 'idle' | 'ghost' | 'flash' }
   history: TickerEntry[]
   gitState: GitState
   onTokenHover: (nodeIds: string[]) => void
@@ -180,8 +205,10 @@ export const CommandTicker = ({
   gitState,
   onTokenHover,
 }: CommandTickerProps) => {
+  const { t } = useTranslation()
   const inputRef = useRef<HTMLInputElement>(null)
   const isFlash = ticker.state === 'flash'
+  const isGhost = ticker.state === 'ghost'
   const latestHistory = history[0]
   const showSuggestions = suggestions.length > 0 && !isFlash
 
@@ -190,20 +217,30 @@ export const CommandTicker = ({
   }, [isFlash])
 
   const inputColor = isValid ? 'var(--ok)' : inputValue ? 'var(--ink)' : 'var(--soft)'
+  const inputSubtitleKey = isValid && inputValue ? getCommandSubtitleKey(inputValue) : null
+  const inputSubtitle = inputSubtitleKey ? t(inputSubtitleKey as Parameters<typeof t>[0]) : null
 
   return (
     <div
       className="shrink-0"
       style={{
-        background: isFlash ? 'color-mix(in srgb, var(--ok) 8%, var(--panel))' : 'var(--panel)',
-        borderTop: isFlash ? '1px solid var(--ok)' : '1px solid var(--hair)',
+        background: isFlash
+          ? 'color-mix(in srgb, var(--ok) 8%, var(--panel))'
+          : isGhost
+            ? 'color-mix(in srgb, var(--ghost) 6%, var(--panel))'
+            : 'var(--panel)',
+        borderTop: isFlash
+          ? '1px solid var(--ok)'
+          : isGhost
+            ? '1px solid color-mix(in srgb, var(--ghost) 40%, transparent)'
+            : '1px solid var(--hair)',
         transition: 'background 0.4s, border-color 0.3s',
         animation: isFlash ? 'tickerFlash 1.2s ease-out' : undefined,
       }}
       onClick={() => inputRef.current?.focus()}
     >
       {/* Suggestions — normal flow, above input line */}
-      {showSuggestions && (
+      {showSuggestions && !isGhost && (
         <div className="flex flex-wrap gap-1 px-4 pt-2 pb-0">
           {suggestions.map((s, i) => {
             const isActive = i === activeSuggestionIdx
@@ -235,57 +272,94 @@ export const CommandTicker = ({
         </div>
       )}
 
-      {/* Input / flash line */}
-      <div className="flex items-center px-4 font-mono text-sm" style={{ minHeight: 44, paddingTop: showSuggestions ? 6 : undefined, paddingBottom: showSuggestions ? 8 : undefined }}>
-        <span style={{ color: 'var(--muted)', flexShrink: 0 }}>$</span>
-        <span style={{ marginLeft: '0.35em', flexShrink: 0 }} />
+      {/* Ghost state — dim command preview + subtitle, replaces input */}
+      {isGhost ? (
+        <div>
+          <div className="flex items-center px-4 font-mono text-sm" style={{ minHeight: 44 }}>
+            <span style={{ color: 'var(--muted)', flexShrink: 0 }}>$</span>
+            <span style={{ marginLeft: '0.35em', flexShrink: 0 }} />
+            <span style={{ opacity: 0.55 }}>
+              <TokenizedCommand
+                command={ticker.command}
+                gitState={gitState}
+                baseColor="var(--ghost)"
+                onTokenHover={onTokenHover}
+              />
+            </span>
+          </div>
+          {(ticker.subtitle ?? (getCommandSubtitleKey(ticker.command) ? t(getCommandSubtitleKey(ticker.command)! as Parameters<typeof t>[0]) : null)) && (
+            <div className="px-4 pb-2 font-hand text-xs" style={{ color: 'var(--muted)' }}>
+              {ticker.subtitle ?? t(getCommandSubtitleKey(ticker.command)! as Parameters<typeof t>[0])}
+            </div>
+          )}
+        </div>
+      ) : (
+        /* Input / flash line */
+        <div
+          className="flex flex-col"
+          style={{ paddingTop: showSuggestions ? 6 : undefined, paddingBottom: showSuggestions ? 8 : undefined }}
+        >
+          <div className="flex items-center px-4 font-mono text-sm" style={{ minHeight: 44 }}>
+            <span style={{ color: 'var(--muted)', flexShrink: 0 }}>$</span>
+            <span style={{ marginLeft: '0.35em', flexShrink: 0 }} />
 
-        {isFlash ? (
-          <span style={{ color: 'var(--ok)' }}>
-            <TokenizedCommand command={ticker.command} gitState={gitState} baseColor="var(--ok)" onTokenHover={onTokenHover} />
-            <span className="ml-1.5">✓</span>
-          </span>
-        ) : (
-          <span className="relative flex min-w-0 flex-1 items-center">
-            <input
-              ref={inputRef}
-              value={inputValue}
-              onChange={(e) => onInputChange(e.target.value)}
-              onKeyDown={onKeyDown}
-              className="min-w-0 flex-1 bg-transparent font-mono text-sm outline-none"
-              style={{
-                color: inputColor,
-                caretColor: 'var(--ink)',
-                border: 'none',
-                padding: 0,
-                transition: 'color 0.15s',
-              }}
-              spellCheck={false}
-              autoCapitalize="off"
-              autoCorrect="off"
-              autoComplete="off"
-            />
-            {!inputValue && (
-              <span
-                className="pointer-events-none absolute inset-0 font-mono text-sm"
-                style={{ color: 'var(--muted)', opacity: 0.45 }}
-                aria-hidden
-              >
-                {latestHistory ? (
-                  <TokenizedCommand
-                    command={latestHistory.command}
-                    gitState={gitState}
-                    baseColor="var(--muted)"
-                    onTokenHover={() => {}}
-                  />
-                ) : (
-                  'type a git command…'
+            {isFlash ? (
+              <span style={{ color: 'var(--ok)' }}>
+                <TokenizedCommand command={ticker.command} gitState={gitState} baseColor="var(--ok)" onTokenHover={onTokenHover} />
+                <span className="ml-1.5">✓</span>
+              </span>
+            ) : (
+              <span className="relative flex min-w-0 flex-1 items-center">
+                <input
+                  ref={inputRef}
+                  value={inputValue}
+                  onChange={(e) => onInputChange(e.target.value)}
+                  onKeyDown={onKeyDown}
+                  className="min-w-0 flex-1 bg-transparent font-mono text-sm outline-none"
+                  style={{
+                    color: inputColor,
+                    caretColor: 'var(--ink)',
+                    border: 'none',
+                    padding: 0,
+                    transition: 'color 0.15s',
+                  }}
+                  spellCheck={false}
+                  autoCapitalize="off"
+                  autoCorrect="off"
+                  autoComplete="off"
+                />
+                {!inputValue && (
+                  <span
+                    className="pointer-events-none absolute inset-0 font-mono text-sm"
+                    style={{ color: 'var(--muted)', opacity: 0.45 }}
+                    aria-hidden
+                  >
+                    {latestHistory ? (
+                      <TokenizedCommand
+                        command={latestHistory.command}
+                        gitState={gitState}
+                        baseColor="var(--muted)"
+                        onTokenHover={() => {}}
+                      />
+                    ) : (
+                      t('ticker.placeholder')
+                    )}
+                  </span>
                 )}
               </span>
             )}
-          </span>
-        )}
-      </div>
+          </div>
+          {/* Valid-command subtitle — shown while user has typed a complete command */}
+          {inputSubtitle && (
+            <div
+              className="px-4 pb-2 font-hand text-xs"
+              style={{ color: 'var(--ok)', opacity: 0.75, marginTop: -8 }}
+            >
+              ↵ {inputSubtitle}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   )
 }

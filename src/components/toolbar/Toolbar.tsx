@@ -16,6 +16,10 @@ type ToolbarProps = {
   onStash: () => void
   onStashPop: () => void
   onReset: () => void
+  onUndo: () => void
+  onRedo: () => void
+  canUndo: boolean
+  canRedo: boolean
   historyCount: number
 }
 
@@ -32,16 +36,20 @@ export const Toolbar = ({
   onStash,
   onStashPop,
   onReset,
+  onUndo,
+  onRedo,
+  canUndo,
+  canRedo,
   historyCount,
 }: ToolbarProps) => {
   const { t } = useTranslation()
 
   return (
-    <div className="flex flex-shrink-0 items-center gap-2 border-b border-dashed border-[var(--hair)] px-4 py-2">
+    <div className="flex flex-shrink-0 items-center gap-2 border-b border-dashed border-hair px-4 py-2">
       <Button onClick={onToggleSidebar} title="Toggle sidebar">
         {sidebarOpen ? '◀' : '▶'}
       </Button>
-      <span className="font-mono text-xs text-[var(--muted)]">{t(`modules.${mode}`, mode)}</span>
+      <span className="font-mono text-xs text-muted">{t(`modules.${mode}`, mode)}</span>
       <div className="flex flex-1 gap-1">
         <Button
           onClick={() => onTabChange('graph')}
@@ -60,7 +68,7 @@ export const Toolbar = ({
           }}
         >
           {t('toolbar.tabHistory')}
-          {historyCount > 0 && <span className="ml-1 text-xs text-[var(--muted)]">{historyCount}</span>}
+          {historyCount > 0 && <span className="ml-1 text-xs text-muted">{historyCount}</span>}
         </Button>
         <Button
           onClick={onToggleDocs}
@@ -90,6 +98,22 @@ export const Toolbar = ({
           {t('toolbar.pop', { count: stashStack.length })}
         </Button>
       )}
+      <Button
+        onClick={onUndo}
+        disabled={!canUndo}
+        title="Undo (⌘Z)"
+        style={{ color: canUndo ? 'var(--feat)' : 'var(--muted)', opacity: canUndo ? 1 : 0.45 }}
+      >
+        {t('toolbar.undo')}
+      </Button>
+      <Button
+        onClick={onRedo}
+        disabled={!canRedo}
+        title="Redo (⌘⇧Z)"
+        style={{ color: canRedo ? 'var(--feat)' : 'var(--muted)', opacity: canRedo ? 1 : 0.45 }}
+      >
+        {t('toolbar.redo')}
+      </Button>
       <Button onClick={onReset} title="Reset canvas">
         {t('toolbar.reset')}
       </Button>

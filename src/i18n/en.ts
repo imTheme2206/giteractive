@@ -3,6 +3,8 @@ const en = {
     stash: '⬇ Stash',
     pop: '⬆ Pop ({{count}})',
     reset: '↺ Reset',
+    undo: '↩ Undo',
+    redo: '↪ Redo',
     theme: 'Theme',
     dev: 'dev',
     tabGraph: 'Graph',
@@ -32,6 +34,8 @@ const en = {
     timeJustNow: 'just now',
     timeSeconds: '{{count}}s ago',
     timeMinutes: '{{count}}m ago',
+    progressCount: '{{completed}} / {{total}} levels',
+    progressDone: 'complete ✓',
     modules: {
       module0: { title: 'Module 0', subtitle: 'Get Started' },
       module1: { title: 'Module 1', subtitle: 'The Linear Timeline' },
@@ -54,82 +58,85 @@ const en = {
     guided: 'Guided',
     sandbox: 'Sandbox',
     attempts: 'attempts: {{count}}',
+    commandLabel: 'the command to type:',
+    commandLabelEscalated: 'try typing this exactly:',
+    paste: '→ paste',
   },
   lessons: {
     init: {
       title: 'Level 00 — Your First Commit',
       description: 'You have an empty repository. Make your first commit to start tracking history.',
-      hint: 'Click the + button to stage your changes, then commit them.',
+      hint: 'Type `git commit -m "init: first commit"` in the terminal below and press Enter.',
       chips: ['action: first commit'],
     },
     linear: {
       title: 'Level 01 — The Linear Timeline',
       description: 'Add 4 more commits to reach 7 total and see how git builds a linear history.',
-      hint: 'Click the + button to add a commit. Watch HEAD and main move forward each time.',
+      hint: 'Type `git commit -m "feat: ..."` in the terminal — repeat until you reach 7 commits total.',
       chips: ['target: 7 commits', 'action: commit'],
     },
     branch: {
       title: 'Level 02 — Parallel Universes',
       description: 'Create a new branch and add a commit to it — without touching main.',
-      hint: 'Click the ⎇ badge on the HEAD commit to branch, then click + to commit on it.',
+      hint: 'Type `git checkout -b feature` to create and switch to a new branch, then add a commit on it.',
       chips: ['action: branch + commit'],
     },
     'cherry-pick': {
       title: 'Level 03 — Cherry-pick',
       description: 'Move just the f2 commit from feature onto main — without bringing the whole branch along.',
-      hint: "Drag the f2 commit node onto c3 (main's tip). The ticker will preview git cherry-pick f2 before you release.",
+      hint: 'Type `git cherry-pick f2` to copy the f2 commit onto main.',
       chips: ['target: main', 'commits to move: 1'],
     },
     rebase: {
       title: 'Level 04 — Rebase',
       description:
         "Move the entire feature branch on top of main's tip — rewriting its history so it looks like it was always based there.",
-      hint: "Drag the feature branch label onto main's tip. Watch the commit IDs change — that's history being rewritten.",
+      hint: 'Type `git rebase main` while on the feature branch to rebase onto main.',
       chips: ['onto: main', 'branch: feature'],
     },
     merge: {
       title: 'Level 05 — Merge',
       description:
         'Merge the feature branch into main — creating a merge commit that ties both histories together without rewriting any commit IDs.',
-      hint: "Drag the feature branch label onto main's branch label badge. Watch the merge commit appear with two parent edges.",
+      hint: 'Type `git merge feature` while on main to merge the feature branch.',
       chips: ['target: main', 'branch: feature', 'result: merge commit'],
     },
     conflict: {
       title: 'Level 06 — Merge Conflicts',
       description:
         'Both branches edited the same file. Merge feature into main — then resolve the conflict by choosing which version to keep.',
-      hint: "Drag the feature branch label onto main's label. An orange flash means conflict detected. Pick a resolution in the modal.",
+      hint: 'Type `git merge feature` to start the merge — then resolve the conflict in the modal.',
       chips: ['conflict: greeting.txt', 'resolve: choose version'],
     },
     reset: {
       title: 'Level 07 — git reset',
       description: 'Two broken WIP commits slipped onto main. Roll main back to c3 — erasing the broken commits from history.',
-      hint: 'Hover over c3 and click the ↺ reset button. The broken commits disappear entirely (--hard mode).',
+      hint: 'Type `git reset --hard c3` to move main back to c3, erasing the broken commits.',
       chips: ['mode: --hard', 'target: c3', 'lost: c4, c5'],
     },
     stash: {
       title: 'Level 08 — git stash',
       description:
         'You have uncommitted work on feature, but main needs an urgent fix. Stash your WIP, fix main, then pop the stash back on feature.',
-      hint: 'Click ⬇ Stash to save WIP. Switch to main, add a commit, switch back to feature, then pop the stash.',
+      hint: 'Type `git stash` to save WIP, switch to main, fix it, switch back to feature, then `git stash pop`.',
       chips: ['stash WIP', 'fix main', 'pop stash'],
     },
     squash: {
       title: 'Level 09 — Interactive Squash',
       description: 'Three messy WIP commits are on feature. Squash them into one clean commit before merging.',
-      hint: 'Click the ⊕ squash button on the feature branch tip. Watch 3 commits collapse into 1.',
+      hint: 'Type `git rebase -i HEAD~3` to open interactive rebase and squash the 3 WIP commits.',
       chips: ['mode: -i squash', 'target: feature', 'before: 3 commits', 'after: 1 commit'],
     },
     'detached-head': {
       title: 'Level 10 — Detached HEAD',
       description: 'Checkout commit c2 directly to explore the past — then reattach HEAD to main to get back to safety.',
-      hint: "Click on commit c2 to check it out (HEAD detaches). Then click main's branch label to reattach HEAD.",
+      hint: 'Type `git checkout c2` to enter detached HEAD, then `git checkout main` to reattach.',
       chips: ['step 1: checkout c2', 'step 2: reattach to main'],
     },
     reflog: {
       title: 'Level 11 — Reflog Recovery',
       description: 'You accidentally reset --hard to c3, losing c4 and c5. Use the reflog to find and restore the lost commits.',
-      hint: 'Click the Recover button next to c5 in the reflog panel. The lost commits come back!',
+      hint: 'Type `git reset --hard c5` using the hash from the reflog panel to restore lost commits.',
       chips: ['lost: c4, c5', 'tool: git reflog', 'action: reset --hard <hash>'],
     },
   },
@@ -264,9 +271,28 @@ const en = {
     },
   },
   tickerSubtitles: {
-    cherryPick: "Copies just this commit's diff onto your current branch",
-    rebase: 'Re-applies your commits one-by-one on top of the target branch',
-    merge: 'Ties both histories together with a new merge commit',
+    commit: 'Snapshot staged changes into a new node in the history graph',
+    checkoutB: 'Create a new branch from the current HEAD position',
+    switchC: 'Create a new branch from the current HEAD position',
+    checkout: 'Move HEAD to a different branch or commit',
+    switch: 'Move HEAD to a different branch',
+    cherryPick: 'Copy a commit from another branch — the hash changes on re-apply',
+    rebaseI: 'Open interactive rebase — squash, reorder, or drop commits before they go to review',
+    rebase: 'Re-apply commits on top of another branch, rewriting their hashes',
+    merge: 'Join two branches with a new merge commit that preserves both histories',
+    resetHard: 'Move the branch pointer back, permanently discarding commits after it',
+    stashPop: 'Restore the most recently stashed work onto the current branch',
+    stash: 'Save uncommitted work to a temporary stack, leaving a clean working tree',
+    reflog: 'Show the full history of where HEAD has pointed — nothing is truly lost',
+  },
+  subcommandTips: {
+    commit: 'Snapshots staged changes into a new node in the graph.',
+    cherryPick: 'Copies one commit onto the current branch — the hash changes on re-apply.',
+    rebase: 'Lifts commits off their base and re-applies them atop another branch. History is rewritten.',
+    merge: 'Joins two branch histories with a new merge commit. Original hashes are preserved.',
+    reset: 'Moves the branch pointer backward, permanently erasing commits after the target.',
+    stash: 'Saves uncommitted changes to a temporary stack; leaves a clean working tree.',
+    checkout: "Moves HEAD to a branch or commit, updating what you're working on.",
   },
   explainer: {
     branchCreated: {
@@ -592,6 +618,82 @@ const en = {
       },
     },
     getStarted: 'Get Started →',
+  },
+  levelComplete: {
+    youLearned: 'you learned',
+    levelTitle: 'Level {{n}} complete!',
+    allComplete: 'All levels complete!',
+    unlocked: "You've unlocked the next level.",
+    graduation: '🎓 You know git.',
+    graduationSub: '12 commands mastered. Try the sandbox to explore freely.',
+    stayHere: 'Stay here',
+    nextLevel: 'Next level →',
+    openSandbox: 'Open sandbox →',
+    modules: {
+      module0: {
+        command: 'git commit',
+        takeaway: 'Every project starts with a first commit — git tracks changes as a chain of snapshots.',
+      },
+      module1: {
+        command: 'git commit',
+        takeaway: 'Linear history is the foundation — understanding the chain makes everything else click.',
+      },
+      module2: {
+        command: 'git checkout -b',
+        takeaway: 'Branches are cheap pointers — you can have dozens without copying a single file.',
+      },
+      module3: {
+        command: 'git cherry-pick',
+        takeaway: 'Cherry-pick lets you grab just one commit — perfect for backporting a fix to an older release.',
+      },
+      module4: {
+        command: 'git rebase',
+        takeaway: "Rebase rewrites history to look linear — your team's PR history stays clean and easy to read.",
+      },
+      module5: {
+        command: 'git merge',
+        takeaway: 'Merge preserves both timelines with a merge commit — you can always see where branches diverged.',
+      },
+      module6: {
+        command: 'git merge (conflicts)',
+        takeaway: 'Conflicts are git asking "which change wins?" — it pauses so you can decide.',
+      },
+      module7: {
+        command: 'git reset --hard',
+        takeaway: 'Reset is a scalpel — removes commits permanently. Useful locally, dangerous on shared branches.',
+      },
+      module8: {
+        command: 'git stash',
+        takeaway: 'Stash is a clipboard for uncommitted work — perfect for context-switching without losing anything.',
+      },
+      module9: {
+        command: 'git rebase -i',
+        takeaway: 'Interactive rebase is the "fix before you push" tool — squash WIP commits into something reviewable.',
+      },
+      module10: {
+        command: 'git checkout <hash>',
+        takeaway: 'Detached HEAD is read-only time travel — always create a branch before making new commits.',
+      },
+      module11: {
+        command: 'git reflog',
+        takeaway: 'The reflog is your safety net — git never deletes commits until garbage collection. You can always recover.',
+      },
+    },
+  },
+  introModal: {
+    theProblem: 'The Problem',
+    howGitWorks: 'How Git Works',
+    keyInsight: 'Key insight:',
+    skipIntro: 'Skip intro',
+    start: 'Start →',
+  },
+  canvas: {
+    emptyInit: 'git init ✓',
+    emptyBranch: 'Repository initialized — <code>{{branch}}</code> branch created, no commits yet.',
+    emptyAction: 'Click + to stage your changes and make your first commit.',
+  },
+  ticker: {
+    placeholder: 'type a git command…',
   },
 } as const
 

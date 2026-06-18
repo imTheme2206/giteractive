@@ -12,7 +12,7 @@ type CardProps = {
 
 export const Card = ({ borderColor = 'var(--hair)', borderWidth = 2, className, style, children }: CardProps) => (
   <div
-    className={cn('bg-[var(--panel)] shadow-lg', className)}
+    className={cn('bg-panel shadow-lg', className)}
     style={{ border: `${borderWidth}px solid ${borderColor}`, borderRadius: cardRadius, ...style }}
   >
     {children}
@@ -25,7 +25,7 @@ type CardTitleProps = {
 }
 
 export const CardTitle = ({ className, children }: CardTitleProps) => (
-  <span className={cn('font-hand text-sm font-bold text-[var(--ink)]', className)}>{children}</span>
+  <span className={cn('font-hand text-sm font-bold text-ink', className)}>{children}</span>
 )
 
 type CardBodyProps = {
@@ -34,5 +34,5 @@ type CardBodyProps = {
 }
 
 export const CardBody = ({ className, children }: CardBodyProps) => (
-  <p className={cn('m-0 font-hand text-sm leading-snug text-[var(--soft)]', className)}>{children}</p>
+  <p className={cn('m-0 font-hand text-sm leading-snug text-soft', className)}>{children}</p>
 )

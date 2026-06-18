@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next'
 import type { ConflictState } from '../../types'
-import { ModalBackdrop } from './ModalBackdrop'
+import { Modal } from './Modal'
 import { cardRadius } from '../common/radii'
 
 type ConflictModalProps = {
@@ -44,22 +44,19 @@ export const ConflictModal = ({ conflict, onResolve }: ConflictModalProps) => {
   const { t } = useTranslation()
 
   return (
-    <ModalBackdrop background="color-mix(in srgb, var(--conflict) 18%, var(--backdrop))">
-      <div
-        className="w-[480px] max-w-[92vw] border-2 p-5"
-        style={{
-          borderRadius: cardRadius,
-          background: 'var(--panel)',
-          borderColor: 'var(--conflict)',
-          boxShadow: '0 8px 40px color-mix(in srgb, var(--conflict) 30%, transparent)',
-        }}
-      >
+    <Modal
+      borderColor="var(--conflict)"
+      backdropBackground="color-mix(in srgb, var(--conflict) 18%, var(--backdrop))"
+      style={{ boxShadow: '0 8px 40px color-mix(in srgb, var(--conflict) 30%, transparent)' }}
+    >
+      <div className="p-5">
         <div className="mb-1 flex items-center gap-2">
           <span style={{ color: 'var(--conflict)', fontSize: 18 }}>⚡</span>
-          <span className="font-hand text-base font-bold text-[var(--ink)]">{t('conflict.title')}</span>
+          <span className="font-hand text-base font-bold text-ink">{t('conflict.title')}</span>
         </div>
-        <p className="mb-4 font-mono text-xs text-[var(--muted)]">
-          {conflict.sourceBranch} ↔ {conflict.targetBranch} both modified <span style={{ color: 'var(--conflict)' }}>greeting.txt</span>
+        <p className="mb-4 font-mono text-xs text-muted">
+          {conflict.sourceBranch} ↔ {conflict.targetBranch} both modified{' '}
+          <span style={{ color: 'var(--conflict)' }}>greeting.txt</span>
         </p>
 
         {/* Conflict diff */}
@@ -75,7 +72,7 @@ export const ConflictModal = ({ conflict, onResolve }: ConflictModalProps) => {
           <div style={{ color: 'var(--conflict)' }}>{`>>>>>>> ${conflict.sourceBranch}`}</div>
         </div>
 
-        <p className="mb-2 font-mono text-xs tracking-widest text-[var(--muted)] uppercase">{t('conflict.chooseResolution')}</p>
+        <p className="mb-2 font-mono text-xs tracking-widest text-muted uppercase">{t('conflict.chooseResolution')}</p>
         <div className="mb-4 flex flex-col gap-2">
           {HUNK_OPTIONS.map((opt) => (
             <button
@@ -92,7 +89,7 @@ export const ConflictModal = ({ conflict, onResolve }: ConflictModalProps) => {
                 {t(opt.labelKey)}
               </div>
               {opt.lines.map((line, i) => (
-                <div key={i} className="font-mono text-xs" style={{ color: 'var(--ink)' }}>
+                <div key={i} className="font-mono text-xs text-ink">
                   {line}
                 </div>
               ))}
@@ -100,8 +97,8 @@ export const ConflictModal = ({ conflict, onResolve }: ConflictModalProps) => {
           ))}
         </div>
 
-        <div className="text-center font-mono text-xs text-[var(--muted)]">{t('conflict.footer')}</div>
+        <div className="text-center font-mono text-xs text-muted">{t('conflict.footer')}</div>
       </div>
-    </ModalBackdrop>
+    </Modal>
   )
 }

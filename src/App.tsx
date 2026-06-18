@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { CommandHistoryTab } from './components/command-history/CommandHistoryTab'
 import { CommandPanel } from './components/command-panel/CommandPanel'
 import { CommandTicker } from './components/CommandTicker'
@@ -9,6 +10,7 @@ import { GitCanvas } from './components/GitCanvas'
 import { GoalCard } from './components/GoalCard'
 import { ConflictModal } from './components/modal/ConflictModal'
 import { IntroModal } from './components/modal/IntroModal'
+import { LevelCompleteOverlay } from './components/modal/LevelCompleteOverlay'
 import { ReflogPanel } from './components/ReflogPanel'
 import { Sidebar } from './components/sidebar/Sidebar'
 import { SidebarPanel } from './components/sidebar/SidebarPanel'
@@ -35,6 +37,7 @@ export const App = () => {
   const interaction = useInteraction()
   const actions = useGitActions()
 
+  const { t } = useTranslation()
   const { sidebarOpen, setSidebarOpen } = useUIPreferences()
   const [highlightNodeIds, setHighlightNodeIds] = useState<string[]>([])
   const [pendingModule, setPendingModule] = useState<ModuleId | null>(null)
@@ -42,7 +45,11 @@ export const App = () => {
 
   const { docsOpen, docsPanelWidth, toggleDocs, onResizeMouseDown } = useDocsPanelResize()
   const { explainerCommand, explainerKey, dismissExplainer } = useExplainerCommand(feedback.ticker)
-  const { toastModuleId, justUnlockedId, dismissToast } = useModuleCompletion(moduleFlow.showCompletionOverlay, moduleFlow.mode)
+  const { toastModuleId, levelCompleteId, justUnlockedId, dismissToast, dismissLevelComplete } = useModuleCompletion(
+    moduleFlow.showCompletionOverlay,
+    moduleFlow.isFirstCompletion,
+    moduleFlow.mode
+  )
 
   const currentLesson = MODULE_REGISTRY[moduleFlow.mode]?.lesson
   const currentComplete = moduleFlow.moduleProgress.find((p) => p.id === moduleFlow.mode)?.status === 'complete'
@@ -74,6 +81,7 @@ export const App = () => {
     moduleFlow.setModuleGuided(true)
     moduleFlow.setModuleProgress((prev) => prev.map((p) => (p.id === id && p.status === 'available' ? { ...p, status: 'in_progress' } : p)))
     engine.resetToState(def.makeState(), def.getShadowCommits?.() ?? {}, def.getInitialReflog?.() ?? [])
+    engine.clearUndoHistory()
     interaction.reset(def.initialWip)
     feedback.clear()
   }
@@ -86,6 +94,7 @@ export const App = () => {
     }
     moduleFlow.dismissOverlay()
     moduleFlow.setModuleAttempts(0)
+    engine.clearUndoHistory()
     interaction.reset(def.initialWip)
     feedback.clear()
   }
@@ -100,6 +109,24 @@ export const App = () => {
     setPendingModule(null)
     enterModule(id)
   }
+
+  const canUndo = engine.undoStack.length > 0
+  const canRedo = engine.redoStack.length > 0
+
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (!(e.metaKey || e.ctrlKey)) return
+      if (e.key === 'z' && !e.shiftKey) {
+        e.preventDefault()
+        useGitEngine.getState().undo()
+      } else if ((e.key === 'z' && e.shiftKey) || e.key === 'y') {
+        e.preventDefault()
+        useGitEngine.getState().redo()
+      }
+    }
+    window.addEventListener('keydown', handler)
+    return () => window.removeEventListener('keydown', handler)
+  }, [])
 
   const previewCommand = commandInput.isValid ? commandInput.inputValue : null
 
@@ -141,6 +168,10 @@ export const App = () => {
           onStash={actions.doStash}
           onStashPop={actions.doStashPop}
           onReset={doReset}
+          onUndo={actions.doUndo}
+          onRedo={actions.doRedo}
+          canUndo={canUndo}
+          canRedo={canRedo}
           historyCount={feedback.history.length}
         />
 
@@ -169,6 +200,7 @@ export const App = () => {
                 attempts={moduleFlow.moduleAttempts}
                 guided={moduleFlow.moduleGuided}
                 onToggleGuided={moduleFlow.setModuleGuided}
+                onPasteCommand={commandInput.pasteCommand}
               />
             )}
 
@@ -227,7 +259,7 @@ export const App = () => {
           alignment="right"
           resizable
           closeable
-          title="Docs"
+          title={t('sidebar.docs')}
           width={docsPanelWidth}
           onClose={toggleDocs}
           onResizeMouseDown={onResizeMouseDown}
@@ -236,7 +268,30 @@ export const App = () => {
         </SidebarPanel>
       )}
 
-      {toastModuleId && <Toast moduleId={toastModuleId} accentColor="primary" onDismiss={dismissToast} />}
+      {levelCompleteId && (
+        <LevelCompleteOverlay
+          moduleId={levelCompleteId}
+          onDismiss={() => {
+            dismissLevelComplete()
+            moduleFlow.dismissOverlay()
+          }}
+          onNext={() => {
+            const nextId = levelCompleteId === 'module11' ? 'sandbox' : MODULE_REGISTRY[levelCompleteId]?.next
+            dismissLevelComplete()
+            moduleFlow.dismissOverlay()
+            if (nextId) {
+              const progress = moduleFlow.moduleProgress.find((p) => p.id === nextId)
+              if (!progress || progress.status === 'available') {
+                setPendingModule(nextId as ModuleId)
+              } else {
+                handleEnterModule(nextId as ModuleId)
+              }
+            }
+          }}
+        />
+      )}
+
+      {toastModuleId && <Toast moduleId={toastModuleId} accentColor="var(--ok)" onDismiss={dismissToast} />}
 
       <WelcomeOverlay />
     </div>

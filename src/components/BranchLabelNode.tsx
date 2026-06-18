@@ -96,7 +96,7 @@ export const BranchLabelNode = ({ data }: { data: BranchLabelData }) => {
       onMouseLeave={onMouseLeave}
       data-checkout-branch={data.showCheckout ? data.branch : undefined}
       title={data.showCheckout ? `Checkout ${data.branch}` : undefined}
-      className="flex items-center gap-1 bg-[var(--panel)] font-mono text-xs font-bold whitespace-nowrap"
+      className="flex items-center gap-1 bg-panel font-mono text-xs font-bold whitespace-nowrap"
       style={{
         padding: '4px 11px',
         borderRadius: '60px 10px 60px 10px/10px 60px 10px 60px',

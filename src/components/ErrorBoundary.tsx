@@ -24,7 +24,7 @@ export class ErrorBoundary extends Component<Props, State> {
             Something went wrong
           </span>
           <pre
-            className="m-0 font-mono text-xs break-all whitespace-pre-wrap text-[var(--soft)]"
+            className="m-0 font-mono text-xs break-all whitespace-pre-wrap text-soft"
             style={{ background: 'var(--panel2, #f0f0f0)', borderRadius: 6, padding: '8px 10px' }}
           >
             {error.message}

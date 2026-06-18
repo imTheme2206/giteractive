@@ -1,7 +1,21 @@
 @import 'tailwindcss';
 
-@theme {
+@theme inline {
   --font-hand: 'Kalam', cursive;
+  --color-bg: var(--bg);
+  --color-ink: var(--ink);
+  --color-soft: var(--soft);
+  --color-muted: var(--muted);
+  --color-panel: var(--panel);
+  --color-panel2: var(--panel2);
+  --color-hair: var(--hair);
+  --color-main: var(--main);
+  --color-feat: var(--feat);
+  --color-head: var(--head);
+  --color-ok: var(--ok);
+  --color-ghost: var(--ghost);
+  --color-backdrop: var(--backdrop);
+  --color-conflict: var(--conflict);
 }
 
 :root {

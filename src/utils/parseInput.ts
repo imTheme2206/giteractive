@@ -42,18 +42,23 @@ export const parseInput = (raw: string, gitState: GitState, ctx: ParseContext): 
     return { action: 'stage' }
   }
 
-  const commitMatch = cmd.match(/^git commit -m "(.+)"$/)
+  // Allow both double and single quotes; staged prereq removed for command-first flow
+  const commitMatch = cmd.match(/^git commit -m ["'](.+)["']$/)
   if (commitMatch) {
-    if (ctx.staged === null) return null
     return { action: 'commit', message: commitMatch[1]! }
   }
 
-  const checkoutBMatch = cmd.match(/^git checkout -b (\S+)$/)
+  // Bare `git commit` — auto-generates a message
+  if (cmd === 'git commit') {
+    return { action: 'commit', message: '' }
+  }
+
+  const checkoutBMatch = cmd.match(/^git (?:checkout -b|switch -c) (\S+)$/)
   if (checkoutBMatch) {
     return { action: 'createBranch', name: checkoutBMatch[1]! }
   }
 
-  const checkoutMatch = cmd.match(/^git checkout (?!-b)(\S+)$/)
+  const checkoutMatch = cmd.match(/^git (?:checkout|switch) (?!-b|-c)(\S+)$/)
   if (checkoutMatch) {
     const target = checkoutMatch[1]!
     if (!branches[target]) return null
@@ -124,6 +129,7 @@ const GIT_SUBCOMMANDS = [
   'add',
   'commit',
   'checkout',
+  'switch',
   'cherry-pick',
   'rebase',
   'merge',

@@ -7,7 +7,7 @@ type SectionLabelProps = {
 }
 
 export const SectionLabel = ({ children, className }: SectionLabelProps) => (
-  <span className={cn('mt-3 mb-1 block flex-shrink-0 font-mono text-xs tracking-widest text-[var(--muted)] uppercase', className)}>
+  <span className={cn('mt-3 mb-1 block flex-shrink-0 font-mono text-xs tracking-widest text-muted uppercase', className)}>
     {children}
   </span>
 )
